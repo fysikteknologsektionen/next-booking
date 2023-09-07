@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int                @id @default(autoincrement())
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  name      String
+  email     String
+  googleId  String             @unique
+  image     String?
+  role      Role               @default(USER)
+  venues    UserManagesVenue[]
+}
+
+enum Role {
+  MANAGER
+  ADMIN
+}
+
+model Venue {
+  id           Int                @id @default(autoincrement())
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  name         String
+  description  String?
+  managers     UserManagesVenue[]
+  timeslots    Timeslot[]
+  reservations Reservation[]
+}
+
+model UserManagesVenue {
+  createdAt DateTime @default(now())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  venueId   Int
+  venue     Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+  @@id([userId, venueId])
+}
+
+model Timeslot {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  validFrom DateTime
+  validto   DateTime?
+  startTime DateTime
+  endTime   DateTime
+  venueId   Int
+  venue     Venue     @relation(fields: [venueId], references: [id], onDelete: Cascade)
+}
+
+model Reservation {
+  id                Int      @id @default(autoincrement())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  clientName        String
+  clientEmail       String
+  clientDescription String?
+  date              DateTime
+  startTime         DateTime
+  endTime           DateTime
+  status            Status   @default(PENDING)
+  venueId           Int?
+  venue             Venue?   @relation(fields: [venueId], references: [id], onDelete: SetNull)
+}
+
+enum Status {
+  PENDING
+  ACCEPTED
+  DENIED
+}
