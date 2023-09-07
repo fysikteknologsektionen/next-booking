@@ -1,8 +1,18 @@
 // app/page.tsx
 'use client'
 import { Link } from '@chakra-ui/next-js'
+import { Spinner } from '@chakra-ui/react'
 import Image from 'next/image'
 import styles from './page.module.css'
+import {
+  Slider,
+  SliderTrack,
+  SliderFilledTrack,
+  SliderThumb,
+  SliderMark,
+  Grid,
+  GridItem,
+} from '@chakra-ui/react'
 
 export default function Home() {
   return (
@@ -45,6 +55,26 @@ export default function Home() {
       <Link href='/about' color='blue.400' _hover={{ color: 'blue.500' }}>
         About
       </Link>
+
+      <Grid
+        h='200px'
+        w='400px'
+        templateRows='repeat(2, 1fr)'
+        templateColumns='repeat(5, 1fr)'
+        gap={4}
+      >
+        <GridItem rowSpan={2} colSpan={1} bg='tomato' />
+        <GridItem colSpan={2} bg='papayawhip' />
+        <GridItem colSpan={2} bg='papayawhip' />
+        <GridItem colSpan={4} bg='tomato' />
+      </Grid>
+
+      <Slider aria-label='slider-ex-1' defaultValue={30}>
+        <SliderTrack>
+          <SliderFilledTrack />
+        </SliderTrack>
+        <SliderThumb />
+      </Slider>
 
       <div className={styles.grid}>
         <a
