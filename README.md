@@ -1,34 +1,25 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# booking
 
-## Getting Started
+Room booking application for The Physics Division at Chalmers University of Technology.
 
-First, run the development server:
+## Requirements
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-```
+- VS Code with Devcontainer plugin
+- Docker
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+# Getting started
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Getting the Devcontainer Up and Running
+In order to get the development container up and running you should have the [Remote Development extension pack](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack) installed in Visual Studio Code. You also need to have Docker installed on your system.
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+When developing on Windows it is recommended that you clone the project directly into a volume using the Visual Studio Code option "Clone Repository in Container Volume...". This keeps WSL2 from slowing down the build by having to access the local Windows filesystem.
 
-## Learn More
+On Linux systems you can clone it locally and start the container by using the "Reopen in container" option.
 
-To learn more about Next.js, take a look at the following resources:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+## Initializing the project 
+Open a terminal in the container and do the following
+- Create an .env file from .env.example
+- Install all the node packages by running `npm install`
+- Initiate the database with `npx prisma migrate dev --name init`
+- Start the server with `npm run dev`
