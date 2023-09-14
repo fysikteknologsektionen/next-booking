@@ -1,7 +1,7 @@
 // app/page.tsx
 'use client'
 import { Link } from '@chakra-ui/next-js'
-import { Spinner } from '@chakra-ui/react'
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, Spinner } from '@chakra-ui/react'
 import Image from 'next/image'
 import styles from './page.module.css'
 import {
@@ -13,6 +13,7 @@ import {
   Grid,
   GridItem,
 } from '@chakra-ui/react'
+import Calendar from '@/components/calendar'
 
 export default function Home() {
   return (
@@ -75,6 +76,33 @@ export default function Home() {
         </SliderTrack>
         <SliderThumb />
       </Slider>
+
+      <Spinner
+        thickness='4px'
+        speed='0.65s'
+        emptyColor='gray.200'
+        color='blue.500'
+        size='xl'
+      />
+
+      <Breadcrumb spacing='8px'>
+        <BreadcrumbItem>
+          <BreadcrumbLink href='#'>Home</BreadcrumbLink>
+        </BreadcrumbItem>
+
+        <BreadcrumbItem>
+          <BreadcrumbLink href='#'>About</BreadcrumbLink>
+        </BreadcrumbItem>
+
+        <BreadcrumbItem isCurrentPage>
+          <BreadcrumbLink href='#'>Contact</BreadcrumbLink>
+        </BreadcrumbItem>
+      </Breadcrumb>
+
+      <Calendar></Calendar>
+
+      <br></br>
+      <br></br>
 
       <div className={styles.grid}>
         <a
