@@ -8,8 +8,12 @@ export default function ReservationsList() {
     const [reservations, setReservations] = useState<Reservation[]>();
 
     useEffect(() => {
+        // Dates that determine what reservations are fetched
+        const startTime = new Date("2020-01-01");
+        const endTime = new Date("2025-01-01");
+
         const callAsync = async () => {
-            const res = await getReservationsClient();
+            const res = await getReservationsClient(startTime, endTime);
             setReservations(res);
         }
 
