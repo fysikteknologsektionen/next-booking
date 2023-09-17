@@ -21,5 +21,7 @@ On Linux systems you can clone it locally and start the container by using the "
 Open a terminal in the container and do the following
 - Create an .env file from .env.example
 - Install all the node packages by running `npm install`
-- Initiate the database with `npx prisma migrate dev --name init`
+- Initiate and seed the database with `npx prisma migrate dev --name init`
 - Start the server with `npm run dev`
+
+In order to reset the database to the seeded state run `npx prisma migrate reset`
