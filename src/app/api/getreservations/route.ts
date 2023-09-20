@@ -19,7 +19,5 @@ export async function GET(request:Request) {
         reservations = await getReservationsServer(startTime, endTime);
     }
 
-
-    reservations = await getReservationsServer(startTime, endTime);
     return NextResponse.json(reservations);
 }

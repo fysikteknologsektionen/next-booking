@@ -4,7 +4,6 @@ import prisma from "./prisma";
 // ------ Reservations ------
 // Gets reservations by date. Used on the server
 export async function getReservationsServer(startTime:Date, endTime:Date, venueIDs?:number[]) {
-
     const reservations = await prisma.reservation.findMany({
         where: {
             date: {
@@ -30,7 +29,6 @@ export async function getReservationsClient(startTime:Date, endTime:Date, venueI
     }
     // Send the request
     const res = await fetch("/api/getreservations?" + params);
-    console.log("Has fetched")
     if (!res.ok) {
         // This will activate the closest `error.js` Error Boundary
         throw new Error('Failed to fetch data')
@@ -50,7 +48,6 @@ export async function getVenuesServer() {
 // Gets all venues. Used on the client
 export async function getVenuesClient() {
     const res = await fetch("/api/getvenues");
-    console.log("Has fetched")
     if (!res.ok) {
         // This will activate the closest `error.js` Error Boundary
         throw new Error('Failed to fetch data')
