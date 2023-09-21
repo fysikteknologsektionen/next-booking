@@ -1,5 +1,19 @@
+// app/page.tsx
+'use client'
+import { Link } from '@chakra-ui/next-js'
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, Spinner } from '@chakra-ui/react'
 import Image from 'next/image'
 import styles from './page.module.css'
+import {
+  Slider,
+  SliderTrack,
+  SliderFilledTrack,
+  SliderThumb,
+  SliderMark,
+  Grid,
+  GridItem,
+} from '@chakra-ui/react'
+import Calendar from '@/components/calendar'
 
 export default function Home() {
   return (
@@ -38,6 +52,57 @@ export default function Home() {
           priority
         />
       </div>
+
+      <Link href='/about' color='blue.400' _hover={{ color: 'blue.500' }}>
+        About
+      </Link>
+
+      <Grid
+        h='200px'
+        w='400px'
+        templateRows='repeat(2, 1fr)'
+        templateColumns='repeat(5, 1fr)'
+        gap={4}
+      >
+        <GridItem rowSpan={2} colSpan={1} bg='tomato' />
+        <GridItem colSpan={2} bg='papayawhip' />
+        <GridItem colSpan={2} bg='papayawhip' />
+        <GridItem colSpan={4} bg='tomato' />
+      </Grid>
+
+      <Slider aria-label='slider-ex-1' defaultValue={30}>
+        <SliderTrack>
+          <SliderFilledTrack />
+        </SliderTrack>
+        <SliderThumb />
+      </Slider>
+
+      <Spinner
+        thickness='4px'
+        speed='0.65s'
+        emptyColor='gray.200'
+        color='blue.500'
+        size='xl'
+      />
+
+      <Breadcrumb spacing='8px'>
+        <BreadcrumbItem>
+          <BreadcrumbLink href='#'>Home</BreadcrumbLink>
+        </BreadcrumbItem>
+
+        <BreadcrumbItem>
+          <BreadcrumbLink href='#'>About</BreadcrumbLink>
+        </BreadcrumbItem>
+
+        <BreadcrumbItem isCurrentPage>
+          <BreadcrumbLink href='#'>Contact</BreadcrumbLink>
+        </BreadcrumbItem>
+      </Breadcrumb>
+
+      <Calendar></Calendar>
+
+      <br></br>
+      <br></br>
 
       <div className={styles.grid}>
         <a
