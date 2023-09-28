@@ -13,7 +13,7 @@ export async function GET(request:Request) {
     const startTime = new Date(parseInt(startTimeUnix))
     const endTime = new Date(parseInt(endTimeUnix))
     let reservations:Reservation[];
-    if (venueIDs) {
+    if (venueIDs.length !== 0) {
         reservations = await getReservationsServer(startTime, endTime, venueIDs);
     } else {
         reservations = await getReservationsServer(startTime, endTime);
