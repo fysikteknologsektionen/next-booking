@@ -1,10 +1,11 @@
 "use client";
 
 import styles from "calendar.module.css";
-import { Text, Grid, GridItem, Center, Button, Circle, HStack, Box, VStack, Tag } from "@chakra-ui/react";
+import { Text, Grid, GridItem, Center, Button, Circle, HStack, Box, VStack, Tag, Spinner, IconButton } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { Reservation } from "@prisma/client";
 import { getReservationsClient } from "@/lib/fetching";
+import { ArrowBackIcon, ArrowForwardIcon } from "@chakra-ui/icons";
 
 const monthNames = [
     "Jan",
@@ -55,14 +56,16 @@ export default function Calendar() {
     const nrDays = daysInMonth(month);
     const days = Array.from({length: nrDays}, (_, i) => i + 1)
 
+    const [isLoading, setLoading] = useState(false);
     const [reservations, setReservations] = useState<Reservation[]>([]);
     useEffect(() => {
         (async () => {
             const startTime = month;
             const endTime = new Date(month.getFullYear(), month.getMonth() + 1, 0);
 
+            setLoading(true)
             const res = await getReservationsClient(startTime, endTime);
-            
+
             const parsedReservations: Reservation[] = res.map((r: any) => {
                 return {
                     ...r,
@@ -74,6 +77,7 @@ export default function Calendar() {
                 };
             })
             setReservations(parsedReservations);
+            setLoading(false)
         })();
     }, [ month ]);
 
@@ -103,12 +107,14 @@ export default function Calendar() {
     }
 
     return (
-        <div>
+        <div style={{
+            maxWidth: "600px"
+        }}>
             <Center border="1px solid black" position="relative">
                 <HStack gap="1rem">
-                    <Button onClick={prevMonth}>Prev</Button>
+                    <IconButton aria-label='Previous month' icon={<ArrowBackIcon />} onClick={prevMonth} />
                     <Text>{getNameOfMonth(month)} {month.getFullYear()}</Text>
-                    <Button onClick={nextMonth}>Next</Button>
+                    <IconButton aria-label='Next month' icon={<ArrowForwardIcon />} onClick={nextMonth} />
                 </HStack>
 
                 <Button
@@ -117,6 +123,13 @@ export default function Calendar() {
                     left="0"
                     top="0"
                 >Today</Button>
+
+                {isLoading && (
+                    <Spinner
+                        position="absolute"
+                        right="1rem"
+                    ></Spinner>
+                )}
             </Center>
 
             <Grid templateColumns={"repeat(7, 1fr)"} gap="1px" bg="gray">
