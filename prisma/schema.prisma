@@ -15,11 +15,12 @@ model User {
   email     String
   googleId  String             @unique
   image     String?
-  role      Role               @default(MANAGER)
+  role      Role               @default(USER)
   venues    UserManagesVenue[]
 }
 
 enum Role {
+  USER
   MANAGER
   ADMIN
 }
