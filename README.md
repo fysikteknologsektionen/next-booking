@@ -2,6 +2,8 @@
 
 Room booking application for The Physics Division at Chalmers University of Technology.
 
+Built with Next.js, written in Typescript, handles database with Prisma and uses tRPC APIs.
+
 ## Requirements
 
 - VS Code with Devcontainer plugin
