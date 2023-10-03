@@ -1,5 +1,5 @@
 
-import { getReservationsServer, getVenuesServer } from "@/lib/fetching";
+import { getReservationsServer, getVenuesServer } from "@/server/lib/fetching";
 import ReservationsList from "./reservationslist";
 
 export default async function Page() {

@@ -1,5 +1,5 @@
 'use client'
-import { getReservationsClient } from "@/lib/fetching";
+import { getReservationsClient } from "@/server/lib/fetching";
 import { Reservation } from "@prisma/client";
 import { useEffect, useState, useMemo } from "react";
 

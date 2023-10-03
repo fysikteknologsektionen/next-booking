@@ -5,6 +5,7 @@ const envVars = [
     "GOOGLE_OAUTH_CLIENT_ID",
     "GOOGLE_OAUTH_CLIENT_SECRET",
     "DATABASE_URL",
+    "APP_URL",
   ] as const;
   
   const config = envVars.reduce(
