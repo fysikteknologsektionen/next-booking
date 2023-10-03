@@ -1,6 +1,5 @@
-import { getReservationsServer } from "@/lib/fetching";
 import { NextResponse } from "next/server";
-import { getVenuesServer } from "@/lib/fetching";
+import { getVenuesServer } from "@/server/api/getvenues";
 
 
 export async function GET() {

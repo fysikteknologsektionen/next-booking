@@ -1,5 +1,5 @@
 'use client'
-import { getReservationsClient } from "@/lib/fetching";
+import { getReservationsClient } from "@/server/api/getreservations";
 import { Reservation } from "@prisma/client";
 import { useEffect, useState} from "react";
 import VenueDropdown from "./venuedropdown";

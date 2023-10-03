@@ -4,7 +4,7 @@ import styles from "calendar.module.css";
 import { Text, Grid, GridItem, Center, Button, Circle, HStack, Box, VStack, Tag, Spinner, IconButton } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { Reservation } from "@prisma/client";
-import { getReservationsClient } from "@/lib/fetching";
+import { getReservationsClient } from "@/server/api/getreservations";
 import { ArrowBackIcon, ArrowForwardIcon } from "@chakra-ui/icons";
 
 const monthNames = [
