@@ -68,9 +68,14 @@ export default function BookingPage({
 
     return (
         <main style={{ padding: "2rem" }}>
-            <Heading>Boka lokal</Heading>
+            <Heading marginBottom="0.5em">Boka lokal</Heading>
             
-            <form onSubmit={submit}>
+            <form onSubmit={submit} style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "1.25rem",
+                maxWidth: "600px"
+            }}>
                 <FormControl isRequired>
                     <FormLabel>Lokal</FormLabel>
                     <Select
@@ -146,14 +151,17 @@ export default function BookingPage({
                     <Text>Jag vill boka {venues.find(v => v.id.toString() === venue)?.name} i {formatDuration(duration)}</Text>
                 )}
 
-                <Button
-                    type="submit"
-                    isDisabled={isLoading}
-                >Skapa bokning</Button>
+                <HStack>
+                    <Button
+                        type="submit"
+                        isDisabled={isLoading}
+                        colorScheme="blue"
+                    >Skapa bokning</Button>
 
-                {isLoading && (
-                    <Spinner></Spinner>
-                )}
+                    {isLoading && (
+                        <Spinner></Spinner>
+                    )}
+                </HStack>
             </form>
         </main>
     )

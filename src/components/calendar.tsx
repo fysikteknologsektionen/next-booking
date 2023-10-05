@@ -159,7 +159,11 @@ export default function Calendar() {
             <div style={{
                 maxWidth: "800px"
             }}>
-                <Center border="1px solid black" position="relative">
+                <Center
+                    borderBottom="1px solid black"
+                    position="relative"
+                    paddingBottom="0.5rem"
+                >
                     <HStack gap="1rem">
                         <IconButton aria-label='Previous month' icon={<ArrowBackIcon />} onClick={prevMonth} />
                         <Text>{getNameOfMonth(month)} {month.getFullYear()}</Text>
@@ -171,7 +175,7 @@ export default function Calendar() {
                         position="absolute"
                         left="0"
                         top="0"
-                    >Today</Button>
+                    >Jdag</Button>
 
                     {isLoading && (
                         <Spinner
@@ -184,7 +188,8 @@ export default function Calendar() {
                 <Grid
                     templateColumns={"repeat(7, minmax(0, 1fr))"}
                     gap="1px"
-                    bg="gray"
+                    bg="gray.200"
+                    borderBottom="1px solid black"
                 >
                     {dayNames.map((name, index) => {
                         return (
@@ -199,7 +204,7 @@ export default function Calendar() {
                     templateColumns={"repeat(7, minmax(0, 1fr))"}
                     gridAutoRows="1fr"
                     gap="1px"
-                    bg="gray"
+                    bg="gray.200"
                 >
                     {days.map((day, index) => {
                         return (
