@@ -181,7 +181,11 @@ export default function Calendar() {
                     )}
                 </Center>
 
-                <Grid templateColumns={"repeat(7, minmax(0, 1fr))"} gap="1px" bg="gray">
+                <Grid
+                    templateColumns={"repeat(7, minmax(0, 1fr))"}
+                    gap="1px"
+                    bg="gray"
+                >
                     {dayNames.map((name, index) => {
                         return (
                             <GridItem key={index} bg="white" paddingLeft="0.25rem">
@@ -189,11 +193,17 @@ export default function Calendar() {
                             </GridItem>
                         )
                     })}
+                </Grid>
 
+                <Grid
+                    templateColumns={"repeat(7, minmax(0, 1fr))"}
+                    gridAutoRows="1fr"
+                    gap="1px"
+                    bg="gray"
+                >
                     {days.map((day, index) => {
-                        
                         return (
-                            <GridItem gridColumnStart={index === 0 ? firstDayOffset : undefined} key={index} aspectRatio="1 / 1" bg="white" padding="0.25rem">
+                            <GridItem gridColumnStart={index === 0 ? firstDayOffset : undefined} key={index} bg="white" padding="0.25rem">
                                 {isToday(day, today) ? (
                                     <Circle
                                         bg="blue.500"
