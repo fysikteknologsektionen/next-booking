@@ -1,7 +1,17 @@
 "use client";
 
 import styles from "calendar.module.css";
-import { Text, Grid, GridItem, Center, Button, Circle, HStack, Box, VStack, Tag, Spinner, IconButton } from "@chakra-ui/react";
+import {
+    Modal,
+    ModalOverlay,
+    ModalContent,
+    ModalHeader,
+    ModalFooter,
+    ModalBody,
+    ModalCloseButton,
+    Heading,
+} from '@chakra-ui/react'
+import { Text, Grid, GridItem, Center, Button, Circle, HStack, Box, VStack, Tag, Spinner, IconButton, useDisclosure } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { Reservation } from "@prisma/client";
 import { getReservationsClient } from "@/server/api/getreservations";
@@ -81,6 +91,9 @@ export default function Calendar() {
         })();
     }, [ month ]);
 
+    const { isOpen, onOpen, onClose } = useDisclosure()
+    const [activeReservation, setActiveReservation] = useState<Reservation>()
+
     const prevMonth = () => {
         const date = new Date(month);
         date.setUTCMonth(date.getMonth() - 1)
@@ -119,8 +132,13 @@ export default function Calendar() {
             <>
                 <VStack gap="0.25rem">
                     {todaysReservtions.slice(0, viewMax).map((reservation, index) => {
+                        const onclick = () => {
+                            setActiveReservation(reservation);
+                            onOpen();
+                        }
+
                         return (
-                            <Tag width="100%" bg="red" key={index}>
+                            <Tag onClick={onclick} width="100%" bg="red" key={index}>
                                 <Text isTruncated>
                                     {reservation.clientName}
                                 </Text>
@@ -137,63 +155,96 @@ export default function Calendar() {
     }
 
     return (
-        <div style={{
-            maxWidth: "800px"
-        }}>
-            <Center border="1px solid black" position="relative">
-                <HStack gap="1rem">
-                    <IconButton aria-label='Previous month' icon={<ArrowBackIcon />} onClick={prevMonth} />
-                    <Text>{getNameOfMonth(month)} {month.getFullYear()}</Text>
-                    <IconButton aria-label='Next month' icon={<ArrowForwardIcon />} onClick={nextMonth} />
-                </HStack>
+        <>
+            <div style={{
+                maxWidth: "800px"
+            }}>
+                <Center border="1px solid black" position="relative">
+                    <HStack gap="1rem">
+                        <IconButton aria-label='Previous month' icon={<ArrowBackIcon />} onClick={prevMonth} />
+                        <Text>{getNameOfMonth(month)} {month.getFullYear()}</Text>
+                        <IconButton aria-label='Next month' icon={<ArrowForwardIcon />} onClick={nextMonth} />
+                    </HStack>
 
-                <Button
-                    onClick={viewCurrentMonth}
-                    position="absolute"
-                    left="0"
-                    top="0"
-                >Today</Button>
-
-                {isLoading && (
-                    <Spinner
+                    <Button
+                        onClick={viewCurrentMonth}
                         position="absolute"
-                        right="1rem"
-                    ></Spinner>
-                )}
-            </Center>
+                        left="0"
+                        top="0"
+                    >Today</Button>
 
-            <Grid templateColumns={"repeat(7, minmax(0, 1fr))"} gap="1px" bg="gray">
-                {dayNames.map((name, index) => {
-                    return (
-                        <GridItem key={index} bg="white" paddingLeft="0.25rem">
-                            <Text as="b">{name}</Text>
-                        </GridItem>
-                    )
-                })}
+                    {isLoading && (
+                        <Spinner
+                            position="absolute"
+                            right="1rem"
+                        ></Spinner>
+                    )}
+                </Center>
 
-                {days.map((day, index) => {
-                    
-                    return (
-                        <GridItem gridColumnStart={index === 0 ? firstDayOffset : undefined} key={index} aspectRatio="1 / 1" bg="white" padding="0.25rem">
-                            {isToday(day, today) ? (
-                                <Circle
-                                    bg="blue.500"
-                                    size="30px"
-                                    fontWeight="bold"
-                                    color="white"
-                                >
-                                    {day}
-                                </Circle>
-                            ) : (
-                                day
-                            )}
+                <Grid templateColumns={"repeat(7, minmax(0, 1fr))"} gap="1px" bg="gray">
+                    {dayNames.map((name, index) => {
+                        return (
+                            <GridItem key={index} bg="white" paddingLeft="0.25rem">
+                                <Text as="b">{name}</Text>
+                            </GridItem>
+                        )
+                    })}
 
-                            {renderReservations(day)}
+                    {days.map((day, index) => {
+                        
+                        return (
+                            <GridItem gridColumnStart={index === 0 ? firstDayOffset : undefined} key={index} aspectRatio="1 / 1" bg="white" padding="0.25rem">
+                                {isToday(day, today) ? (
+                                    <Circle
+                                        bg="blue.500"
+                                        size="30px"
+                                        fontWeight="bold"
+                                        color="white"
+                                    >
+                                        {day}
+                                    </Circle>
+                                ) : (
+                                    day
+                                )}
 
-                        </GridItem>
-                    )
-                })}
-            </Grid>
-        </div>
+                                {renderReservations(day)}
+
+                            </GridItem>
+                        )
+                    })}
+                </Grid>
+            </div>
+
+            <Modal isOpen={isOpen} onClose={onClose}>
+                <ModalOverlay />
+                <ModalContent>
+                <ModalHeader>Bokning</ModalHeader>
+                <ModalCloseButton />
+                <ModalBody>
+                    {activeReservation && (
+                        <>
+                            <Text>{activeReservation.clientName} ({activeReservation.clientEmail}) har bokat lokal-id: {activeReservation.venueId}</Text>
+                            <br />
+
+                            <Text as="b">Beskrivning</Text>
+                            <Text>{activeReservation.clientDescription}</Text>
+                            <br />
+
+                            <Text as="b">Tid</Text>
+                            <Text>Från {activeReservation.startTime.toLocaleString()}</Text>
+                            <Text>Till {activeReservation.endTime.toLocaleString()}</Text>
+                        </>
+                    )}
+                </ModalBody>
+
+                <ModalFooter>
+                    <Button colorScheme='blue' mr={3} onClick={onClose}>
+                    Close
+                    </Button>
+                    {/* <Button variant='ghost'>Secondary Action</Button> */}
+                </ModalFooter>
+                </ModalContent>
+            </Modal>
+        </>
     )
 }
