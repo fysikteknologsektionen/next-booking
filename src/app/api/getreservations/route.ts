@@ -1,4 +1,4 @@
-import { getReservationsServer } from "@/lib/fetching";
+import { getReservationsServer } from "@/server/api/getreservations";
 import { Reservation } from "@prisma/client";
 import { NextResponse } from "next/server";
 

@@ -1,4 +1,4 @@
-import { getVenuesServer } from "@/lib/fetching"
+import { getVenuesServer } from "@/server/api/getvenues"
 import BookingPage from "./bookingPage"
 
 export default async function Home() {

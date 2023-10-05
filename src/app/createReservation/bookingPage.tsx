@@ -1,6 +1,7 @@
 "use client";
 
 import { dateToInput, formatDuration } from "@/lib/helper";
+import { createReservationClient } from "@/server/api/createReservation";
 import { Button, FormControl, FormErrorMessage, FormLabel, Heading, HStack, Input, Select, Text, Textarea } from "@chakra-ui/react";
 import { Venue } from "@prisma/client";
 import { FormEventHandler, useEffect, useMemo, useState } from "react";
@@ -44,25 +45,18 @@ export default function BookingPage({
         setShowErrors(true);
         setLoading(true);
 
-        const rawResponse = await fetch('/api/createReservation', {
-            method: 'POST',
-            headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                clientName: name,
-                clientEmail: email,
-                clientDescription: description,
-                startTime: from,
-                endTime: to,
-                venueId: venue
-            })
-        });
-        const content = await rawResponse.json();
-        console.log(content);
-
-        console.log("done")
+        // Collect all reservation details
+        const reservationDetails = {
+            clientName: name,
+            clientEmail: email,
+            clientDescription: description,
+            venueId: parseInt(venue),
+            date: from,
+            startTime: from,
+            endTime: to,
+        }
+        // Make POST fetch request using the data
+        createReservationClient(reservationDetails);
 
         setLoading(false);
     }
