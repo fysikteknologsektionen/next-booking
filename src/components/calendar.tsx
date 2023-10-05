@@ -106,9 +106,39 @@ export default function Calendar() {
         );
     }
 
+    const renderReservations = (day: number) => {
+        if (!reservations) {
+            return;
+        }
+
+        const viewMax = 2;
+        const todaysReservtions = reservations.filter(r => isToday(day, r.startTime));
+        const leftOut = todaysReservtions.length - 2;
+
+        return (
+            <>
+                <VStack gap="0.25rem">
+                    {todaysReservtions.slice(0, viewMax).map((reservation, index) => {
+                        return (
+                            <Tag width="100%" bg="red" key={index}>
+                                <Text isTruncated>
+                                    {reservation.clientName}
+                                </Text>
+                            </Tag>
+                        )
+                    })}
+                </VStack>
+
+                {leftOut > 0 && (
+                    <span>+ {leftOut} till</span>
+                )}
+            </>
+        )
+    }
+
     return (
         <div style={{
-            maxWidth: "600px"
+            maxWidth: "800px"
         }}>
             <Center border="1px solid black" position="relative">
                 <HStack gap="1rem">
@@ -132,7 +162,7 @@ export default function Calendar() {
                 )}
             </Center>
 
-            <Grid templateColumns={"repeat(7, 1fr)"} gap="1px" bg="gray">
+            <Grid templateColumns={"repeat(7, minmax(0, 1fr))"} gap="1px" bg="gray">
                 {dayNames.map((name, index) => {
                     return (
                         <GridItem key={index} bg="white" paddingLeft="0.25rem">
@@ -142,6 +172,7 @@ export default function Calendar() {
                 })}
 
                 {days.map((day, index) => {
+                    
                     return (
                         <GridItem gridColumnStart={index === 0 ? firstDayOffset : undefined} key={index} aspectRatio="1 / 1" bg="white" padding="0.25rem">
                             {isToday(day, today) ? (
@@ -157,19 +188,7 @@ export default function Calendar() {
                                 day
                             )}
 
-                            {reservations && (
-                                <VStack width="100%" gap="0.25rem">
-                                    {reservations.filter(r => isToday(day, r.startTime)).map((reservation, index) => {
-                                        return (
-                                            <Tag width="100%" bg="red" key={index}>
-                                                <Text isTruncated>
-                                                    {reservation.clientName}
-                                                </Text>
-                                            </Tag>
-                                        )
-                                    })}
-                                </VStack>
-                            )}
+                            {renderReservations(day)}
 
                         </GridItem>
                     )

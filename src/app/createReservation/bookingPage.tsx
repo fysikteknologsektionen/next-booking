@@ -2,8 +2,9 @@
 
 import { dateToInput, formatDuration } from "@/lib/helper";
 import { createReservationClient } from "@/server/api/createReservation";
-import { Button, FormControl, FormErrorMessage, FormLabel, Heading, HStack, Input, Select, Text, Textarea } from "@chakra-ui/react";
+import { Button, FormControl, FormErrorMessage, FormLabel, Heading, HStack, Input, Select, Spinner, Text, Textarea } from "@chakra-ui/react";
 import { Venue } from "@prisma/client";
+import { useRouter } from "next/navigation";
 import { FormEventHandler, useEffect, useMemo, useState } from "react";
 
 const fromDefault = new Date();
@@ -17,6 +18,8 @@ export default function BookingPage({
 }: {
     venues: Venue[]
 }) {
+    const router = useRouter();
+
     const [venue, setVenue] = useState("")
     const [name, setName] = useState("")
     const [email, setEmail] = useState("")
@@ -37,13 +40,12 @@ export default function BookingPage({
     const submit: FormEventHandler<HTMLFormElement> = async (e) => {
         e.preventDefault()
 
+        setShowErrors(true);
+
         if (duration.valueOf() <= 0) {
             console.error("> 0min pls")
             return;
         }
-
-        setShowErrors(true);
-        setLoading(true);
 
         // Collect all reservation details
         const reservationDetails = {
@@ -56,9 +58,12 @@ export default function BookingPage({
             endTime: to,
         }
         // Make POST fetch request using the data
-        createReservationClient(reservationDetails);
+        setLoading(true);
+        await createReservationClient(reservationDetails);
 
-        setLoading(false);
+        console.log("Success")
+
+        router.push("/")
     }
 
     return (
@@ -145,6 +150,10 @@ export default function BookingPage({
                     type="submit"
                     isDisabled={isLoading}
                 >Skapa bokning</Button>
+
+                {isLoading && (
+                    <Spinner></Spinner>
+                )}
             </form>
         </main>
     )
