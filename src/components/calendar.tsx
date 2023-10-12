@@ -211,7 +211,7 @@ export default function Calendar() {
                 >
                     {days.map((day, index) => {
                         return (
-                            <GridItem gridColumnStart={index === 0 ? firstDayOffset : undefined} key={index} bg="white" padding="0.25rem">
+                            <GridItem gridColumnStart={index === 0 ? firstDayOffset : undefined} key={index} bg="white" padding="0.25rem" minHeight="136px">
                                 {isToday(day, today) ? (
                                     <Circle
                                         bg="blue.500"
