@@ -1,11 +1,22 @@
 "use client";
 
 import styles from "calendar.module.css";
-import { Text, Grid, GridItem, Center, Button, Circle, HStack, Box, VStack, Tag, Spinner, IconButton } from "@chakra-ui/react";
+import {
+    Modal,
+    ModalOverlay,
+    ModalContent,
+    ModalHeader,
+    ModalFooter,
+    ModalBody,
+    ModalCloseButton,
+    Heading,
+} from '@chakra-ui/react'
+import { Text, Grid, GridItem, Center, Button, Circle, HStack, Box, VStack, Tag, Spinner, IconButton, useDisclosure } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { Reservation } from "@prisma/client";
 import { getReservationsClient } from "@/server/api/getreservations";
 import { ArrowBackIcon, ArrowForwardIcon } from "@chakra-ui/icons";
+import { useVenueStore } from "@/lib/venueStore";
 
 const monthNames = [
     "Jan",
@@ -50,6 +61,8 @@ const daysInMonth = (date: Date) => {
 }
 
 export default function Calendar() {
+    const venues = useVenueStore((state) => state.venues);
+
     const today = new Date();
     const [month, setMonth] = useState(getCurrentMonth())
     const firstDayOffset = (month.getDay() - 1 + 7) % 7 + 1;
@@ -81,6 +94,9 @@ export default function Calendar() {
         })();
     }, [ month ]);
 
+    const { isOpen, onOpen, onClose } = useDisclosure()
+    const [activeReservation, setActiveReservation] = useState<Reservation>()
+
     const prevMonth = () => {
         const date = new Date(month);
         date.setUTCMonth(date.getMonth() - 1)
@@ -106,75 +122,147 @@ export default function Calendar() {
         );
     }
 
-    return (
-        <div style={{
-            maxWidth: "600px"
-        }}>
-            <Center border="1px solid black" position="relative">
-                <HStack gap="1rem">
-                    <IconButton aria-label='Previous month' icon={<ArrowBackIcon />} onClick={prevMonth} />
-                    <Text>{getNameOfMonth(month)} {month.getFullYear()}</Text>
-                    <IconButton aria-label='Next month' icon={<ArrowForwardIcon />} onClick={nextMonth} />
-                </HStack>
+    const renderReservations = (day: number) => {
+        if (!reservations) {
+            return;
+        }
 
-                <Button
-                    onClick={viewCurrentMonth}
-                    position="absolute"
-                    left="0"
-                    top="0"
-                >Today</Button>
+        const viewMax = 3;
+        const todaysReservtions = reservations.filter(r => isToday(day, r.startTime));
+        const leftOut = todaysReservtions.length - viewMax;
 
-                {isLoading && (
-                    <Spinner
-                        position="absolute"
-                        right="1rem"
-                    ></Spinner>
+        return (
+            <>
+                <VStack gap="0.25rem">
+                    {todaysReservtions.slice(0, viewMax).map((reservation, index) => {
+                        const onclick = () => {
+                            setActiveReservation(reservation);
+                            onOpen();
+                        }
+
+                        return (
+                            <Tag onClick={onclick} width="100%" bg="red" key={index}>
+                                <Text isTruncated>
+                                    {venues.find(v => v.id === reservation.venueId)?.name ?? reservation.venueId}
+                                </Text>
+                            </Tag>
+                        )
+                    })}
+                </VStack>
+
+                {leftOut > 0 && (
+                    <span>+ {leftOut} till</span>
                 )}
-            </Center>
+            </>
+        )
+    }
 
-            <Grid templateColumns={"repeat(7, 1fr)"} gap="1px" bg="gray">
-                {dayNames.map((name, index) => {
-                    return (
-                        <GridItem key={index} bg="white" paddingLeft="0.25rem">
-                            <Text as="b">{name}</Text>
-                        </GridItem>
-                    )
-                })}
+    return (
+        <>
+            <div style={{
+                maxWidth: "800px"
+            }}>
+                <Center
+                    borderBottom="1px solid black"
+                    position="relative"
+                    paddingBottom="0.5rem"
+                >
+                    <HStack gap="1rem">
+                        <IconButton aria-label='Previous month' icon={<ArrowBackIcon />} onClick={prevMonth} />
+                        <Text>{getNameOfMonth(month)} {month.getFullYear()}</Text>
+                        <IconButton aria-label='Next month' icon={<ArrowForwardIcon />} onClick={nextMonth} />
+                    </HStack>
 
-                {days.map((day, index) => {
-                    return (
-                        <GridItem gridColumnStart={index === 0 ? firstDayOffset : undefined} key={index} aspectRatio="1 / 1" bg="white" padding="0.25rem">
-                            {isToday(day, today) ? (
-                                <Circle
-                                    bg="blue.500"
-                                    size="30px"
-                                    fontWeight="bold"
-                                    color="white"
-                                >
-                                    {day}
-                                </Circle>
-                            ) : (
-                                day
-                            )}
+                    <Button
+                        onClick={viewCurrentMonth}
+                        position="absolute"
+                        left="0"
+                        top="0"
+                    >Jdag</Button>
 
-                            {reservations && (
-                                <VStack width="100%" gap="0.25rem">
-                                    {reservations.filter(r => isToday(day, r.startTime)).map((reservation, index) => {
-                                        return (
-                                            <Tag width="100%" bg="red" key={index}>
-                                                <Text isTruncated>
-                                                    {reservation.clientName}
-                                                </Text>
-                                            </Tag>
-                                        )
-                                    })}
-                                </VStack>
-                            )}
+                    {isLoading && (
+                        <Spinner
+                            position="absolute"
+                            right="1rem"
+                        ></Spinner>
+                    )}
+                </Center>
 
-                        </GridItem>
-                    )
-                })}
-            </Grid>
-        </div>
+                <Grid
+                    templateColumns={"repeat(7, minmax(0, 1fr))"}
+                    gap="1px"
+                    bg="gray.200"
+                    borderBottom="1px solid black"
+                >
+                    {dayNames.map((name, index) => {
+                        return (
+                            <GridItem key={index} bg="white" paddingLeft="0.25rem">
+                                <Text as="b">{name}</Text>
+                            </GridItem>
+                        )
+                    })}
+                </Grid>
+
+                <Grid
+                    templateColumns={"repeat(7, minmax(0, 1fr))"}
+                    gridAutoRows="1fr"
+                    gap="1px"
+                    bg="gray.200"
+                >
+                    {days.map((day, index) => {
+                        return (
+                            <GridItem gridColumnStart={index === 0 ? firstDayOffset : undefined} key={index} bg="white" padding="0.25rem" minHeight="136px">
+                                {isToday(day, today) ? (
+                                    <Circle
+                                        bg="blue.500"
+                                        size="30px"
+                                        fontWeight="bold"
+                                        color="white"
+                                    >
+                                        {day}
+                                    </Circle>
+                                ) : (
+                                    day
+                                )}
+
+                                {renderReservations(day)}
+
+                            </GridItem>
+                        )
+                    })}
+                </Grid>
+            </div>
+
+            <Modal isOpen={isOpen} onClose={onClose}>
+                <ModalOverlay />
+                <ModalContent>
+                <ModalHeader>Bokning</ModalHeader>
+                <ModalCloseButton />
+                <ModalBody>
+                    {activeReservation && (
+                        <>
+                            <Text>{activeReservation.clientName} ({activeReservation.clientEmail}) har bokat <i>{venues.find(v => v.id === activeReservation.venueId)?.name ?? activeReservation.venueId}</i></Text>
+                            <br />
+
+                            <Text as="b">Beskrivning</Text>
+                            <Text>{activeReservation.clientDescription}</Text>
+                            <br />
+
+                            <Text as="b">Tid</Text>
+                            <Text>Från {activeReservation.startTime.toLocaleString()}</Text>
+                            <Text>Till {activeReservation.endTime.toLocaleString()}</Text>
+                        </>
+                    )}
+                </ModalBody>
+
+                <ModalFooter>
+                    <Button colorScheme='blue' mr={3} onClick={onClose}>
+                    Close
+                    </Button>
+                    {/* <Button variant='ghost'>Secondary Action</Button> */}
+                </ModalFooter>
+                </ModalContent>
+            </Modal>
+        </>
     )
 }
