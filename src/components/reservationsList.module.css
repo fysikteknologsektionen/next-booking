@@ -1,0 +1,16 @@
+.reservations {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.header {
+    font-weight: bold;
+    border-bottom: 1px solid black;
+}
+
+.item {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) 200px 200px;
+    gap: 0.5rem;
+}
