@@ -27,7 +27,7 @@ export async function getReservationsClient(startTime:Date, endTime:Date, venueI
         }
     }
     // Send the request
-    const res = await fetch("/api/getreservations?" + params);
+    const res = await fetch("/api/reservations?" + params);
     if (!res.ok) {
         // This will activate the closest `error.js` Error Boundary
         throw new Error('Failed to fetch data')

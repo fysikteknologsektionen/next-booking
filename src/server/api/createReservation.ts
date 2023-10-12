@@ -48,7 +48,7 @@ export async function createReservationClient(reservationDetails:{
 
     try {
         const body = { reservationDetails: reservationDetails };
-        const rawResponse = await fetch('/api/createReservation', {
+        const rawResponse = await fetch('/api/reservations/create', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body),
