@@ -16,6 +16,7 @@ import { useEffect, useState } from "react";
 import { Reservation } from "@prisma/client";
 import { getReservationsClient } from "@/server/api/getreservations";
 import { ArrowBackIcon, ArrowForwardIcon } from "@chakra-ui/icons";
+import { useVenueStore } from "@/lib/venueStore";
 
 const monthNames = [
     "Jan",
@@ -60,6 +61,8 @@ const daysInMonth = (date: Date) => {
 }
 
 export default function Calendar() {
+    const venues = useVenueStore((state) => state.venues);
+
     const today = new Date();
     const [month, setMonth] = useState(getCurrentMonth())
     const firstDayOffset = (month.getDay() - 1 + 7) % 7 + 1;
@@ -124,9 +127,9 @@ export default function Calendar() {
             return;
         }
 
-        const viewMax = 2;
+        const viewMax = 3;
         const todaysReservtions = reservations.filter(r => isToday(day, r.startTime));
-        const leftOut = todaysReservtions.length - 2;
+        const leftOut = todaysReservtions.length - viewMax;
 
         return (
             <>
@@ -140,7 +143,7 @@ export default function Calendar() {
                         return (
                             <Tag onClick={onclick} width="100%" bg="red" key={index}>
                                 <Text isTruncated>
-                                    {reservation.clientName}
+                                    {venues.find(v => v.id === reservation.venueId)?.name ?? reservation.venueId}
                                 </Text>
                             </Tag>
                         )
@@ -238,7 +241,7 @@ export default function Calendar() {
                 <ModalBody>
                     {activeReservation && (
                         <>
-                            <Text>{activeReservation.clientName} ({activeReservation.clientEmail}) har bokat lokal-id: {activeReservation.venueId}</Text>
+                            <Text>{activeReservation.clientName} ({activeReservation.clientEmail}) har bokat <i>{venues.find(v => v.id === activeReservation.venueId)?.name ?? activeReservation.venueId}</i></Text>
                             <br />
 
                             <Text as="b">Beskrivning</Text>
