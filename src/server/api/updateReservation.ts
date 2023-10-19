@@ -2,7 +2,8 @@ import prisma from "../lib/prisma";
 
 
 // Create a reservation, used on the server
-export async function createReservationServer( {
+export async function updateReservationServer( {
+    reservationID,
     clientName,
     clientEmail,
     clientDescription,
@@ -11,6 +12,7 @@ export async function createReservationServer( {
     startTime,
     endTime,
 }:{
+    reservationID: number,
     clientName: string,
     clientEmail: string,
     clientDescription: string | null,
@@ -19,8 +21,8 @@ export async function createReservationServer( {
     startTime: Date,
     endTime: Date,
 }) {
-    
-    const result = await prisma.reservation.create({
+    const result = await prisma.reservation.update({
+        where: {id: reservationID},
         data: {
             clientName,
             clientEmail,
@@ -36,7 +38,8 @@ export async function createReservationServer( {
 
 
 // Create a reservation, used on the client
-export async function createReservationClient(reservationDetails:{
+export async function updateReservationClient(reservationDetails:{
+    reservationID: number,
     clientName: string,
     clientEmail: string,
     clientDescription: string | null,
@@ -45,10 +48,9 @@ export async function createReservationClient(reservationDetails:{
     startTime: Date,
     endTime: Date,
 }) {
-
     try {
         const body = { reservationDetails: reservationDetails };
-        const rawResponse = await fetch('/api/reservations/create', {
+        const rawResponse = await fetch('/api/reservations/update', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body),

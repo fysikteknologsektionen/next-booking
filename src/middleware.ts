@@ -20,7 +20,7 @@ export default withAuth(
             } else {
                 return false;
             }
-        } else if (req.nextUrl.pathname.startsWith('/auth-test/manager-page')) {
+        } else if (req.nextUrl.pathname.startsWith('/update-reservation')) {
             if (token && (token.role === "MANAGER" || token.role === "ADMIN")) {
                 return true;
             } else {
