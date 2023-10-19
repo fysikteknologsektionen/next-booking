@@ -2,8 +2,9 @@
 
 import { dateToInput, formatDuration } from "@/lib/helper";
 import { createReservationClient } from "@/server/api/createReservation";
+import { updateReservationClient } from "@/server/api/updateReservation";
 import { Button, FormControl, FormErrorMessage, FormLabel, Heading, HStack, Input, Select, Spinner, Text, Textarea } from "@chakra-ui/react";
-import { Venue } from "@prisma/client";
+import { Reservation, Venue } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { FormEventHandler, useEffect, useMemo, useState } from "react";
 
@@ -14,18 +15,30 @@ const toDefault = new Date(fromDefault);
 toDefault.setHours(toDefault.getHours() + 1);
 
 export default function BookingPage({
-    venues
+    venues, reservation
 }: {
-    venues: Venue[]
+    venues: Venue[],
+    reservation?: Reservation
 }) {
     const router = useRouter();
 
-    const [venue, setVenue] = useState("")
-    const [name, setName] = useState("")
-    const [email, setEmail] = useState("")
-    const [description, setDescription] = useState("")
-    const [from, setFrom] = useState(fromDefault)
-    const [to, setTo] = useState(toDefault)
+    console.log(reservation);
+    
+    const defaultReservationData = reservation?reservation:{
+        clientName: "",
+        clientEmail: "",
+        clientDescription: "",
+        startTime: fromDefault,
+        endTime: toDefault,
+        venueId: "",
+    }
+
+    const [venue, setVenue] = useState<string>(defaultReservationData.venueId?.toString()??"")
+    const [name, setName] = useState(defaultReservationData.clientName)
+    const [email, setEmail] = useState(defaultReservationData.clientEmail)
+    const [description, setDescription] = useState(defaultReservationData.clientDescription??"")
+    const [from, setFrom] = useState(new Date(defaultReservationData.startTime))
+    const [to, setTo] = useState(new Date(defaultReservationData.endTime))
     const duration = useMemo(() => new Date(
         to.valueOf() -
         from.valueOf()
@@ -33,6 +46,7 @@ export default function BookingPage({
     const [showErrors, setShowErrors] = useState(false);
     const [isLoading, setLoading] = useState(false);
 
+    console.log(name)
     useEffect(() => {
         console.log(venue)
     }, [ venue ]);
@@ -59,8 +73,12 @@ export default function BookingPage({
         }
         // Make POST fetch request using the data
         setLoading(true);
-        await createReservationClient(reservationDetails);
-
+        if (reservation) {
+            const reservationDetailsWithID = {...reservationDetails, reservationID:reservation.id}
+            await updateReservationClient(reservationDetailsWithID)
+        } else {
+            await createReservationClient(reservationDetails);
+        }
         console.log("Success")
 
         router.push("/")
