@@ -50,7 +50,7 @@ export async function updateReservationClient(reservationDetails:{
 }) {
     try {
         const body = { reservationDetails: reservationDetails };
-        const rawResponse = await fetch('/api/update-reservation', {
+        const rawResponse = await fetch('/api/reservations/update', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body),
