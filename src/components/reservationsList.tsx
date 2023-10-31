@@ -1,10 +1,11 @@
 import { useVenueStore } from "@/lib/venueStore";
 import { getReservationsClient } from "@/server/api/getreservations";
-import { Button, Heading, Spinner, Text } from "@chakra-ui/react";
+import { Button, Heading, IconButton, Spinner, Text } from "@chakra-ui/react";
 import { Reservation, Venue } from "@prisma/client";
 import { useEffect, useState } from "react";
 
 import styles from "@/components/reservationsList.module.css";
+import { EditIcon } from "@chakra-ui/icons";
 
 export default function ReservationsList() {
     const venues = useVenueStore((state) => state.venues);
@@ -48,7 +49,9 @@ export default function ReservationsList() {
     }, []);
 
     return (
-        <div>
+        <div style={{
+            marginTop: "2rem"
+        }}>
             <Text>Admin</Text>
             <Heading>Bokningar</Heading>
 
@@ -81,7 +84,8 @@ export default function ReservationsList() {
                             </div>
 
                             <Button colorScheme="green">Godkänn</Button>
-                            <Button variant="ghost">Ändra bokning</Button>
+                            <IconButton aria-label="Ändra bokning" title="Ändra bokning" icon={<EditIcon />}></IconButton>
+                            {/* <Button variant="ghost">Ändra bokning</Button> */}
                         </div>
                     )
                 })}

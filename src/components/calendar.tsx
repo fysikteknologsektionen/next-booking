@@ -12,8 +12,8 @@ import {
     Heading,
 } from '@chakra-ui/react'
 import { Text, Grid, GridItem, Center, Button, Circle, HStack, Box, VStack, Tag, Spinner, IconButton, useDisclosure } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
-import { Reservation } from "@prisma/client";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { $Enums, Reservation, Status, Venue } from "@prisma/client";
 import { getReservationsClient } from "@/server/api/getreservations";
 import { ArrowBackIcon, ArrowForwardIcon } from "@chakra-ui/icons";
 import { useVenueStore } from "@/lib/venueStore";
@@ -60,6 +60,102 @@ const daysInMonth = (date: Date) => {
     return new Date(year, month, 0).getDate();
 }
 
+function ReservationsList({
+    reservations,
+    day,
+    setActiveReservation,
+    onOpen,
+    venues,
+    month
+}: {
+    reservations: Reservation[],
+    day: number,
+    setActiveReservation: Dispatch<SetStateAction<{
+        id: number;
+        createdAt: Date;
+        updatedAt: Date;
+        clientName: string;
+        clientEmail: string;
+        clientDescription: string | null;
+        date: Date;
+        startTime: Date;
+        endTime: Date;
+        status: $Enums.Status;
+        venueId: number | null;
+    } | undefined>>,
+    onOpen: () => void,
+    venues: Venue[],
+    month: Date
+}) {
+    const [expanded, setExpanded] = useState(false);
+
+    const isToday = (day: number, today: Date) => {
+        return (
+            today.getUTCFullYear() === month.getUTCFullYear() &&
+            today.getMonth() === month.getMonth() &&
+            today.getDate() === day
+        );
+    }
+
+    if (!reservations) {
+        return <></>;
+    }
+
+    const viewMax = expanded ? Infinity : 3;
+    const todaysReservtions = reservations.filter(r => isToday(day, r.startTime));
+    const leftOut = todaysReservtions.length - viewMax;
+
+    const expandReservations = () => {
+        setExpanded(e => !e);
+    };
+
+    return (
+        <>
+            <VStack gap="0.25rem">
+                {todaysReservtions.slice(0, viewMax).map((reservation, index) => {
+                    const onclick = () => {
+                        setActiveReservation(reservation);
+                        onOpen();
+                    }
+
+                    if (reservation.status === Status.DENIED) {
+                        return;
+                    }
+
+                    return (
+                        <Tag
+                            onClick={onclick}
+                            width="100%"
+                            bg="blue.500"
+                            color="white"
+                            opacity={reservation.status === Status.PENDING ? 0.5 : 1}
+                            key={index}
+                        >
+                            <Text isTruncated>
+                                {venues.find(v => v.id === reservation.venueId)?.name ?? reservation.venueId}
+                            </Text>
+                        </Tag>
+                    )
+                })}
+            </VStack>
+
+            {expanded ? (
+                <Text
+                    as="button"
+                    onClick={expandReservations}
+                >Visa färre</Text>
+            ) : (
+                leftOut > 0 && (
+                    <Text
+                        as="button"
+                        onClick={expandReservations}
+                    >+ {leftOut} till</Text>
+                )    
+            )}
+        </>
+    )
+}
+
 export default function Calendar() {
     const venues = useVenueStore((state) => state.venues);
 
@@ -67,14 +163,14 @@ export default function Calendar() {
     const [month, setMonth] = useState(getCurrentMonth())
     const firstDayOffset = (month.getDay() - 1 + 7) % 7 + 1;
     const nrDays = daysInMonth(month);
-    const days = Array.from({length: nrDays}, (_, i) => i + 1)
+    const days = Array.from({length: nrDays}, (_, i) => i + 1);
 
     const [isLoading, setLoading] = useState(false);
     const [reservations, setReservations] = useState<Reservation[]>([]);
     useEffect(() => {
         (async () => {
             const startTime = month;
-            const endTime = new Date(month.getFullYear(), month.getMonth() + 1, 0);
+            const endTime = new Date(month.getFullYear(), month.getMonth() + 1, 1);
 
             setLoading(true)
             const res = await getReservationsClient(startTime, endTime);
@@ -123,44 +219,20 @@ export default function Calendar() {
     }
 
     const renderReservations = (day: number) => {
-        if (!reservations) {
-            return;
-        }
-
-        const viewMax = 3;
-        const todaysReservtions = reservations.filter(r => isToday(day, r.startTime));
-        const leftOut = todaysReservtions.length - viewMax;
-
-        return (
-            <>
-                <VStack gap="0.25rem">
-                    {todaysReservtions.slice(0, viewMax).map((reservation, index) => {
-                        const onclick = () => {
-                            setActiveReservation(reservation);
-                            onOpen();
-                        }
-
-                        return (
-                            <Tag onClick={onclick} width="100%" bg="red" key={index}>
-                                <Text isTruncated>
-                                    {venues.find(v => v.id === reservation.venueId)?.name ?? reservation.venueId}
-                                </Text>
-                            </Tag>
-                        )
-                    })}
-                </VStack>
-
-                {leftOut > 0 && (
-                    <span>+ {leftOut} till</span>
-                )}
-            </>
-        )
+        return <ReservationsList
+            reservations={reservations}
+            day={day}
+            setActiveReservation={setActiveReservation}
+            onOpen={onOpen}
+            venues={venues}
+            month={month}
+        ></ReservationsList>
     }
 
     return (
         <>
             <div style={{
-                maxWidth: "800px"
+                maxWidth: "800px",
             }}>
                 <Center
                     borderBottom="1px solid black"
@@ -192,6 +264,9 @@ export default function Calendar() {
                     templateColumns={"repeat(7, minmax(0, 1fr))"}
                     gap="1px"
                     bg="gray.200"
+                    border="1px"
+                    borderColor="gray.200"
+                    borderTop="none"
                     borderBottom="1px solid black"
                 >
                     {dayNames.map((name, index) => {
@@ -208,6 +283,9 @@ export default function Calendar() {
                     gridAutoRows="1fr"
                     gap="1px"
                     bg="gray.200"
+                    border="1px"
+                    borderColor="gray.200"
+                    borderTop="none"
                 >
                     {days.map((day, index) => {
                         return (
@@ -241,6 +319,20 @@ export default function Calendar() {
                 <ModalBody>
                     {activeReservation && (
                         <>
+                            {activeReservation.status === Status.PENDING && (
+                                <>
+                                    <Text color="yellow.500">Denna reservation väntar på godkännande</Text>
+                                    <br />
+                                </>
+                            )}
+
+                            {activeReservation.status === Status.DENIED && (
+                                <>
+                                    <Text color="red.500">Denna reservation blev nekad</Text>
+                                    <br />
+                                </>
+                            )}
+
                             <Text>{activeReservation.clientName} ({activeReservation.clientEmail}) har bokat <i>{venues.find(v => v.id === activeReservation.venueId)?.name ?? activeReservation.venueId}</i></Text>
                             <br />
 

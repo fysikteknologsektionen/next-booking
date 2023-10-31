@@ -22,6 +22,7 @@ export default function Home() {
   }, [ setVenues ])
 
   const session = useSession()
+  const isManager = session.data !== null && (session.data.user.role === Role.MANAGER || session.data.user.role === Role.ADMIN);
 
   return (
     <main style={{
@@ -31,9 +32,9 @@ export default function Home() {
 
       <Calendar></Calendar>
 
-      {/* {session.data && (session.data?.user.role === Role.MANAGER || session.data?.user.role == Role.ADMIN) && ( */}
+      {isManager && (
         <ReservationsList></ReservationsList>
-      {/* )} */}
+      )}
     </main>
   )
 }
