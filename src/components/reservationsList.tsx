@@ -1,11 +1,12 @@
 import { useVenueStore } from "@/lib/venueStore";
 import { getReservationsClient } from "@/server/api/getreservations";
 import { Button, Heading, IconButton, Spinner, Text } from "@chakra-ui/react";
-import { Reservation, Venue } from "@prisma/client";
+import { Reservation, Status, Venue } from "@prisma/client";
 import { useEffect, useState } from "react";
 
 import styles from "@/components/reservationsList.module.css";
 import { EditIcon } from "@chakra-ui/icons";
+import { approveReservationClient } from "@/server/api/approveReservation";
 
 export default function ReservationsList() {
     const venues = useVenueStore((state) => state.venues);
@@ -73,6 +74,7 @@ export default function ReservationsList() {
                 </div>
 
                 {reservations.map((reservation, index) => {
+                    console.log(reservation.status === Status.ACCEPTED)
                     return (
                         <div key={index} className={styles.item}>
                             <span>{getVenueName(reservation.venueId)}</span>
@@ -83,9 +85,8 @@ export default function ReservationsList() {
                                 <span>&nbsp;till {new Date(reservation.endTime).toLocaleString()}</span>
                             </div>
 
-                            <Button colorScheme="green">Godkänn</Button>
+                            <Button isDisabled={reservation.status === Status.ACCEPTED} colorScheme="green" onClick={() => approveReservationClient(reservation.id)}>Godkänn</Button>
                             <IconButton aria-label="Ändra bokning" title="Ändra bokning" icon={<EditIcon />}></IconButton>
-                            {/* <Button variant="ghost">Ändra bokning</Button> */}
                         </div>
                     )
                 })}
