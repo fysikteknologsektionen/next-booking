@@ -74,7 +74,6 @@ export default function ReservationsList() {
                 </div>
 
                 {reservations.map((reservation, index) => {
-                    console.log(reservation.status === Status.ACCEPTED)
                     return (
                         <div key={index} className={styles.item}>
                             <span>{getVenueName(reservation.venueId)}</span>
