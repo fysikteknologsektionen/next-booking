@@ -93,7 +93,7 @@ export default function Navbar() {
                 }}
                 href="/">
                   <Text as="b">
-                    Boka lokal
+                    Lokalbokning
                   </Text>
               </Box>
             </Box>

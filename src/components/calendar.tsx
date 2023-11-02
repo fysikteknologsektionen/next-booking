@@ -17,21 +17,7 @@ import { $Enums, Reservation, Status, Venue } from "@prisma/client";
 import { getReservationsClient } from "@/server/api/getreservations";
 import { ArrowBackIcon, ArrowForwardIcon } from "@chakra-ui/icons";
 import { useVenueStore } from "@/lib/venueStore";
-
-const monthNames = [
-    "Jan",
-    "Feb",
-    "Mars",
-    "April",
-    "Maj",
-    "Juni",
-    "Juli",
-    "Aug",
-    "Sep",
-    "Okt",
-    "Nov",
-    "Dec"
-];
+import { getNameOfMonth } from "@/lib/helper";
 
 const dayNames = [
     "Mån",
@@ -42,10 +28,6 @@ const dayNames = [
     "Lör",
     "Sön"
 ];
-
-const getNameOfMonth = (date: Date) => {
-    return monthNames[date.getMonth()];
-}
 
 const getCurrentMonth = () => {
     const date = new Date();
@@ -321,14 +303,14 @@ export default function Calendar() {
                         <>
                             {activeReservation.status === Status.PENDING && (
                                 <>
-                                    <Text color="yellow.500">Denna reservation väntar på godkännande</Text>
+                                    <Text color="yellow.500">Denna bokningen väntar på godkännande</Text>
                                     <br />
                                 </>
                             )}
 
                             {activeReservation.status === Status.DENIED && (
                                 <>
-                                    <Text color="red.500">Denna reservation blev nekad</Text>
+                                    <Text color="red.500">Denna bokningen blev nekad</Text>
                                     <br />
                                 </>
                             )}
