@@ -2,9 +2,10 @@
 
 import { dateToInput, dateToTimeInput, formatDuration } from "@/lib/helper";
 import { createReservationClient } from "@/server/api/createReservation";
+import { getReservationsClient } from "@/server/api/getreservations";
 import { updateReservationClient } from "@/server/api/updateReservation";
 import { Button, FormControl, FormErrorMessage, FormLabel, Heading, HStack, Input, Select, Spinner, Text, Textarea } from "@chakra-ui/react";
-import { Reservation, Venue } from "@prisma/client";
+import { Reservation, Status, Venue } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { FormEventHandler, useEffect, useMemo, useState } from "react";
 
@@ -72,6 +73,12 @@ export default function BookingPage({
             return;
         }
 
+        const reservations = await getReservationsClient(from, to, [parseInt(venue)]);
+        if (reservations && reservations.filter((val: any) => val.status === Status.ACCEPTED).length > 0) {
+            console.error('Overlapping reservation');
+            return;
+        }
+
         // Collect all reservation details
         const reservationDetails = {
             clientName: name,
@@ -90,7 +97,6 @@ export default function BookingPage({
         } else {
             await createReservationClient(reservationDetails);
         }
-        console.log("Success (hopefully, i don't know)");
 
         router.push("/");
     }

@@ -5,10 +5,24 @@ import prisma from "../lib/prisma";
 export async function getReservationsServer(startTime:Date, endTime:Date, venueIDs?:number[]) {
     const reservations = await prisma.reservation.findMany({
         where: {
-            date: {
-                gte: startTime, // Greater than or equal (start time)
-                lte: endTime, // Less than or equal (end time)
-            },
+            OR: [{
+                startTime: {
+                    gte: startTime,
+                    lte: endTime,
+                },
+            }, {
+                endTime: {
+                    gte: startTime, // Greater than or equal (start time)
+                    lte: endTime, // Less than or equal (end time)
+                },
+            }, {
+                startTime: {
+                    lte: startTime,
+                },
+                endTime: {
+                    gte: endTime,
+                },
+            }],
             ...(venueIDs ? {venueId: {in: venueIDs}}:{})
         }
     });
