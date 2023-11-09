@@ -72,13 +72,16 @@ function ReservationsList({
     const [expanded, setExpanded] = useState(false);
 
     const shouldViewToday = (day: number, from: Date, to: Date) => {
-        const calendarDay = new Date(month);
-        calendarDay.setDate(day);
-        calendarDay.setHours(0, 0, 0, 0);
+        const calendarDayFrom = new Date(month);
+        calendarDayFrom.setDate(day);
+        calendarDayFrom.setHours(0, 0, 0, 0);
+        const calendarDayTo = new Date(month);
+        calendarDayTo.setDate(day + 1);
+        calendarDayTo.setHours(0, 0, 0, 0);
 
         return (
-            from.valueOf() <= calendarDay.valueOf() &&
-            to.valueOf() >= calendarDay.valueOf()
+            from.valueOf() <= calendarDayTo.valueOf() &&
+            to.valueOf() >= calendarDayFrom.valueOf()
         );
     }
 
