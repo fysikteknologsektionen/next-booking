@@ -4,10 +4,10 @@ import { dateToInput, dateToTimeInput, formatDuration } from "@/lib/helper";
 import { createReservationClient } from "@/server/api/createReservation";
 import { getReservationsClient } from "@/server/api/getreservations";
 import { updateReservationClient } from "@/server/api/updateReservation";
-import { Button, FormControl, FormErrorMessage, FormLabel, Heading, HStack, Input, Select, Spinner, Text, Textarea } from "@chakra-ui/react";
+import { Button, FormControl, FormErrorMessage, FormLabel, Heading, HStack, Input, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select, Spinner, Text, Textarea, useDisclosure } from "@chakra-ui/react";
 import { Reservation, Status, Venue } from "@prisma/client";
 import { useRouter } from "next/navigation";
-import { FormEventHandler, useEffect, useMemo, useState } from "react";
+import { FormEvent, FormEventHandler, useEffect, useMemo, useState } from "react";
 
 const fromDefault = new Date();
 fromDefault.setSeconds(0, 0);
@@ -58,54 +58,67 @@ export default function BookingPage({
     const [showErrors, setShowErrors] = useState(false);
     const [isLoading, setLoading] = useState(false);
 
+    const { isOpen, onOpen, onClose } = useDisclosure();
+
     console.log(name)
     useEffect(() => {
         console.log(venue)
     }, [ venue ]);
 
-    const submit: FormEventHandler<HTMLFormElement> = async (e) => {
-        e.preventDefault()
+    const submit = (forceCreate = false) => {
+        const f = async (e?: FormEvent<HTMLFormElement>) => {
+            e?.preventDefault()
 
-        setShowErrors(true);
+            setShowErrors(true);
 
-        if (duration.valueOf() <= 0) {
-            console.error("> 0min pls")
-            return;
+            if (duration.valueOf() <= 0) {
+                console.error("> 0min pls")
+                return;
+            }
+
+            setLoading(true);
+
+            if (!forceCreate && !reservation) {
+                const reservations = await getReservationsClient(from, to, [parseInt(venue)]);
+                if (reservations && reservations.filter((val: any) => val.status === Status.ACCEPTED).length > 0) {
+                    console.error('Overlapping reservation');
+                    setLoading(false);
+                    onOpen();
+
+                    return;
+                }
+            }
+
+            // Collect all reservation details
+            const reservationDetails = {
+                clientName: name,
+                clientEmail: email,
+                clientDescription: description,
+                venueId: parseInt(venue),
+                date: from,
+                startTime: from,
+                endTime: to,
+            }
+
+            // Make POST fetch request using the data
+            if (reservation) {
+                const reservationDetailsWithID = {...reservationDetails, reservationID:reservation.id}
+                await updateReservationClient(reservationDetailsWithID)
+            } else {
+                await createReservationClient(reservationDetails);
+            }
+
+            router.push("/");
         }
 
-        const reservations = await getReservationsClient(from, to, [parseInt(venue)]);
-        if (reservations && reservations.filter((val: any) => val.status === Status.ACCEPTED).length > 0) {
-            console.error('Overlapping reservation');
-            return;
-        }
-
-        // Collect all reservation details
-        const reservationDetails = {
-            clientName: name,
-            clientEmail: email,
-            clientDescription: description,
-            venueId: parseInt(venue),
-            date: from,
-            startTime: from,
-            endTime: to,
-        }
-        // Make POST fetch request using the data
-        setLoading(true);
-        if (reservation) {
-            const reservationDetailsWithID = {...reservationDetails, reservationID:reservation.id}
-            await updateReservationClient(reservationDetailsWithID)
-        } else {
-            await createReservationClient(reservationDetails);
-        }
-
-        router.push("/");
+        return f;
     }
 
     return (
         <main style={{ padding: "2rem" }}>
             <Heading marginBottom="0.5em">Boka lokal</Heading>
             
-            <form onSubmit={submit} style={{
+            <form onSubmit={submit(false)} style={{
                 display: "flex",
                 flexDirection: "column",
                 gap: "1.25rem",
@@ -215,6 +228,32 @@ export default function BookingPage({
                     )}
                 </HStack>
             </form>
+
+            <Modal isOpen={isOpen} onClose={onClose}>
+                <ModalOverlay />
+                <ModalContent>
+                <ModalHeader>Överlappande bokning</ModalHeader>
+                <ModalCloseButton />
+                <ModalBody>
+                    <Text>
+                        Denna bokningen överlappar befintliga bokningar och kommer automatiskt att nekas. Vill du boka endå?
+                    </Text>
+                </ModalBody>
+
+                <ModalFooter>
+                    <Button colorScheme='blue' mr={3} onClick={onClose}>
+                        Avbryt
+                    </Button>
+                    <Button variant='ghost' colorScheme='red' mr={3} onClick={() => {
+                        submit(true)();
+                        onClose();
+                    }}>
+                        Boka endå
+                    </Button>
+                    {/* <Button variant='ghost'>Secondary Action</Button> */}
+                </ModalFooter>
+                </ModalContent>
+            </Modal>
         </main>
     )
 }
