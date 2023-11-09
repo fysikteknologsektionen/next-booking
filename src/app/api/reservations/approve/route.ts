@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     
     if (session?.user.role === "MANAGER" || session?.user.role === "ADMIN") {
         const result = await approveReservationServer(reservationID);
-        if (!response) response = new NextResponse('Collision! Could not approve reservation', {
+        if (!result) response = new NextResponse('Collision! Could not approve reservation', {
             status: 400,
         });
         else response = NextResponse.json(result);
