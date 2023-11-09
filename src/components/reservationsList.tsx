@@ -9,6 +9,7 @@ import { CloseIcon, EditIcon } from "@chakra-ui/icons";
 import { approveReservationClient } from "@/server/api/approveReservation";
 import { getNameOfMonth } from "@/lib/helper";
 import { useRouter } from "next/navigation";
+import { denyReservationClient } from "@/server/api/denyReservation";
 
 export default function ReservationsList() {
     const [isLoading, setLoading] = useState(false);
@@ -181,7 +182,7 @@ function ReservationItem({
     const status = overrideStatus === Status.PENDING ? reservation.status : overrideStatus;
 
     const edit = async () => {
-        window.location.href = `/update-reservation?reservationID=${reservation.id}`; // router, never heard of him
+        window.location.href = `/update-reservation?reservationID=${reservation.id}`; // router, I hardly know her
     }
 
     return (

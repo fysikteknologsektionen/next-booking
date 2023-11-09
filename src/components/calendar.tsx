@@ -71,11 +71,14 @@ function ReservationsList({
 }) {
     const [expanded, setExpanded] = useState(false);
 
-    const isToday = (day: number, today: Date) => {
+    const shouldViewToday = (day: number, from: Date, to: Date) => {
+        const calendarDay = new Date(month);
+        calendarDay.setDate(day);
+        calendarDay.setHours(0, 0, 0, 0);
+
         return (
-            today.getUTCFullYear() === month.getUTCFullYear() &&
-            today.getMonth() === month.getMonth() &&
-            today.getDate() === day
+            from.valueOf() <= calendarDay.valueOf() &&
+            to.valueOf() >= calendarDay.valueOf()
         );
     }
 
@@ -84,8 +87,8 @@ function ReservationsList({
     }
 
     const viewMax = expanded ? Infinity : 3;
-    const todaysReservtions = reservations.filter(r => isToday(day, r.startTime));
-    const leftOut = todaysReservtions.length - viewMax;
+    const todaysReservations = reservations.filter(r => shouldViewToday(day, r.startTime, r.endTime));
+    const leftOut = todaysReservations.length - viewMax;
 
     const expandReservations = () => {
         setExpanded(e => !e);
@@ -94,7 +97,7 @@ function ReservationsList({
     return (
         <>
             <VStack gap="0.25rem">
-                {todaysReservtions.slice(0, viewMax).map((reservation, index) => {
+                {todaysReservations.slice(0, viewMax).map((reservation, index) => {
                     const onclick = () => {
                         setActiveReservation(reservation);
                         onOpen();
