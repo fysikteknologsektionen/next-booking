@@ -1,5 +1,5 @@
+import { Status } from "@prisma/client";
 import prisma from "../lib/prisma";
-
 
 // Create a reservation, used on the server
 export async function createReservationServer( {
@@ -19,7 +19,19 @@ export async function createReservationServer( {
     startTime: Date,
     endTime: Date,
 }) {
-    
+    const collisions = await prisma.reservation.findMany({
+        where: {
+            status: Status.ACCEPTED,
+            venueId: venueId,
+            startTime: {
+                lte: endTime,
+            },
+            endTime: {
+                gte: startTime,
+            },
+        },
+    });
+
     const result = await prisma.reservation.create({
         data: {
             clientName,
@@ -29,8 +41,9 @@ export async function createReservationServer( {
             startTime,
             endTime,
             venueId,
+            status: (collisions && collisions.length > 0) ? Status.DENIED : Status.PENDING,
         },
-    });;
+    });
     return result;
 }
 
