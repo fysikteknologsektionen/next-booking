@@ -1,6 +1,6 @@
 "use client";
 
-import { dateToInput, formatDuration } from "@/lib/helper";
+import { dateToInput, dateToTimeInput, formatDuration } from "@/lib/helper";
 import { createReservationClient } from "@/server/api/createReservation";
 import { updateReservationClient } from "@/server/api/updateReservation";
 import { Button, FormControl, FormErrorMessage, FormLabel, Heading, HStack, Input, Select, Spinner, Text, Textarea } from "@chakra-ui/react";
@@ -37,8 +37,19 @@ export default function BookingPage({
     const [name, setName] = useState(defaultReservationData.clientName)
     const [email, setEmail] = useState(defaultReservationData.clientEmail)
     const [description, setDescription] = useState(defaultReservationData.clientDescription??"")
-    const [from, setFrom] = useState(new Date(defaultReservationData.startTime))
-    const [to, setTo] = useState(new Date(defaultReservationData.endTime))
+    
+    const [fromDateString, setFromDateString] = useState(dateToInput(new Date(defaultReservationData.startTime), false));
+    const [fromTimeString, setFromTimeString] = useState(dateToTimeInput(new Date(defaultReservationData.startTime)));
+
+    const [toDateString, setToDateString] = useState(dateToInput(new Date(defaultReservationData.endTime), false));
+    const [toTimeString, setToTimeString] = useState(dateToTimeInput(new Date(defaultReservationData.endTime)));
+    
+    const from = useMemo(() => new Date(fromDateString + "T" + fromTimeString), [ fromDateString, fromTimeString ]);
+    const to = useMemo(() => new Date(toDateString + "T" + toTimeString), [ toDateString, toTimeString ]);
+
+    // const [from, setFrom] = useState(new Date(defaultReservationData.startTime))
+    // const [to, setTo] = useState(new Date(defaultReservationData.endTime))
+
     const duration = useMemo(() => new Date(
         to.valueOf() -
         from.valueOf()
@@ -79,9 +90,9 @@ export default function BookingPage({
         } else {
             await createReservationClient(reservationDetails);
         }
-        console.log("Success")
+        console.log("Success (hopefully, i don't know)");
 
-        router.push("/")
+        router.push("/");
     }
 
     return (
@@ -145,9 +156,14 @@ export default function BookingPage({
                         <FormControl isRequired>
                             <FormLabel>Från</FormLabel>
                             <Input
-                                type="datetime-local"
-                                value={dateToInput(from)}
-                                onChange={e => setFrom(new Date(e.target.value))}
+                                type="date"
+                                value={fromDateString}
+                                onChange={e => setFromDateString(e.target.value)}
+                            ></Input>
+                            <Input
+                                type="time"
+                                value={fromTimeString}
+                                onChange={e => setFromTimeString(e.target.value)}
                             ></Input>
                         </FormControl>
                     </div>
@@ -156,10 +172,20 @@ export default function BookingPage({
                         <FormControl isRequired isInvalid={showErrors && duration.valueOf() <= 0}>
                             <FormLabel>Till</FormLabel>
                             <Input
+                                type="date"
+                                value={toDateString}
+                                onChange={e => setToDateString(e.target.value)}
+                            ></Input>
+                            <Input
+                                type="time"
+                                value={toTimeString}
+                                onChange={e => setToTimeString(e.target.value)}
+                            ></Input>
+                            {/* <Input
                                 type="datetime-local"
                                 value={dateToInput(to)}
                                 onChange={e => setTo(new Date(e.target.value))}
-                            ></Input>
+                            ></Input> */}
                             <FormErrorMessage>Sluttid måste vara efter starttid</FormErrorMessage>
                         </FormControl>
                     </div>
@@ -174,7 +200,9 @@ export default function BookingPage({
                         type="submit"
                         isDisabled={isLoading}
                         colorScheme="blue"
-                    >Skapa bokning</Button>
+                    >
+                        {reservation ? "Uppdatera bokning" : "Skapa bokning"}
+                    </Button>
 
                     {isLoading && (
                         <Spinner></Spinner>

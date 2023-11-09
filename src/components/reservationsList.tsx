@@ -5,9 +5,10 @@ import { Reservation, Status, Venue } from "@prisma/client";
 import { useEffect, useState } from "react";
 
 import styles from "@/components/reservationsList.module.css";
-import { EditIcon } from "@chakra-ui/icons";
+import { CloseIcon, EditIcon } from "@chakra-ui/icons";
 import { approveReservationClient } from "@/server/api/approveReservation";
 import { getNameOfMonth } from "@/lib/helper";
+import { useRouter } from "next/navigation";
 
 export default function ReservationsList() {
     const [isLoading, setLoading] = useState(false);
@@ -74,6 +75,7 @@ function ReservationItem({
 }: {
     reservation: Reservation
 }) {
+    const router = useRouter();
     const venues = useVenueStore((state) => state.venues);
     const getVenue = (venueId: number | null) => {
         return venues.find(v => v.id === venueId);
@@ -161,7 +163,26 @@ function ReservationItem({
         }
     }
 
+    const deny = async () => {
+        setDisabled(true);
+        setStatus(Status.PENDING);
+
+        const res = await denyReservationClient(reservation.id);
+        console.log(res);
+
+        if (!res || !res.ok) {
+            setDisabled(false);
+        }
+        else {
+            setStatus(Status.DENIED);
+        }
+    }
+
     const status = overrideStatus === Status.PENDING ? reservation.status : overrideStatus;
+
+    const edit = async () => {
+        window.location.href = `/update-reservation?reservationID=${reservation.id}`; // router, never heard of him
+    }
 
     return (
         <div className={styles.item}>
@@ -173,13 +194,17 @@ function ReservationItem({
             </div>
 
             {status === Status.PENDING ? (
-                <Button isLoading={disabled} isDisabled={disabled} colorScheme="green" onClick={() => approve()}>Godkänn</Button>
+                <>
+                    <Button isLoading={disabled} isDisabled={disabled} colorScheme="green" onClick={() => approve()}>Godkänn</Button>
+                    <IconButton isLoading={disabled} isDisabled={disabled} aria-label="Neka bokning" title="Neka bokning" icon={<CloseIcon />} onClick={() => deny()} colorScheme="red"></IconButton>
+                </>
             ) : (
-                <Button isDisabled={true} colorScheme={status === Status.ACCEPTED ? "green" : "red"}>
+                <Button isDisabled={true} colorScheme={status === Status.ACCEPTED ? "green" : "red"} gridColumn="span 2">
                     {formatStatus(status)}
                 </Button>
             )}
-            <IconButton aria-label="Ändra bokning" title="Ändra bokning" icon={<EditIcon />}></IconButton>
+
+            <IconButton aria-label="Ändra bokning" title="Ändra bokning" icon={<EditIcon />} onClick={edit}></IconButton>
         </div>
     )
 }
