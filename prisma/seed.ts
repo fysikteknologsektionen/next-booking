@@ -5,12 +5,13 @@ const prisma = new PrismaClient()
 // More or less copied from https://www.prisma.io/docs/guides/migrate/seed-database
 async function main() {
 
-    const exampleVenue1 = await prisma.venue.upsert({
+
+    await prisma.venue.upsert({
         where: {id: 1},
         update: {},
         create: {
-            name:"Example room 1",
-            description:"First room to test the database",
+            name:"Focus bardel",
+            description:"Den norra halvan med sofforna.",
             managers: {},
             timeslots: {},
             reservations:{
@@ -36,12 +37,12 @@ async function main() {
         }
     })
 
-    const exampleVenue2 = await prisma.venue.upsert({
+    await prisma.venue.upsert({
         where: {id: 2},
         update: {},
         create: {
-            name:"Example room 2",
-            description:"Second room to test the database",
+            name:"Focus mittendel",
+            description:"Den mellersta delen med bord och stolar.",
             managers: {},
             timeslots: {},
             reservations:{
@@ -54,6 +55,29 @@ async function main() {
                         startTime: new Date(2023, 9, 17, 14, 18),  // 2023-09-17,14:18:00
                         endTime: new Date(2023, 9, 17, 22, 55),
                     },
+                    {
+                        clientName: "Client3",
+                        clientEmail: "client3@example.com",
+                        clientDescription: "Other information",
+                        date: new Date(2023, 9, 18),
+                        startTime: new Date(2023, 9, 18, 15, 15),  // 2023-09-17,14:18:00
+                        endTime: new Date(2023, 9, 18, 12, 34),
+                    }
+                ]
+            }
+        }
+    })
+
+    await prisma.venue.upsert({
+        where: {id: 3},
+        update: {},
+        create: {
+            name:"Focus studiedel",
+            description:"Tidigare kallad Hilbert.",
+            managers: {},
+            timeslots: {},
+            reservations:{
+                create: [
                     {
                         clientName: "Client3",
                         clientEmail: "client3@example.com",
