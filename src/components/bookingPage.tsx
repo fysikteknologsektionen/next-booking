@@ -22,9 +22,6 @@ export default function BookingPage({
     reservation?: Reservation
 }) {
     const router = useRouter();
-
-    console.log(reservation);
-    
     const defaultReservationData = reservation?reservation:{
         clientName: "",
         clientEmail: "",
@@ -60,7 +57,6 @@ export default function BookingPage({
 
     const { isOpen, onOpen, onClose } = useDisclosure();
 
-    console.log(name)
     useEffect(() => {
         console.log(venue)
     }, [ venue ]);
@@ -236,7 +232,7 @@ export default function BookingPage({
                 <ModalCloseButton />
                 <ModalBody>
                     <Text>
-                        Denna bokningen överlappar befintliga bokningar och kommer automatiskt att nekas. Vill du boka endå?
+                        Denna bokningen överlappar befintliga bokningar och kommer automatiskt att nekas. Vill du boka ändå?
                     </Text>
                 </ModalBody>
 
@@ -248,7 +244,7 @@ export default function BookingPage({
                         submit(true)();
                         onClose();
                     }}>
-                        Boka endå
+                        Boka ändå
                     </Button>
                     {/* <Button variant='ghost'>Secondary Action</Button> */}
                 </ModalFooter>
