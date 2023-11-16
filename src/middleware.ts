@@ -9,23 +9,11 @@ export default withAuth(
     callbacks: {
       authorized: ({ req, token }) => {
         if (req.nextUrl.pathname.startsWith('/api/admin')) {
-            if (token && token.role === "ADMIN") {
-                return true;
-            } else {
-                return false;
-            }
+            return token ? token.role === "ADMIN" : false;
         } else if (req.nextUrl.pathname.startsWith('/api/manager')) {
-            if (token && (token.role === "MANAGER" || token.role === "ADMIN")) {
-                return true;
-            } else {
-                return false;
-            }
+            return token ? (token.role === "MANAGER" || token.role === "ADMIN") : false;
         } else if (req.nextUrl.pathname.startsWith('/update-reservation')) {
-            if (token && (token.role === "MANAGER" || token.role === "ADMIN")) {
-                return true;
-            } else {
-                return false;
-            }
+            return token ? (token.role === "MANAGER" || token.role === "ADMIN") : false;
         }
         return true;
       }
