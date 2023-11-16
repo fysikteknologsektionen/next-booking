@@ -39,6 +39,9 @@ export default function ReservationsList() {
         })();
     }, []);
 
+    const pendingReservations = reservations.filter(r => r.status === Status.PENDING);
+    const handledReservations = reservations.filter(r => r.status !== Status.PENDING);
+
     return (
         <div style={{
             marginTop: "2rem"
@@ -63,10 +66,38 @@ export default function ReservationsList() {
                     </span>
                 </div>
 
-                {reservations.map((reservation, index) => {
+                {pendingReservations.filter(r => r.status === Status.PENDING).map((reservation, index) => {
                     return <ReservationItem reservation={reservation} key={index}></ReservationItem>
                 })}
+
+                {pendingReservations.length === 0 && (
+                    <Text color="gray.500">Inga nya bokningar</Text>
+                )}
             </div>
+
+            {handledReservations.length > 0 && (
+                <div className={styles.reservations}>
+                    <div className={[
+                        styles.item,
+                        styles.header
+                    ].join(" ")}>
+                        <span>Lokal</span>
+                        <span>Bokad av</span>
+                        <span>Datum</span>
+
+                        <span></span>
+                        <span style={{ textAlign: "right" }}>
+                            {isLoading && (
+                                <Spinner></Spinner>
+                            )}
+                        </span>
+                    </div>
+
+                    {handledReservations.map((reservation, index) => {
+                        return <ReservationItem reservation={reservation} key={index}></ReservationItem>
+                    })}
+                </div>
+            )}
         </div>
     )
 }

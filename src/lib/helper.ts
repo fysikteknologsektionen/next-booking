@@ -68,3 +68,21 @@ export function formatDuration(duration: Date) {
 
     return (sign < 0 ? "-" : "") + output.join(" ");
 }
+
+const venueColors = [
+    "black",
+    "red.400",
+    "green.400",
+    "blue.400",
+    "purple.400",
+    "orange.500",
+    "yellow.900",
+];
+
+export const getVenueColor = (venueId: number | null) => {
+    if (!venueId) {
+        return "black";
+    }
+
+    return venueColors[venueId % venueColors.length];
+}

@@ -10,14 +10,20 @@ import {
     ModalBody,
     ModalCloseButton,
     Heading,
+    Menu,
+    MenuButton,
+    MenuList,
+    MenuItem,
 } from '@chakra-ui/react'
 import { Text, Grid, GridItem, Center, Button, Circle, HStack, Box, VStack, Tag, Spinner, IconButton, useDisclosure } from "@chakra-ui/react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { $Enums, Reservation, Status, Venue } from "@prisma/client";
 import { getReservationsClient } from "@/server/api/getreservations";
-import { ArrowBackIcon, ArrowForwardIcon } from "@chakra-ui/icons";
+import { ArrowBackIcon, ArrowForwardIcon, CheckIcon, ChevronDownIcon, CloseIcon, DeleteIcon, EditIcon, SpinnerIcon } from "@chakra-ui/icons";
 import { useVenueStore } from "@/lib/venueStore";
-import { getNameOfMonth } from "@/lib/helper";
+import { getNameOfMonth, getVenueColor } from "@/lib/helper";
+import { approveReservationClient } from "@/server/api/approveReservation";
+import { denyReservationClient } from "@/server/api/denyReservation";
 
 const dayNames = [
     "Mån",
@@ -71,7 +77,11 @@ function ReservationsList({
 }) {
     const [expanded, setExpanded] = useState(false);
 
-    const shouldViewToday = (day: number, from: Date, to: Date) => {
+    const shouldViewToday = (reservation: Reservation) => {
+        if (reservation.status === Status.DENIED) {
+            return false;
+        }
+
         const calendarDayFrom = new Date(month);
         calendarDayFrom.setDate(day);
         calendarDayFrom.setHours(0, 0, 0, 0);
@@ -80,8 +90,8 @@ function ReservationsList({
         calendarDayTo.setHours(0, 0, 0, 0);
 
         return (
-            from.valueOf() <= calendarDayTo.valueOf() &&
-            to.valueOf() >= calendarDayFrom.valueOf()
+            reservation.startTime.valueOf() <= calendarDayTo.valueOf() &&
+            reservation.endTime.valueOf() >= calendarDayFrom.valueOf()
         );
     }
 
@@ -90,7 +100,7 @@ function ReservationsList({
     }
 
     const viewMax = expanded ? Infinity : 3;
-    const todaysReservations = reservations.filter(r => shouldViewToday(day, r.startTime, r.endTime));
+    const todaysReservations = reservations.filter(r => shouldViewToday(r));
     const leftOut = todaysReservations.length - viewMax;
 
     const expandReservations = () => {
@@ -106,15 +116,13 @@ function ReservationsList({
                         onOpen();
                     }
 
-                    if (reservation.status === Status.DENIED) {
-                        return;
-                    }
+                    const venueColor = getVenueColor(reservation.venueId);
 
                     return (
                         <Tag
                             onClick={onclick}
                             width="100%"
-                            bg="blue.500"
+                            bg={venueColor}
                             color="white"
                             opacity={reservation.status === Status.PENDING ? 0.5 : 1}
                             key={index}
@@ -180,6 +188,78 @@ export default function Calendar() {
 
     const { isOpen, onOpen, onClose } = useDisclosure()
     const [activeReservation, setActiveReservation] = useState<Reservation>()
+    const [disabledMenuButtons, setDisabledMenuButtons] = useState({
+        accept: false,
+        deny: false,
+        delete: false,
+        edit: false
+    });
+
+    // Enable all buttons again when opening new reservation
+    useEffect(() => {
+        setDisabledMenuButtons({
+            accept: false,
+            deny: false,
+            delete: false,
+            edit: false
+        });
+    }, [ activeReservation ])
+
+    const acceptActiveReservation = async () => {
+        if (!activeReservation) {
+            return;
+        }
+
+        if (activeReservation.status !== Status.PENDING) {
+            return;
+        }
+
+        setDisabledMenuButtons(d => ({ ...d, accept: true }));
+
+        const res = await approveReservationClient(activeReservation.id);
+
+        if (res && res.ok) {
+            console.log("Godkänd");
+        }
+
+        setDisabledMenuButtons(d => ({ ...d, accept: false }));
+    }
+
+    const denyActiveReservation = async () => {
+        if (!activeReservation) {
+            return;
+        }
+
+        if (activeReservation.status !== Status.PENDING) {
+            return;
+        }
+
+        setDisabledMenuButtons(d => ({ ...d, deny: true }));
+
+        const res = await denyReservationClient(activeReservation.id);
+
+        if (res && res.ok) {
+            console.log("Nekad");
+        }
+
+        setDisabledMenuButtons(d => ({ ...d, deny: false }));
+    }
+
+    const deleteActiveReservation = async () => {
+        // TODO: Implement this
+        if (!activeReservation) {
+            return;
+        }
+        setDisabledMenuButtons(d => ({ ...d, delete: true }));
+    }
+
+    const editActiveReservation = () => {
+        if (!activeReservation) {
+            return;
+        }
+
+        window.location.href = `/update-reservation?reservationID=${activeReservation.id}`;
+    }
 
     const prevMonth = () => {
         const date = new Date(month);
@@ -336,10 +416,29 @@ export default function Calendar() {
                 </ModalBody>
 
                 <ModalFooter>
-                    <Button colorScheme='blue' mr={3} onClick={onClose}>
-                    Close
-                    </Button>
-                    {/* <Button variant='ghost'>Secondary Action</Button> */}
+                    <HStack>
+                        {activeReservation && (
+                            <Menu>
+                                <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
+                                    Actions
+                                </MenuButton>
+                                <MenuList>
+                                    {activeReservation.status === Status.PENDING && (
+                                        <MenuItem closeOnSelect={false} isDisabled={disabledMenuButtons.accept} onClick={acceptActiveReservation} icon={disabledMenuButtons.accept ? <Spinner /> : <CheckIcon />}>Godkänn</MenuItem>
+                                    )}
+                                    {activeReservation.status === Status.PENDING && (
+                                        <MenuItem closeOnSelect={false} isDisabled={disabledMenuButtons.deny} onClick={denyActiveReservation} icon={disabledMenuButtons.deny ? <Spinner /> : <CloseIcon />}>Neka</MenuItem>
+                                    )}
+                                    <MenuItem closeOnSelect={false} isDisabled={disabledMenuButtons.delete} onClick={deleteActiveReservation} icon={disabledMenuButtons.delete ? <Spinner /> : <DeleteIcon />}>Ta bort</MenuItem>
+                                    <MenuItem isDisabled={disabledMenuButtons.edit} onClick={editActiveReservation} icon={<EditIcon />}>Redigera</MenuItem>
+                                </MenuList>
+                            </Menu>
+                        )}
+
+                        <Button colorScheme='blue' mr={3} onClick={onClose}>
+                            Stäng
+                        </Button>
+                    </HStack>
                 </ModalFooter>
                 </ModalContent>
             </Modal>
