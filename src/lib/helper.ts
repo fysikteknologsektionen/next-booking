@@ -71,12 +71,12 @@ export function formatDuration(duration: Date) {
 
 const venueColors = [
     "black",
+    "orange.500",
+    "purple.500",
+    "blue.500",
+    "yellow.900",
     "red.400",
     "green.400",
-    "blue.400",
-    "purple.400",
-    "orange.500",
-    "yellow.900",
 ];
 
 export const getVenueColor = (venueId: number | null) => {
