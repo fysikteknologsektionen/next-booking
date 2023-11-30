@@ -1,6 +1,6 @@
 import { useVenueStore } from "@/lib/venueStore";
 import { getReservationsClient } from "@/server/api/getreservations";
-import { Button, Center, Heading, IconButton, Spinner, Text } from "@chakra-ui/react";
+import { Button, Card, CardBody, CardHeader, Center, Heading, IconButton, Spinner, Text } from "@chakra-ui/react";
 import { Reservation, Status, Venue } from "@prisma/client";
 import { useEffect, useState } from "react";
 
@@ -43,39 +43,13 @@ export default function ReservationsList() {
     const handledReservations = reservations.filter(r => r.status !== Status.PENDING);
 
     return (
-        <div style={{
-            marginTop: "2rem"
-        }}>
-            <Text>Admin</Text>
-            <Heading>Hantera bokningar</Heading>
+        <Card>
+            <CardHeader>
+                <Heading>Hantera bokningar</Heading>
+                <Text>Endast admins kan se detta.</Text>
+            </CardHeader>
 
-            <div className={styles.reservations}>
-                <div className={[
-                    styles.item,
-                    styles.header
-                ].join(" ")}>
-                    <span>Lokal</span>
-                    <span>Bokad av</span>
-                    <span>Datum</span>
-
-                    <span></span>
-                    <span style={{ textAlign: "right" }}>
-                        {isLoading && (
-                            <Spinner></Spinner>
-                        )}
-                    </span>
-                </div>
-
-                {pendingReservations.filter(r => r.status === Status.PENDING).map((reservation, index) => {
-                    return <ReservationItem reservation={reservation} key={index}></ReservationItem>
-                })}
-
-                {pendingReservations.length === 0 && (
-                    <Text color="gray.500">Inga nya bokningar</Text>
-                )}
-            </div>
-
-            {handledReservations.length > 0 && (
+            <CardBody>
                 <div className={styles.reservations}>
                     <div className={[
                         styles.item,
@@ -93,12 +67,40 @@ export default function ReservationsList() {
                         </span>
                     </div>
 
-                    {handledReservations.map((reservation, index) => {
+                    {pendingReservations.filter(r => r.status === Status.PENDING).map((reservation, index) => {
                         return <ReservationItem reservation={reservation} key={index}></ReservationItem>
                     })}
+
+                    {pendingReservations.length === 0 && (
+                        <Text color="gray.500">Inga nya bokningar</Text>
+                    )}
                 </div>
-            )}
-        </div>
+
+                {handledReservations.length > 0 && (
+                    <div className={styles.reservations}>
+                        <div className={[
+                            styles.item,
+                            styles.header
+                        ].join(" ")}>
+                            <span>Lokal</span>
+                            <span>Bokad av</span>
+                            <span>Datum</span>
+
+                            <span></span>
+                            <span style={{ textAlign: "right" }}>
+                                {isLoading && (
+                                    <Spinner></Spinner>
+                                )}
+                            </span>
+                        </div>
+
+                        {handledReservations.map((reservation, index) => {
+                            return <ReservationItem reservation={reservation} key={index}></ReservationItem>
+                        })}
+                    </div>
+                )}
+            </CardBody>
+        </Card>
     )
 }
 
