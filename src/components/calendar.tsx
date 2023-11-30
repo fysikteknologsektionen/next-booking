@@ -17,13 +17,14 @@ import {
 } from '@chakra-ui/react'
 import { Text, Grid, GridItem, Center, Button, Circle, HStack, Box, VStack, Tag, Spinner, IconButton, useDisclosure } from "@chakra-ui/react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { $Enums, Reservation, Status, Venue } from "@prisma/client";
+import { $Enums, Reservation, Role, Status, Venue } from "@prisma/client";
 import { getReservationsClient } from "@/server/api/getreservations";
 import { ArrowBackIcon, ArrowForwardIcon, CheckIcon, ChevronDownIcon, CloseIcon, DeleteIcon, EditIcon, SpinnerIcon } from "@chakra-ui/icons";
 import { useVenueStore } from "@/lib/venueStore";
 import { getNameOfMonth, getVenueColor } from "@/lib/helper";
 import { approveReservationClient } from "@/server/api/approveReservation";
 import { denyReservationClient } from "@/server/api/denyReservation";
+import { useSession } from "next-auth/react";
 
 const dayNames = [
     "Mån",
@@ -154,6 +155,9 @@ function ReservationsList({
 
 export default function Calendar() {
     const venues = useVenueStore((state) => state.venues);
+
+    const session = useSession().data;
+    const isManager = session && (session.user.role === Role.MANAGER || session.user.role === Role.ADMIN);
 
     const today = new Date();
     const [month, setMonth] = useState(getCurrentMonth())
@@ -417,7 +421,7 @@ export default function Calendar() {
 
                 <ModalFooter>
                     <HStack>
-                        {activeReservation && (
+                        {activeReservation && isManager && (
                             <Menu>
                                 <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
                                     Actions
