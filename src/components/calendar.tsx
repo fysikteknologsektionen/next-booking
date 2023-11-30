@@ -25,6 +25,7 @@ import { getNameOfMonth, getVenueColor } from "@/lib/helper";
 import { approveReservationClient } from "@/server/api/approveReservation";
 import { denyReservationClient } from "@/server/api/denyReservation";
 import { useSession } from "next-auth/react";
+import { deleteReservationClient } from "@/server/api/deleteReservation";
 
 const dayNames = [
     "Mån",
@@ -36,8 +37,8 @@ const dayNames = [
     "Sön"
 ];
 
-const getCurrentMonth = () => {
-    const date = new Date();
+const getCurrentMonth = (now = new Date()) => {
+    const date = new Date(now);
     date.setUTCDate(1);
     date.setUTCHours(0, 0, 0, 0);
     return date;
@@ -250,11 +251,24 @@ export default function Calendar() {
     }
 
     const deleteActiveReservation = async () => {
-        // TODO: Implement this
         if (!activeReservation) {
             return;
         }
         setDisabledMenuButtons(d => ({ ...d, delete: true }));
+
+        const res = await deleteReservationClient(activeReservation.id);
+
+        if (res && res.ok) {
+            console.log("Borttagen");
+            
+            onClose();
+            setActiveReservation(undefined);
+
+            // Force a refresh of the calendar
+            setMonth(getCurrentMonth(month));
+        }
+
+        setDisabledMenuButtons(d => ({ ...d, delete: false }));
     }
 
     const editActiveReservation = () => {
