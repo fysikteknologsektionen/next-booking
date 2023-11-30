@@ -1,6 +1,5 @@
 "use client";
 
-import styles from "./bookingPage.module.css";
 import { dateToInput, dateToTimeInput, formatDuration } from "@/lib/helper";
 import { createReservationClient } from "@/server/api/createReservation";
 import { getReservationsClient } from "@/server/api/getreservations";
@@ -112,148 +111,146 @@ export default function BookingPage({
     }
 
     return (
-        <div className={styles.mainWrapper}>
-            <main className={styles.main}>
-                <Heading marginBottom="0.5em">Boka lokal</Heading>
-                
-                <form onSubmit={submit(false)} style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "1.25rem",
-                    maxWidth: "600px"
-                }}>
-                    <FormControl isRequired>
-                        <FormLabel>Lokal</FormLabel>
-                        <Select
-                            placeholder='Välj lokal'
-                            value={venue}
-                            onChange={e => setVenue(e.target.value)}
-                        >
-                            {venues.map(venue => {
-                                return (
-                                    <option key={venue.id} value={venue.id}>{venue.name}</option>
-                                )
-                            })}
-                        </Select>
-                        <FormErrorMessage>Error</FormErrorMessage>
-                    </FormControl>
+        <>
+            <Heading marginBottom="0.5em">Boka lokal</Heading>
+            
+            <form onSubmit={submit(false)} style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "1.25rem",
+                maxWidth: "600px"
+            }}>
+                <FormControl isRequired>
+                    <FormLabel>Lokal</FormLabel>
+                    <Select
+                        placeholder='Välj lokal'
+                        value={venue}
+                        onChange={e => setVenue(e.target.value)}
+                    >
+                        {venues.map(venue => {
+                            return (
+                                <option key={venue.id} value={venue.id}>{venue.name}</option>
+                            )
+                        })}
+                    </Select>
+                    <FormErrorMessage>Error</FormErrorMessage>
+                </FormControl>
 
-                    <FormControl isRequired>
-                        <FormLabel>Namn</FormLabel>
-                        <Input
-                            placeholder="Mitt namn"
-                            value={name}
-                            onChange={e => setName(e.target.value)}
-                            required
-                        ></Input>
-                        <FormErrorMessage>Testaaa</FormErrorMessage>
-                    </FormControl>
+                <FormControl isRequired>
+                    <FormLabel>Namn</FormLabel>
+                    <Input
+                        placeholder="Mitt namn"
+                        value={name}
+                        onChange={e => setName(e.target.value)}
+                        required
+                    ></Input>
+                    <FormErrorMessage>Testaaa</FormErrorMessage>
+                </FormControl>
 
-                    <FormControl isRequired>
-                        <FormLabel>E-post</FormLabel>
-                        <Input
-                            type="email"
-                            placeholder="exempel@mail.se"
-                            value={email}
-                            onChange={e => setEmail(e.target.value)}
-                        ></Input>
-                    </FormControl>
+                <FormControl isRequired>
+                    <FormLabel>E-post</FormLabel>
+                    <Input
+                        type="email"
+                        placeholder="exempel@mail.se"
+                        value={email}
+                        onChange={e => setEmail(e.target.value)}
+                    ></Input>
+                </FormControl>
 
-                    <FormControl isRequired>
-                        <FormLabel>Beskrivning</FormLabel>
-                        <Textarea
-                            placeholder="test"
-                            value={description}
-                            onChange={e => setDescription(e.target.value)}
-                        ></Textarea>
-                    </FormControl>
+                <FormControl isRequired>
+                    <FormLabel>Beskrivning</FormLabel>
+                    <Textarea
+                        placeholder="test"
+                        value={description}
+                        onChange={e => setDescription(e.target.value)}
+                    ></Textarea>
+                </FormControl>
 
-                    <HStack alignItems="flex-start">
-                        <div style={{ flex: 1 }}>
-                            <FormControl isRequired>
-                                <FormLabel>Från</FormLabel>
-                                <Input
-                                    type="date"
-                                    value={fromDateString}
-                                    onChange={e => setFromDateString(e.target.value)}
-                                ></Input>
-                                <Input
-                                    type="time"
-                                    value={fromTimeString}
-                                    onChange={e => setFromTimeString(e.target.value)}
-                                ></Input>
-                            </FormControl>
-                        </div>
+                <HStack alignItems="flex-start">
+                    <div style={{ flex: 1 }}>
+                        <FormControl isRequired>
+                            <FormLabel>Från</FormLabel>
+                            <Input
+                                type="date"
+                                value={fromDateString}
+                                onChange={e => setFromDateString(e.target.value)}
+                            ></Input>
+                            <Input
+                                type="time"
+                                value={fromTimeString}
+                                onChange={e => setFromTimeString(e.target.value)}
+                            ></Input>
+                        </FormControl>
+                    </div>
 
-                        <div style={{ flex: 1 }}>
-                            <FormControl isRequired isInvalid={showErrors && duration.valueOf() <= 0}>
-                                <FormLabel>Till</FormLabel>
-                                <Input
-                                    type="date"
-                                    value={toDateString}
-                                    onChange={e => setToDateString(e.target.value)}
-                                ></Input>
-                                <Input
-                                    type="time"
-                                    value={toTimeString}
-                                    onChange={e => setToTimeString(e.target.value)}
-                                ></Input>
-                                {/* <Input
-                                    type="datetime-local"
-                                    value={dateToInput(to)}
-                                    onChange={e => setTo(new Date(e.target.value))}
-                                ></Input> */}
-                                <FormErrorMessage>Sluttid måste vara efter starttid</FormErrorMessage>
-                            </FormControl>
-                        </div>
-                    </HStack>
+                    <div style={{ flex: 1 }}>
+                        <FormControl isRequired isInvalid={showErrors && duration.valueOf() <= 0}>
+                            <FormLabel>Till</FormLabel>
+                            <Input
+                                type="date"
+                                value={toDateString}
+                                onChange={e => setToDateString(e.target.value)}
+                            ></Input>
+                            <Input
+                                type="time"
+                                value={toTimeString}
+                                onChange={e => setToTimeString(e.target.value)}
+                            ></Input>
+                            {/* <Input
+                                type="datetime-local"
+                                value={dateToInput(to)}
+                                onChange={e => setTo(new Date(e.target.value))}
+                            ></Input> */}
+                            <FormErrorMessage>Sluttid måste vara efter starttid</FormErrorMessage>
+                        </FormControl>
+                    </div>
+                </HStack>
 
-                    {venue !== "" && duration.valueOf() > 0 && (
-                        <Text>Jag vill boka {venues.find(v => v.id.toString() === venue)?.name} i {formatDuration(duration)}</Text>
+                {venue !== "" && duration.valueOf() > 0 && (
+                    <Text>Jag vill boka {venues.find(v => v.id.toString() === venue)?.name} i {formatDuration(duration)}</Text>
+                )}
+
+                <HStack>
+                    <Button
+                        type="submit"
+                        isDisabled={isLoading}
+                        colorScheme="blue"
+                    >
+                        {reservation ? "Uppdatera bokning" : "Skapa bokning"}
+                    </Button>
+
+                    {isLoading && (
+                        <Spinner></Spinner>
                     )}
+                </HStack>
+            </form>
 
-                    <HStack>
-                        <Button
-                            type="submit"
-                            isDisabled={isLoading}
-                            colorScheme="blue"
-                        >
-                            {reservation ? "Uppdatera bokning" : "Skapa bokning"}
-                        </Button>
+            <Modal isOpen={isOpen} onClose={onClose}>
+                <ModalOverlay />
+                <ModalContent>
+                <ModalHeader>Överlappande bokning</ModalHeader>
+                <ModalCloseButton />
+                <ModalBody>
+                    <Text>
+                        Denna bokningen överlappar befintliga bokningar och kommer automatiskt att nekas. Vill du boka ändå?
+                    </Text>
+                </ModalBody>
 
-                        {isLoading && (
-                            <Spinner></Spinner>
-                        )}
-                    </HStack>
-                </form>
-
-                <Modal isOpen={isOpen} onClose={onClose}>
-                    <ModalOverlay />
-                    <ModalContent>
-                    <ModalHeader>Överlappande bokning</ModalHeader>
-                    <ModalCloseButton />
-                    <ModalBody>
-                        <Text>
-                            Denna bokningen överlappar befintliga bokningar och kommer automatiskt att nekas. Vill du boka ändå?
-                        </Text>
-                    </ModalBody>
-
-                    <ModalFooter>
-                        <Button colorScheme='blue' mr={3} onClick={onClose}>
-                            Avbryt
-                        </Button>
-                        <Button variant='ghost' colorScheme='red' mr={3} onClick={() => {
-                            submit(true)();
-                            onClose();
-                        }}>
-                            Boka ändå
-                        </Button>
-                        {/* <Button variant='ghost'>Secondary Action</Button> */}
-                    </ModalFooter>
-                    </ModalContent>
-                </Modal>
-            </main>
-        </div>
+                <ModalFooter>
+                    <Button colorScheme='blue' mr={3} onClick={onClose}>
+                        Avbryt
+                    </Button>
+                    <Button variant='ghost' colorScheme='red' mr={3} onClick={() => {
+                        submit(true)();
+                        onClose();
+                    }}>
+                        Boka ändå
+                    </Button>
+                    {/* <Button variant='ghost'>Secondary Action</Button> */}
+                </ModalFooter>
+                </ModalContent>
+            </Modal>
+        </>
     )
 }
 
