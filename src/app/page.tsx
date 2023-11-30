@@ -2,7 +2,6 @@
 
 "use client";
 
-import styles from "./page.module.css";
 import Calendar from '@/components/calendar'
 import ReservationsList from '@/components/reservationsList';
 import { useVenueStore } from '@/lib/venueStore'
@@ -30,29 +29,27 @@ export default function Home() {
   const isManager = session && (session.user.role === Role.MANAGER || session.user.role === Role.ADMIN);
 
   return (
-    <div className={styles.mainWrapper}>
-      <main className={styles.main}>
-        <Stack gap="3rem">
-          <div>
-            <Heading as="h2" size="lg" marginBottom="0.5em">Så här bokar du en lokal</Heading>
-            <OrderedList>
-              <ListItem>Klicka på <Text as="b"><Link href="/createReservation">Boka lokal</Link></Text>.</ListItem>
-              <ListItem>Fyll i all info.</ListItem>
-              <ListItem><Text as="b">Klart!</Text> Din bokning ska nu synas i kalendern nedan.</ListItem>
-            </OrderedList>
-          </div>
+    <>
+      <Stack gap="3rem">
+        <div>
+          <Heading as="h2" size="lg" marginBottom="0.5em">Så här bokar du en lokal</Heading>
+          <OrderedList>
+            <ListItem>Klicka på <Text as="b"><Link href="/createReservation">Boka lokal</Link></Text>.</ListItem>
+            <ListItem>Fyll i all info.</ListItem>
+            <ListItem><Text as="b">Klart!</Text> Din bokning ska nu synas i kalendern nedan.</ListItem>
+          </OrderedList>
+        </div>
 
-          <div>
-            <Heading as="h2" size="lg" marginBottom="0.5em">Kalender</Heading>
-            <Text marginBottom="1rem">I kalendern visas alla bokningar. Bokningar som väntar på godkännande visas blekta.</Text>
-            <Calendar></Calendar>
-          </div>
+        <div>
+          <Heading as="h2" size="lg" marginBottom="0.5em">Kalender</Heading>
+          <Text marginBottom="1rem">I kalendern visas alla bokningar. Bokningar som väntar på godkännande visas blekta.</Text>
+          <Calendar></Calendar>
+        </div>
 
-          {isManager && (
-            <ReservationsList></ReservationsList>
-          )}
-        </Stack>
-      </main>
-    </div>
+        {isManager && (
+          <ReservationsList></ReservationsList>
+        )}
+      </Stack>
+    </>
   )
 }
