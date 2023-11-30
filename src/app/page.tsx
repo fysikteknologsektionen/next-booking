@@ -44,7 +44,7 @@ export default function Home() {
 
           <div>
             <Heading as="h2" size="lg" marginBottom="0.5em">Kalender</Heading>
-            <Text marginBottom="1rem">I kalendern visas alla bokningar. Bokningar som väntar på godkännande visas [utgråade].</Text>
+            <Text marginBottom="1rem">I kalendern visas alla bokningar. Bokningar som väntar på godkännande visas blekta.</Text>
             <Calendar></Calendar>
           </div>
 
