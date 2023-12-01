@@ -1,24 +1,35 @@
 "use client";
 
-import { Button, Text } from "@chakra-ui/react";
+import { Button, Heading, Text, VStack } from "@chakra-ui/react";
 import { signIn, signOut, useSession } from "next-auth/react";
 
 export default function ProfilePage() {
     const { data:session } = useSession();
 
-    if (session) {
-        return (
-            <div>
-                <Text>Inloggad som {session.user.name}</Text>
-                <Button onClick={() => signOut()}>Logga ut</Button>
-            </div>
-        )
-    }
-
     return (
-        <div>
-            <Text>Inte inloggad</Text>
-            <Button onClick={() => signIn()}>Logga in</Button>
-        </div>
+        <>
+            <VStack gap="2rem" align="start">
+                <div>
+                    <Heading as="h2">Profil</Heading>
+                    <p>En profil krävs <Text as="b">INTE</Text> för att boka lokal.</p>
+                </div>
+
+                {session ? (
+                    <VStack gap="1rem" align="start">
+                        <div>
+                            <Text>Inloggad som {session.user.name}</Text>
+                            <Text>Roll: {session.user.role}</Text>
+                        </div>
+
+                        <Button onClick={() => signOut()}>Logga ut</Button>
+                    </VStack>
+                ) : (
+                    <VStack gap="1rem" align="start">
+                        <Text>Inte inloggad</Text>
+                        <Button onClick={() => signIn()}>Logga in</Button>
+                    </VStack>
+                )}
+            </VStack>
+        </>
     )
 }
