@@ -1,10 +1,11 @@
 "use client";
 
-import { dateToInput, dateToTimeInput, formatDuration } from "@/lib/helper";
+import { dateToInput, dateToTimeInput, formatDuration, isMailSpelledCorrectly } from "@/lib/helper";
 import { createReservationClient } from "@/server/api/createReservation";
 import { getReservationsClient } from "@/server/api/getreservations";
 import { updateReservationClient } from "@/server/api/updateReservation";
-import { Button, FormControl, FormErrorMessage, FormLabel, Heading, HStack, Input, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select, Spinner, Text, Textarea, useDisclosure } from "@chakra-ui/react";
+import { WarningIcon } from "@chakra-ui/icons";
+import { Button, FormControl, FormErrorIcon, FormErrorMessage, FormLabel, Heading, HStack, Input, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select, Spinner, Text, Textarea, useDisclosure } from "@chakra-ui/react";
 import { Reservation, Status, Venue } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { FormEvent, FormEventHandler, useEffect, useMemo, useState } from "react";
@@ -157,7 +158,7 @@ export default function BookingPage({
                     <FormErrorMessage>Testaaa</FormErrorMessage>
                 </FormControl>
 
-                <FormControl isRequired>
+                <FormControl isRequired isInvalid={!isMailSpelledCorrectly(email)}>
                     <FormLabel>E-post</FormLabel>
                     <Input
                         type="email"
@@ -165,6 +166,7 @@ export default function BookingPage({
                         value={email}
                         onChange={e => setEmail(e.target.value)}
                     ></Input>
+                    <FormErrorMessage color="orange.400">Din e-post kan vara felstavad!</FormErrorMessage>
                 </FormControl>
 
                 <FormControl isRequired>
