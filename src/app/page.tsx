@@ -20,10 +20,19 @@ export default function Home() {
     (async () => {
       const venues = await getVenuesClient();
       setVenues(venues);
-      const curSession = await getSession();
-      if (curSession) setSession(curSession);
     })()
-  }, [ setVenues ])
+  }, [ setVenues ]);
+
+  useEffect(() => {
+    (async () => {
+      const curSession = await getSession();
+      if (!curSession) {
+        return;
+      }
+
+      setSession(curSession);
+    })()
+  }, []);
 
   const isManager = session && (session.user.role === Role.MANAGER || session.user.role === Role.ADMIN);
 

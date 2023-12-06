@@ -375,19 +375,35 @@ export default function Calendar() {
                 >
                     {days.map((day, index) => {
                         return (
-                            <GridItem gridColumnStart={index === 0 ? firstDayOffset : undefined} key={index} bg="white" padding="0.25rem" minHeight="136px">
-                                {isToday(day, today) ? (
-                                    <Circle
-                                        bg="blue.500"
-                                        size="30px"
-                                        fontWeight="bold"
-                                        color="white"
-                                    >
-                                        {day}
-                                    </Circle>
-                                ) : (
-                                    day
-                                )}
+                            <GridItem
+                                gridColumnStart={index === 0 ? firstDayOffset : undefined}
+                                key={index}
+                                bg="white"
+                                padding="0.25rem"
+                                paddingTop="calc(0.25rem + 35px)"
+                                minHeight="136px"
+                                position="relative"
+                            >
+                                <Center
+                                    position="absolute"
+                                    top="5px"
+                                    left="5px"
+                                    width="30px"
+                                    height="30px"
+                                >
+                                    {isToday(day, today) ? (
+                                        <Circle
+                                            bg="blue.500"
+                                            size="30px"
+                                            fontWeight="bold"
+                                            color="white"
+                                        >
+                                            {day}
+                                        </Circle>
+                                    ) : (
+                                        <Text>{day}</Text>
+                                    )}
+                                </Center>
 
                                 {renderReservations(day)}
 
