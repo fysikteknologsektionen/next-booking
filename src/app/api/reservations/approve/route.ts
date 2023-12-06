@@ -7,20 +7,21 @@ export async function POST(request: Request) {
     const res = await request.json();
     const { reservationID } = res;
 
-    let response;
     const session = await getServerSession(authOptions);
-    
-    if (session?.user.role === "MANAGER" || session?.user.role === "ADMIN") {
-        const result = await approveReservationServer(reservationID);
-        if (!result) response = new NextResponse('Collision! Could not approve reservation', {
-            status: 400,
-        });
-        else response = NextResponse.json(result);
-    } else {
-        response = new NextResponse('You are not authorized to perform this action', {
+    if (!session || !(session.user.role === "MANAGER" || session.user.role === "ADMIN")) {
+        return new NextResponse('You are not authorized to perform this action', {
             status: 403,
+            statusText: "You are not authorized to perform this action"
         });
     }
-    
-    return response;
+
+    const result = await approveReservationServer(reservationID);
+    if (!result) {
+        return new NextResponse('Collision! Could not approve reservation', {
+            status: 403,
+            statusText: "Collision! Could not approve reservation"
+        });
+    }
+
+    return NextResponse.json(result);
 }

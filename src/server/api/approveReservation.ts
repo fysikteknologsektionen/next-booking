@@ -32,6 +32,20 @@ export async function approveReservationServer(reservationID: number) {
             status: Status.ACCEPTED
         },
     });
+
+    const toBeDenied = await prisma.reservation.findMany({
+        where: {
+            status: Status.PENDING,
+            venueId: result?.venueId,
+            startTime: {
+                lte: result?.endTime,
+            },
+            endTime: {
+                gte: result?.startTime,
+            },
+        },
+    });
+
     const autoDeny = await prisma.reservation.updateMany({
         where: {
             status: Status.PENDING,
@@ -48,7 +62,10 @@ export async function approveReservationServer(reservationID: number) {
         },
     });
 
-    return result;
+    return {
+        updatedReservation: result,
+        affectedReservations: toBeDenied
+    };
 }
 
 

@@ -2,7 +2,7 @@ import { useVenueStore } from "@/lib/venueStore";
 import { getReservationsClient } from "@/server/api/getreservations";
 import { Button, Card, CardBody, CardHeader, Center, Heading, IconButton, Spinner, Stack, Text } from "@chakra-ui/react";
 import { Reservation, Status, Venue } from "@prisma/client";
-import { useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
 import styles from "@/components/reservationsList.module.css";
 import { CloseIcon, EditIcon } from "@chakra-ui/icons";
@@ -68,7 +68,7 @@ export default function ReservationsList() {
                     </div>
 
                     {pendingReservations.filter(r => r.status === Status.PENDING).map((reservation, index) => {
-                        return <ReservationItem reservation={reservation} key={index}></ReservationItem>
+                        return <ReservationItem reservation={reservation} setReservations={setReservations} key={index}></ReservationItem>
                     })}
 
                     {pendingReservations.length === 0 && (
@@ -95,7 +95,7 @@ export default function ReservationsList() {
                         </div>
 
                         {handledReservations.map((reservation, index) => {
-                            return <ReservationItem reservation={reservation} key={index}></ReservationItem>
+                            return <ReservationItem reservation={reservation} setReservations={setReservations} key={index}></ReservationItem>
                         })}
                     </div>
                 )}
@@ -105,9 +105,11 @@ export default function ReservationsList() {
 }
 
 function ReservationItem({
-    reservation
+    reservation,
+    setReservations
 }: {
-    reservation: Reservation
+    reservation: Reservation,
+    setReservations: Dispatch<SetStateAction<Reservation[]>>
 }) {
     const router = useRouter();
     const venues = useVenueStore((state) => state.venues);
@@ -193,6 +195,31 @@ function ReservationItem({
             setDisabled(false);
         }
         else {
+            const { updatedReservation, affectedReservations } = await res.json();
+
+            // Make sure that overlapping reservations, that the server auto-denied,
+            // will be shown as denied in the UI
+            setReservations(oldReservations => {
+                return oldReservations.map(currentReservation => {
+                    if (currentReservation === reservation) {
+                        return {
+                            ...currentReservation,
+                            status: Status.ACCEPTED
+                        };
+                    }
+
+                    const affectedReservation = affectedReservations.find((r: Reservation) => r.id === currentReservation.id);
+                    if (!affectedReservation) {
+                        return { ...currentReservation };
+                    }
+
+                    return {
+                        ...currentReservation,
+                        status: Status.DENIED
+                    };
+                })
+            });
+
             setStatus(Status.ACCEPTED);
         }
     }
