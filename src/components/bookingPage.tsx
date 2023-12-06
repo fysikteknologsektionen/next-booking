@@ -5,7 +5,7 @@ import { createReservationClient } from "@/server/api/createReservation";
 import { getReservationsClient } from "@/server/api/getreservations";
 import { updateReservationClient } from "@/server/api/updateReservation";
 import { WarningIcon } from "@chakra-ui/icons";
-import { Button, FormControl, FormErrorIcon, FormErrorMessage, FormLabel, Heading, HStack, Input, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select, Spinner, Text, Textarea, useDisclosure } from "@chakra-ui/react";
+import { Button, FormControl, FormErrorIcon, FormErrorMessage, FormLabel, Heading, HStack, Input, Link, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select, Spinner, Stack, Text, Textarea, useDisclosure } from "@chakra-ui/react";
 import { Reservation, Status, Venue } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { FormEvent, FormEventHandler, useEffect, useMemo, useState } from "react";
@@ -124,6 +124,7 @@ export default function BookingPage({
     return (
         <>
             <Heading marginBottom="0.5em">Boka lokal</Heading>
+            <Text marginBottom="1em">När du har fyllt i och skapat bokningen kan du se den i <Link href="/">kalendern</Link>.</Text>
             
             <form onSubmit={submit(false)} style={{
                 display: "flex",
@@ -155,7 +156,7 @@ export default function BookingPage({
                         onChange={e => setName(e.target.value)}
                         required
                     ></Input>
-                    <FormErrorMessage>Testaaa</FormErrorMessage>
+                    <FormErrorMessage>Error</FormErrorMessage>
                 </FormControl>
 
                 <FormControl isRequired isInvalid={!isMailSpelledCorrectly(email)}>
@@ -182,37 +183,41 @@ export default function BookingPage({
                     <div style={{ flex: 1 }}>
                         <FormControl isRequired>
                             <FormLabel>Från</FormLabel>
-                            <Input
-                                type="date"
-                                value={fromDateString}
-                                onChange={e => setFromDateString(e.target.value)}
-                            ></Input>
-                            <Input
-                                type="time"
-                                value={fromTimeString}
-                                onChange={e => setFromTimeString(e.target.value)}
-                            ></Input>
+                            <Stack>
+                                <Input
+                                    type="date"
+                                    value={fromDateString}
+                                    onChange={e => setFromDateString(e.target.value)}
+                                ></Input>
+                                <Input
+                                    type="time"
+                                    value={fromTimeString}
+                                    onChange={e => setFromTimeString(e.target.value)}
+                                ></Input>
+                            </Stack>
                         </FormControl>
                     </div>
 
                     <div style={{ flex: 1 }}>
                         <FormControl isRequired isInvalid={showErrors && duration.valueOf() <= 0}>
                             <FormLabel>Till</FormLabel>
-                            <Input
-                                type="date"
-                                value={toDateString}
-                                onChange={e => setToDateString(e.target.value)}
-                            ></Input>
-                            <Input
-                                type="time"
-                                value={toTimeString}
-                                onChange={e => setToTimeString(e.target.value)}
-                            ></Input>
-                            {/* <Input
-                                type="datetime-local"
-                                value={dateToInput(to)}
-                                onChange={e => setTo(new Date(e.target.value))}
-                            ></Input> */}
+                            <Stack>
+                                <Input
+                                    type="date"
+                                    value={toDateString}
+                                    onChange={e => setToDateString(e.target.value)}
+                                ></Input>
+                                <Input
+                                    type="time"
+                                    value={toTimeString}
+                                    onChange={e => setToTimeString(e.target.value)}
+                                ></Input>
+                                {/* <Input
+                                    type="datetime-local"
+                                    value={dateToInput(to)}
+                                    onChange={e => setTo(new Date(e.target.value))}
+                                ></Input> */}
+                            </Stack>
                             <FormErrorMessage>Sluttid måste vara efter starttid</FormErrorMessage>
                         </FormControl>
                     </div>
@@ -262,7 +267,7 @@ export default function BookingPage({
                 <ModalCloseButton />
                 <ModalBody>
                     <Text>
-                        Denna bokningen överlappar befintliga bokningar och kommer automatiskt att nekas. Vill du boka ändå?
+                        Denna bokningen överlappar befintliga bokningar och kommer automatiskt att nekas. Vill du boka ändå? (bokningen kommer inte visas i kalendern)
                     </Text>
                 </ModalBody>
 
