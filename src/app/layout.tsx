@@ -1,4 +1,5 @@
 import './globals.css'
+import styles from "./layout.module.css";
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { Providers } from "./providers";
@@ -23,7 +24,11 @@ export default async function RootLayout({
       <body className={inter.className}>
         <Providers session={session}>
           <Navbar></Navbar>
-          {children}
+          <div className={styles.mainWrapper}>
+            <main className={styles.main}>
+              {children}
+            </main>
+          </div>
         </Providers>
       </body>
     </html>

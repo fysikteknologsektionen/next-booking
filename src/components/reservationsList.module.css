@@ -2,7 +2,6 @@
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    margin-top: 2rem;
 }
 
 .header {
@@ -12,6 +11,19 @@
 
 .item {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr)) 200px 40px 40px;
+    grid-template-columns: minmax(0, 0.75fr) repeat(2, minmax(0, 1fr)) 200px 40px 40px;
     gap: 0.5rem;
+
+    padding: 0.5rem;
+    /* border-radius: 8px;
+    background: white;
+    box-shadow: 0 2px 15px -5px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--chakra-colors-gray-200); */
 }
+
+/* .item.header {
+    background: unset;
+    border-radius: unset;
+    box-shadow: unset;
+    border: unset;
+} */
