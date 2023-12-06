@@ -1,6 +1,6 @@
 import { useVenueStore } from "@/lib/venueStore";
 import { getReservationsClient } from "@/server/api/getreservations";
-import { Button, Card, CardBody, CardHeader, Center, Heading, IconButton, Spinner, Text } from "@chakra-ui/react";
+import { Button, Card, CardBody, CardHeader, Center, Heading, IconButton, Spinner, Stack, Text } from "@chakra-ui/react";
 import { Reservation, Status, Venue } from "@prisma/client";
 import { useEffect, useState } from "react";
 
@@ -56,7 +56,7 @@ export default function ReservationsList() {
                         styles.header
                     ].join(" ")}>
                         <span>Lokal</span>
-                        <span>Bokad av</span>
+                        <span>Bokningsinfo</span>
                         <span>Datum</span>
 
                         <span></span>
@@ -77,13 +77,13 @@ export default function ReservationsList() {
                 </div>
 
                 {handledReservations.length > 0 && (
-                    <div className={styles.reservations}>
+                    <div className={styles.reservations} style={{ marginTop: "2rem" }}>
                         <div className={[
                             styles.item,
                             styles.header
                         ].join(" ")}>
                             <span>Lokal</span>
-                            <span>Bokad av</span>
+                            <span>Bokningsinfo</span>
                             <span>Datum</span>
 
                             <span></span>
@@ -219,26 +219,31 @@ function ReservationItem({
     }
 
     return (
-        <div className={styles.item}>
-            <span>{getVenueName(reservation.venueId)}</span>
-            <span>{reservation.clientName}</span>
+        <Card>
+            <div className={styles.item}>
+                <span>{getVenueName(reservation.venueId)}</span>
+                <Stack>
+                    <span>{reservation.clientName} ({reservation.clientEmail})</span>
+                    <span>{reservation.clientDescription}</span>
+                </Stack>
 
-            <div>
-                {renderTime(reservation)}
+                <div>
+                    {renderTime(reservation)}
+                </div>
+
+                {status === Status.PENDING ? (
+                    <>
+                        <Button isLoading={disabled} isDisabled={disabled} colorScheme="green" onClick={() => approve()}>Godkänn</Button>
+                        <IconButton isLoading={disabled} isDisabled={disabled} aria-label="Neka bokning" title="Neka bokning" icon={<CloseIcon />} onClick={() => deny()} colorScheme="red"></IconButton>
+                    </>
+                ) : (
+                    <Button isDisabled={true} colorScheme={status === Status.ACCEPTED ? "green" : "red"} gridColumn="span 2">
+                        {formatStatus(status)}
+                    </Button>
+                )}
+
+                <IconButton aria-label="Ändra bokning" title="Ändra bokning" icon={<EditIcon />} onClick={edit}></IconButton>
             </div>
-
-            {status === Status.PENDING ? (
-                <>
-                    <Button isLoading={disabled} isDisabled={disabled} colorScheme="green" onClick={() => approve()}>Godkänn</Button>
-                    <IconButton isLoading={disabled} isDisabled={disabled} aria-label="Neka bokning" title="Neka bokning" icon={<CloseIcon />} onClick={() => deny()} colorScheme="red"></IconButton>
-                </>
-            ) : (
-                <Button isDisabled={true} colorScheme={status === Status.ACCEPTED ? "green" : "red"} gridColumn="span 2">
-                    {formatStatus(status)}
-                </Button>
-            )}
-
-            <IconButton aria-label="Ändra bokning" title="Ändra bokning" icon={<EditIcon />} onClick={edit}></IconButton>
-        </div>
+        </Card>
     )
 }
