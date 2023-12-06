@@ -24,8 +24,9 @@ import { useVenueStore } from "@/lib/venueStore";
 import { getNameOfMonth, getVenueColor } from "@/lib/helper";
 import { approveReservationClient } from "@/server/api/approveReservation";
 import { denyReservationClient } from "@/server/api/denyReservation";
-import { useSession } from "next-auth/react";
+import { useSession, getSession } from "next-auth/react";
 import { deleteReservationClient } from "@/server/api/deleteReservation";
+import { Session } from "next-auth";
 
 const dayNames = [
     "Mån",
@@ -157,8 +158,21 @@ function ReservationsList({
 export default function Calendar() {
     const venues = useVenueStore((state) => state.venues);
 
-    const session = useSession().data;
+    const [session, setSession] = useState<Session>();
+    useEffect(() => {
+        (async () => {
+        const currentSession = await getSession();
+        if (!currentSession) {
+            return;
+        }
+
+        setSession(currentSession);
+        })()
+    }, []);
     const isManager = session && (session.user.role === Role.MANAGER || session.user.role === Role.ADMIN);
+
+    // const session = useSession().data;
+    // const isManager = session && (session.user.role === Role.MANAGER || session.user.role === Role.ADMIN);
 
     const today = new Date();
     const [month, setMonth] = useState(getCurrentMonth())
@@ -210,6 +224,14 @@ export default function Calendar() {
         });
     }, [ activeReservation ])
 
+    const closeAndRefresh = () => {
+        onClose();
+        setActiveReservation(undefined);
+
+        // Force a refresh of the calendar
+        setMonth(getCurrentMonth(month));
+    }
+
     const acceptActiveReservation = async () => {
         if (!activeReservation) {
             return;
@@ -225,6 +247,7 @@ export default function Calendar() {
 
         if (res && res.ok) {
             console.log("Godkänd");
+            closeAndRefresh();
         }
 
         setDisabledMenuButtons(d => ({ ...d, accept: false }));
@@ -245,6 +268,7 @@ export default function Calendar() {
 
         if (res && res.ok) {
             console.log("Nekad");
+            closeAndRefresh();
         }
 
         setDisabledMenuButtons(d => ({ ...d, deny: false }));
@@ -260,12 +284,7 @@ export default function Calendar() {
 
         if (res && res.ok) {
             console.log("Borttagen");
-            
-            onClose();
-            setActiveReservation(undefined);
-
-            // Force a refresh of the calendar
-            setMonth(getCurrentMonth(month));
+            closeAndRefresh();
         }
 
         setDisabledMenuButtons(d => ({ ...d, delete: false }));
