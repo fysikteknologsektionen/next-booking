@@ -1,3 +1,4 @@
+import { Status } from "@prisma/client";
 import prisma from "../lib/prisma";
 
 
@@ -11,6 +12,7 @@ export async function updateReservationServer( {
     date,
     startTime,
     endTime,
+    status
 }:{
     reservationID: number,
     clientName: string,
@@ -20,6 +22,7 @@ export async function updateReservationServer( {
     date: Date,
     startTime: Date,
     endTime: Date,
+    status: Status
 }) {
     const result = await prisma.reservation.update({
         where: {id: reservationID},
@@ -31,6 +34,7 @@ export async function updateReservationServer( {
             startTime,
             endTime,
             venueId,
+            status,
         },
     });;
     return result;
@@ -47,6 +51,7 @@ export async function updateReservationClient(reservationDetails:{
     date: Date,
     startTime: Date,
     endTime: Date,
+    status: Status
 }) {
     try {
         const body = { reservationDetails: reservationDetails };

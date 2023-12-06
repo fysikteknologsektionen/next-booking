@@ -1,6 +1,6 @@
 import { useVenueStore } from "@/lib/venueStore";
 import { getReservationsClient } from "@/server/api/getreservations";
-import { Button, Center, Heading, IconButton, Spinner, Text } from "@chakra-ui/react";
+import { Button, Card, CardBody, CardHeader, Center, Heading, IconButton, Spinner, Stack, Text } from "@chakra-ui/react";
 import { Reservation, Status, Venue } from "@prisma/client";
 import { useEffect, useState } from "react";
 
@@ -43,46 +43,20 @@ export default function ReservationsList() {
     const handledReservations = reservations.filter(r => r.status !== Status.PENDING);
 
     return (
-        <div style={{
-            marginTop: "2rem"
-        }}>
-            <Text>Admin</Text>
-            <Heading>Hantera bokningar</Heading>
+        <Card>
+            <CardHeader>
+                <Heading>Hantera bokningar</Heading>
+                <Text>Endast admins kan se detta.</Text>
+            </CardHeader>
 
-            <div className={styles.reservations}>
-                <div className={[
-                    styles.item,
-                    styles.header
-                ].join(" ")}>
-                    <span>Lokal</span>
-                    <span>Bokad av</span>
-                    <span>Datum</span>
-
-                    <span></span>
-                    <span style={{ textAlign: "right" }}>
-                        {isLoading && (
-                            <Spinner></Spinner>
-                        )}
-                    </span>
-                </div>
-
-                {pendingReservations.filter(r => r.status === Status.PENDING).map((reservation, index) => {
-                    return <ReservationItem reservation={reservation} key={index}></ReservationItem>
-                })}
-
-                {pendingReservations.length === 0 && (
-                    <Text color="gray.500">Inga nya bokningar</Text>
-                )}
-            </div>
-
-            {handledReservations.length > 0 && (
+            <CardBody>
                 <div className={styles.reservations}>
                     <div className={[
                         styles.item,
                         styles.header
                     ].join(" ")}>
                         <span>Lokal</span>
-                        <span>Bokad av</span>
+                        <span>Bokningsinfo</span>
                         <span>Datum</span>
 
                         <span></span>
@@ -93,12 +67,40 @@ export default function ReservationsList() {
                         </span>
                     </div>
 
-                    {handledReservations.map((reservation, index) => {
+                    {pendingReservations.filter(r => r.status === Status.PENDING).map((reservation, index) => {
                         return <ReservationItem reservation={reservation} key={index}></ReservationItem>
                     })}
+
+                    {pendingReservations.length === 0 && (
+                        <Text color="gray.500">Inga nya bokningar</Text>
+                    )}
                 </div>
-            )}
-        </div>
+
+                {handledReservations.length > 0 && (
+                    <div className={styles.reservations} style={{ marginTop: "2rem" }}>
+                        <div className={[
+                            styles.item,
+                            styles.header
+                        ].join(" ")}>
+                            <span>Lokal</span>
+                            <span>Bokningsinfo</span>
+                            <span>Datum</span>
+
+                            <span></span>
+                            <span style={{ textAlign: "right" }}>
+                                {isLoading && (
+                                    <Spinner></Spinner>
+                                )}
+                            </span>
+                        </div>
+
+                        {handledReservations.map((reservation, index) => {
+                            return <ReservationItem reservation={reservation} key={index}></ReservationItem>
+                        })}
+                    </div>
+                )}
+            </CardBody>
+        </Card>
     )
 }
 
@@ -217,26 +219,31 @@ function ReservationItem({
     }
 
     return (
-        <div className={styles.item}>
-            <span>{getVenueName(reservation.venueId)}</span>
-            <span>{reservation.clientName}</span>
+        <Card>
+            <div className={styles.item}>
+                <span>{getVenueName(reservation.venueId)}</span>
+                <Stack>
+                    <span>{reservation.clientName} ({reservation.clientEmail})</span>
+                    <span>{reservation.clientDescription}</span>
+                </Stack>
 
-            <div>
-                {renderTime(reservation)}
+                <div>
+                    {renderTime(reservation)}
+                </div>
+
+                {status === Status.PENDING ? (
+                    <>
+                        <Button isLoading={disabled} isDisabled={disabled} colorScheme="green" onClick={() => approve()}>Godkänn</Button>
+                        <IconButton isLoading={disabled} isDisabled={disabled} aria-label="Neka bokning" title="Neka bokning" icon={<CloseIcon />} onClick={() => deny()} colorScheme="red"></IconButton>
+                    </>
+                ) : (
+                    <Button isDisabled={true} colorScheme={status === Status.ACCEPTED ? "green" : "red"} gridColumn="span 2">
+                        {formatStatus(status)}
+                    </Button>
+                )}
+
+                <IconButton aria-label="Ändra bokning" title="Ändra bokning" icon={<EditIcon />} onClick={edit}></IconButton>
             </div>
-
-            {status === Status.PENDING ? (
-                <>
-                    <Button isLoading={disabled} isDisabled={disabled} colorScheme="green" onClick={() => approve()}>Godkänn</Button>
-                    <IconButton isLoading={disabled} isDisabled={disabled} aria-label="Neka bokning" title="Neka bokning" icon={<CloseIcon />} onClick={() => deny()} colorScheme="red"></IconButton>
-                </>
-            ) : (
-                <Button isDisabled={true} colorScheme={status === Status.ACCEPTED ? "green" : "red"} gridColumn="span 2">
-                    {formatStatus(status)}
-                </Button>
-            )}
-
-            <IconButton aria-label="Ändra bokning" title="Ändra bokning" icon={<EditIcon />} onClick={edit}></IconButton>
-        </div>
+        </Card>
     )
 }

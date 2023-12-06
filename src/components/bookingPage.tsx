@@ -1,10 +1,11 @@
 "use client";
 
-import { dateToInput, dateToTimeInput, formatDuration } from "@/lib/helper";
+import { dateToInput, dateToTimeInput, formatDuration, isMailSpelledCorrectly } from "@/lib/helper";
 import { createReservationClient } from "@/server/api/createReservation";
 import { getReservationsClient } from "@/server/api/getreservations";
 import { updateReservationClient } from "@/server/api/updateReservation";
-import { Button, FormControl, FormErrorMessage, FormLabel, Heading, HStack, Input, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select, Spinner, Text, Textarea, useDisclosure } from "@chakra-ui/react";
+import { WarningIcon } from "@chakra-ui/icons";
+import { Button, FormControl, FormErrorIcon, FormErrorMessage, FormLabel, Heading, HStack, Input, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select, Spinner, Text, Textarea, useDisclosure } from "@chakra-ui/react";
 import { Reservation, Status, Venue } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { FormEvent, FormEventHandler, useEffect, useMemo, useState } from "react";
@@ -21,14 +22,17 @@ export default function BookingPage({
     venues: Venue[],
     reservation?: Reservation
 }) {
+    const isUpdating = !!reservation;
+
     const router = useRouter();
-    const defaultReservationData = reservation?reservation:{
+    const defaultReservationData = reservation ? reservation : {
         clientName: "",
         clientEmail: "",
         clientDescription: "",
         startTime: fromDefault,
         endTime: toDefault,
         venueId: "",
+        status: Status.PENDING
     }
 
     const [venue, setVenue] = useState<string>(defaultReservationData.venueId?.toString()??"")
@@ -52,6 +56,9 @@ export default function BookingPage({
         to.valueOf() -
         from.valueOf()
     ), [ from, to ]);
+
+    const [status, setStatus] = useState(defaultReservationData.status);
+
     const [showErrors, setShowErrors] = useState(false);
     const [isLoading, setLoading] = useState(false);
 
@@ -98,7 +105,11 @@ export default function BookingPage({
 
             // Make POST fetch request using the data
             if (reservation) {
-                const reservationDetailsWithID = {...reservationDetails, reservationID:reservation.id}
+                const reservationDetailsWithID = {
+                    ...reservationDetails,
+                    reservationID: reservation.id,
+                    status: status,
+                }
                 await updateReservationClient(reservationDetailsWithID)
             } else {
                 await createReservationClient(reservationDetails);
@@ -111,7 +122,7 @@ export default function BookingPage({
     }
 
     return (
-        <main style={{ padding: "2rem" }}>
+        <>
             <Heading marginBottom="0.5em">Boka lokal</Heading>
             
             <form onSubmit={submit(false)} style={{
@@ -147,7 +158,7 @@ export default function BookingPage({
                     <FormErrorMessage>Testaaa</FormErrorMessage>
                 </FormControl>
 
-                <FormControl isRequired>
+                <FormControl isRequired isInvalid={!isMailSpelledCorrectly(email)}>
                     <FormLabel>E-post</FormLabel>
                     <Input
                         type="email"
@@ -155,6 +166,7 @@ export default function BookingPage({
                         value={email}
                         onChange={e => setEmail(e.target.value)}
                     ></Input>
+                    <FormErrorMessage color="orange.400">Din e-post kan vara felstavad!</FormErrorMessage>
                 </FormControl>
 
                 <FormControl isRequired>
@@ -206,6 +218,24 @@ export default function BookingPage({
                     </div>
                 </HStack>
 
+                {isUpdating && (
+                    <FormControl isRequired>
+                        <FormLabel>Status</FormLabel>
+                        <Select
+                            placeholder=''
+                            value={status}
+                            onChange={e => setStatus(e.target.value as Status)}
+                        >
+                            {Object.keys(Status).map(statusKey => {
+                                return (
+                                    <option key={statusKey} value={statusKey}>{statusKey}</option>
+                                )
+                            })}
+                        </Select>
+                        <FormErrorMessage>Error</FormErrorMessage>
+                    </FormControl>
+                )}
+
                 {venue !== "" && duration.valueOf() > 0 && (
                     <Text>Jag vill boka {venues.find(v => v.id.toString() === venue)?.name} i {formatDuration(duration)}</Text>
                 )}
@@ -216,7 +246,7 @@ export default function BookingPage({
                         isDisabled={isLoading}
                         colorScheme="blue"
                     >
-                        {reservation ? "Uppdatera bokning" : "Skapa bokning"}
+                        {isUpdating ? "Uppdatera bokning" : "Skapa bokning"}
                     </Button>
 
                     {isLoading && (
@@ -250,7 +280,7 @@ export default function BookingPage({
                 </ModalFooter>
                 </ModalContent>
             </Modal>
-        </main>
+        </>
     )
 }
 

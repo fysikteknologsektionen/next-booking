@@ -17,13 +17,15 @@ import {
 } from '@chakra-ui/react'
 import { Text, Grid, GridItem, Center, Button, Circle, HStack, Box, VStack, Tag, Spinner, IconButton, useDisclosure } from "@chakra-ui/react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { $Enums, Reservation, Status, Venue } from "@prisma/client";
+import { $Enums, Reservation, Role, Status, Venue } from "@prisma/client";
 import { getReservationsClient } from "@/server/api/getreservations";
 import { ArrowBackIcon, ArrowForwardIcon, CheckIcon, ChevronDownIcon, CloseIcon, DeleteIcon, EditIcon, SpinnerIcon } from "@chakra-ui/icons";
 import { useVenueStore } from "@/lib/venueStore";
 import { getNameOfMonth, getVenueColor } from "@/lib/helper";
 import { approveReservationClient } from "@/server/api/approveReservation";
 import { denyReservationClient } from "@/server/api/denyReservation";
+import { useSession } from "next-auth/react";
+import { deleteReservationClient } from "@/server/api/deleteReservation";
 
 const dayNames = [
     "Mån",
@@ -35,8 +37,8 @@ const dayNames = [
     "Sön"
 ];
 
-const getCurrentMonth = () => {
-    const date = new Date();
+const getCurrentMonth = (now = new Date()) => {
+    const date = new Date(now);
     date.setUTCDate(1);
     date.setUTCHours(0, 0, 0, 0);
     return date;
@@ -155,6 +157,9 @@ function ReservationsList({
 export default function Calendar() {
     const venues = useVenueStore((state) => state.venues);
 
+    const session = useSession().data;
+    const isManager = session && (session.user.role === Role.MANAGER || session.user.role === Role.ADMIN);
+
     const today = new Date();
     const [month, setMonth] = useState(getCurrentMonth())
     const firstDayOffset = (month.getDay() - 1 + 7) % 7 + 1;
@@ -246,11 +251,24 @@ export default function Calendar() {
     }
 
     const deleteActiveReservation = async () => {
-        // TODO: Implement this
         if (!activeReservation) {
             return;
         }
         setDisabledMenuButtons(d => ({ ...d, delete: true }));
+
+        const res = await deleteReservationClient(activeReservation.id);
+
+        if (res && res.ok) {
+            console.log("Borttagen");
+            
+            onClose();
+            setActiveReservation(undefined);
+
+            // Force a refresh of the calendar
+            setMonth(getCurrentMonth(month));
+        }
+
+        setDisabledMenuButtons(d => ({ ...d, delete: false }));
     }
 
     const editActiveReservation = () => {
@@ -417,7 +435,7 @@ export default function Calendar() {
 
                 <ModalFooter>
                     <HStack>
-                        {activeReservation && (
+                        {activeReservation && isManager && (
                             <Menu>
                                 <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
                                     Actions
