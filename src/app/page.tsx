@@ -12,6 +12,7 @@ import { getSession } from 'next-auth/react';
 import { Session } from 'next-auth';
 import { useState, useEffect } from 'react';
 import { Link } from '@chakra-ui/next-js';
+import { isManager } from '@/lib/helper';
 
 export default function Home() {
   const setVenues = useVenueStore((state) => state.setVenues);
@@ -35,15 +36,13 @@ export default function Home() {
     })()
   }, []);
 
-  const isManager = session && (session.user.role === Role.MANAGER || session.user.role === Role.ADMIN);
-
   return (
     <>
       <Stack gap="3rem">
         <div>
           <Heading as="h2" size="lg" marginBottom="0.5em">Så här bokar du en lokal</Heading>
           <OrderedList>
-            <ListItem>Klicka på <Text as="b"><Link href="/createReservation">Boka lokal</Link></Text>.</ListItem>
+            <ListItem>Klicka på <Text as="b"><Link href="/create-reservation">Boka lokal</Link></Text>.</ListItem>
             <ListItem>Fyll i all info.</ListItem>
             <ListItem><Text as="b">Klart!</Text> Din bokning ska nu synas i kalendern nedan.</ListItem>
           </OrderedList>
@@ -55,7 +54,7 @@ export default function Home() {
           <Calendar></Calendar>
         </div>
 
-        {isManager && (
+        {isManager(session) && (
           <ReservationsList></ReservationsList>
         )}
       </Stack>

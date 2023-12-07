@@ -38,7 +38,7 @@ const Links: NavLink[] = [
     },
     {
         label: "Boka lokal",
-        href: "/createReservation"
+        href: "/create-reservation"
     }
 ]
 
