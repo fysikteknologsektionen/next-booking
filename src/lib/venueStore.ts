@@ -1,4 +1,4 @@
-// Stores allows the access of venues from any component at any time
+// Stores allows access of venues from any component at any time
 // by using the hook `const venues = useVenueStore((state) => state.venues)`
 
 // At initial page load we fetch all venues and updates the store

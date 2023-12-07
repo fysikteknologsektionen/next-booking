@@ -206,10 +206,10 @@ function editDistance(s1: string, s2: string) {
 }
 
 // Admins are also managers
-export const isManager = (session: Session | undefined): boolean => {
+export const isManager = (session: Session | undefined | null): boolean => {
     return !!session && (session.user.role === Role.MANAGER || session.user.role === Role.ADMIN);
 }
 
-export const isAdmin = (session: Session | undefined): boolean => {
+export const isAdmin = (session: Session | undefined | null): boolean => {
     return !!session && session.user.role === Role.ADMIN;
 }

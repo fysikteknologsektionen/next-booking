@@ -1,3 +1,4 @@
+import { isManager } from "@/lib/helper";
 import { approveReservationServer } from "@/server/api/approveReservation";
 import authOptions from "@/server/lib/authOptions";
 import { getServerSession } from "next-auth";
@@ -8,9 +9,9 @@ export async function POST(request: Request) {
     const { reservationID } = res;
 
     const session = await getServerSession(authOptions);
-    if (!session || !(session.user.role === "MANAGER" || session.user.role === "ADMIN")) {
+    if (!isManager(session)) {
         return new NextResponse('You are not authorized to perform this action', {
-            status: 403,
+            status: 401,
             statusText: "You are not authorized to perform this action"
         });
     }
