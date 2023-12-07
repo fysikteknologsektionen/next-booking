@@ -124,7 +124,7 @@ export default function BookingPage({
     return (
         <>
             <Heading marginBottom="0.5em">Boka lokal</Heading>
-            <Text marginBottom="1em">När du har fyllt i och skapat bokningen kan du se den i <Link href="/">kalendern</Link>.</Text>
+            <Text marginBottom="1em">Läs mer om hur du bokar under fliken <Text as="b"><Link href="/information">Information</Link></Text>. När du har fyllt i och skapat bokningen kan du se den i <Link href="/">kalendern</Link>.</Text>
             
             <form onSubmit={submit(false)} style={{
                 display: "flex",
@@ -224,10 +224,10 @@ export default function BookingPage({
                     </div>
                 </HStack>
 
-                <FormControl>
+                {/* <FormControl>
                     <FormLabel>Jag vill få mail när min bokning godkänns/nekas</FormLabel>
                     <Checkbox defaultChecked></Checkbox>
-                </FormControl>
+                </FormControl> */}
 
                 {isUpdating && (
                     <FormControl isRequired>

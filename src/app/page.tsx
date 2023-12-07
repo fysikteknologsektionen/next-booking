@@ -47,7 +47,7 @@ export default function Home() {
           <Heading as="h2" size="lg" marginBottom="0.5em">Så här bokar du en lokal</Heading>
           <OrderedList>
             <ListItem>Klicka på <Text as="b"><Link href="/create-reservation">Boka lokal</Link></Text>.</ListItem>
-            <ListItem>Fyll i all info.</ListItem>
+            <ListItem>Fyll i all information.</ListItem>
             <ListItem><Text as="b">Klart!</Text> Din bokning ska nu synas i kalendern nedan.</ListItem>
           </OrderedList>
         </div>
