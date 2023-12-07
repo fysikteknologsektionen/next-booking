@@ -1,4 +1,10 @@
-const monthNames = [
+// This file contains generic helper functions that
+// are nice to have access to from time to time
+
+import { Role } from "@prisma/client";
+import { Session } from "next-auth";
+
+export const MONTH_NAMES = [
     "Jan",
     "Feb",
     "Mars",
@@ -13,10 +19,40 @@ const monthNames = [
     "Dec"
 ];
 
-export const getNameOfMonth = (date: Date) => {
-    return monthNames[date.getMonth()];
+export const DAY_NAMES = [
+    "Mån",
+    "Tis",
+    "Ons",
+    "Tors",
+    "Fre",
+    "Lör",
+    "Sön"
+];
+
+// Returns copy of `now` with the date set to 1st of the same month
+// at 00:00 in UTC timezone (will be 01:00 in sweden)
+export const getCurrentMonth = (now = new Date()) => {
+    const date = new Date(now);
+    date.setUTCDate(1);
+    date.setUTCHours(0, 0, 0, 0);
+    return date;
 }
 
+// Returns the number of month in the month given by `date`
+export const daysInMonth = (date: Date) => {
+    const year = date.getFullYear()
+    const month = date.getMonth() + 1
+    return new Date(year, month, 0).getDate();
+}
+
+// Extract shortened swedish month name from date object
+export const getNameOfMonth = (date: Date) => {
+    return MONTH_NAMES[date.getMonth()];
+}
+
+// Converts a date object to a valid string for use
+// in the input <input type="date-time" /> if useTime is true
+// or in <input type="date" /> if useTime is false
 export function dateToInput(date: Date, useTime = true): string {
     const year = date.getFullYear().toString().padStart(4, "0");
     const month = (date.getMonth() + 1).toString().padStart(2, "0");
@@ -31,6 +67,9 @@ export function dateToInput(date: Date, useTime = true): string {
 
     return `${year}-${month}-${day}`;
 }
+
+// Converts date object to a valid string for use in
+// input <input type="time" />
 export function dateToTimeInput(date: Date): string {
     const hours = date.getHours().toString().padStart(2, "0");
     const minutes = date.getMinutes().toString().padStart(2, "0");
@@ -38,6 +77,8 @@ export function dateToTimeInput(date: Date): string {
     return `${hours}:${minutes}`;
 }
 
+// Converts a date object (which represents a duration and NOT a date)
+// to a human-readable duration string
 export function formatDuration(duration: Date) {
     const sign = Math.sign(duration.valueOf());
     const millis = Math.abs(duration.valueOf());
@@ -79,6 +120,8 @@ const venueColors = [
     "green.400",
 ];
 
+// Converts a venue id (id: integer >= 1) to a nice color
+// to be used in the calendar
 export const getVenueColor = (venueId: number | null) => {
     if (!venueId) {
         return "black";
@@ -87,6 +130,9 @@ export const getVenueColor = (venueId: number | null) => {
     return venueColors[venueId % venueColors.length];
 }
 
+// Will check the mail ending (everything after @) for potential
+// misspellings using a text similarity index ranging from 0 to 1
+// where 1 is same text and 0 are totally different
 export function isMailSpelledCorrectly(mail: string): boolean {
     const mailEndings = [
         "chalmers.se",
@@ -157,4 +203,13 @@ function editDistance(s1: string, s2: string) {
             costs[s2.length] = lastValue;
     }
     return costs[s2.length];
-  }
+}
+
+// Admins are also managers
+export const isManager = (session: Session | undefined | null): boolean => {
+    return !!session && (session.user.role === Role.MANAGER || session.user.role === Role.ADMIN);
+}
+
+export const isAdmin = (session: Session | undefined | null): boolean => {
+    return !!session && session.user.role === Role.ADMIN;
+}

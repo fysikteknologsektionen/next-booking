@@ -288,17 +288,3 @@ export default function BookingPage({
         </>
     )
 }
-
-function Field({
-    children
-}: {
-    children: React.ReactNode
-}) {
-    return (
-        <div style={{
-            marginBottom: "1.5rem",
-        }}>
-            {children}
-        </div>
-    )
-}

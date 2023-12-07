@@ -1,6 +1,5 @@
 "use client";
 
-import styles from "calendar.module.css";
 import {
     Modal,
     ModalOverlay,
@@ -9,75 +8,455 @@ import {
     ModalFooter,
     ModalBody,
     ModalCloseButton,
-    Heading,
     Menu,
     MenuButton,
     MenuList,
     MenuItem,
 } from '@chakra-ui/react'
-import { Text, Grid, GridItem, Center, Button, Circle, HStack, Box, VStack, Tag, Spinner, IconButton, useDisclosure } from "@chakra-ui/react";
+import { Text, Grid, GridItem, Center, Button, Circle, HStack, VStack, Tag, Spinner, IconButton, useDisclosure } from "@chakra-ui/react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { $Enums, Reservation, Role, Status, Venue } from "@prisma/client";
+import { Reservation, Status } from "@prisma/client";
 import { getReservationsClient } from "@/server/api/getreservations";
-import { ArrowBackIcon, ArrowForwardIcon, CheckIcon, ChevronDownIcon, CloseIcon, DeleteIcon, EditIcon, SpinnerIcon } from "@chakra-ui/icons";
+import { ArrowBackIcon, ArrowForwardIcon, CheckIcon, ChevronDownIcon, CloseIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import { useVenueStore } from "@/lib/venueStore";
-import { getNameOfMonth, getVenueColor } from "@/lib/helper";
+import { daysInMonth, DAY_NAMES, getCurrentMonth, getNameOfMonth, getVenueColor, isManager } from "@/lib/helper";
 import { approveReservationClient } from "@/server/api/approveReservation";
 import { denyReservationClient } from "@/server/api/denyReservation";
-import { useSession, getSession } from "next-auth/react";
+import { getSession } from "next-auth/react";
 import { deleteReservationClient } from "@/server/api/deleteReservation";
 import { Session } from "next-auth";
 
-const dayNames = [
-    "Mån",
-    "Tis",
-    "Ons",
-    "Tors",
-    "Fre",
-    "Lör",
-    "Sön"
-];
+export default function Calendar() {
+    const [month, setMonth] = useState(getCurrentMonth())
 
-const getCurrentMonth = (now = new Date()) => {
-    const date = new Date(now);
-    date.setUTCDate(1);
-    date.setUTCHours(0, 0, 0, 0);
-    return date;
+    const [isLoading, setLoading] = useState(false);
+    const [reservations, setReservations] = useState<Reservation[]>([]);
+    useEffect(() => {
+        (async () => {
+            setLoading(true)
+
+            const r = await getReservations(month);
+            setReservations(r);
+
+            setLoading(false)
+        })();
+    }, [ month ]);
+
+    const { isOpen, onOpen, onClose } = useDisclosure()
+    const [activeReservation, setActiveReservation] = useState<Reservation>()
+
+    const closeAndRefresh = () => {
+        onClose();
+        setActiveReservation(undefined);
+
+        // Force a refresh of the calendar
+        setMonth(getCurrentMonth(month));
+    }
+
+    return (
+        <>
+            <div style={{
+                maxWidth: "800px",
+            }}>
+                <CalendarActionHeader
+                    month={month}
+                    setMonth={setMonth}
+                    isLoading={isLoading}
+                />
+
+                <CalendarDaysHeader />
+
+                <CalendarBody
+                    month={month}
+                    reservations={reservations}
+                    setActiveReservation={setActiveReservation}
+                    onOpen={onOpen}
+                />
+            </div>
+
+            <CalendarDetailsModal
+                isOpen={isOpen}
+                onClose={onClose}
+                reservation={activeReservation}
+                closeAndRefresh={closeAndRefresh}
+            />
+        </>
+    )
 }
 
-const daysInMonth = (date: Date) => {
-    const year = date.getFullYear()
-    const month = date.getMonth() + 1
-    return new Date(year, month, 0).getDate();
+interface CalendarActionHeaderProps {
+    month: Date;
+    setMonth: Dispatch<SetStateAction<Date>>;
+    isLoading: boolean;
 }
 
+function CalendarActionHeader(props: CalendarActionHeaderProps) {
+    const prevMonth = () => {
+        const date = new Date(props.month);
+        date.setUTCMonth(date.getMonth() - 1)
+        props.setMonth(date)
+    }
+
+    const nextMonth = () => {
+        const date = new Date(props.month);
+        date.setUTCMonth(date.getMonth() + 1)
+        props.setMonth(date)
+    }
+
+    const viewCurrentMonth = () => {
+        const date = getCurrentMonth();
+        props.setMonth(date);
+    }
+
+    return (
+        <Center
+            borderBottom="1px solid black"
+            position="relative"
+            paddingBottom="0.5rem"
+        >
+            <HStack gap="1rem">
+                <IconButton aria-label='Previous month' icon={<ArrowBackIcon />} onClick={prevMonth} />
+                <Text>{getNameOfMonth(props.month)} {props.month.getFullYear()}</Text>
+                <IconButton aria-label='Next month' icon={<ArrowForwardIcon />} onClick={nextMonth} />
+            </HStack>
+
+            <Button
+                onClick={viewCurrentMonth}
+                position="absolute"
+                left="0"
+                top="0"
+            >Jdag</Button>
+
+            {props.isLoading && (
+                <Spinner
+                    position="absolute"
+                    right="1rem"
+                ></Spinner>
+            )}
+        </Center>
+    )
+}
+
+function CalendarDaysHeader() {
+    return (
+        <Grid
+            templateColumns={"repeat(7, minmax(0, 1fr))"}
+            gap="1px"
+            bg="gray.200"
+            border="1px"
+            borderColor="gray.200"
+            borderTop="none"
+            borderBottom="1px solid black"
+        >
+            {DAY_NAMES.map((name, index) => {
+                return (
+                    <GridItem key={index} bg="white" paddingLeft="0.25rem">
+                        <Text as="b">{name}</Text>
+                    </GridItem>
+                )
+            })}
+        </Grid>
+    )
+}
+
+interface CalendarBodyProps {
+    month: Date;
+    reservations: Reservation[];
+    setActiveReservation: Dispatch<SetStateAction<Reservation | undefined>>;
+    onOpen: () => void;
+}
+
+function CalendarBody({
+    month,
+    reservations,
+    setActiveReservation,
+    onOpen
+}: CalendarBodyProps) {
+    const today = new Date();
+
+    const firstDayOffset = (month.getDay() - 1 + 7) % 7 + 1;
+    const nrDays = daysInMonth(month);
+    const days = Array.from({length: nrDays}, (_, i) => i + 1);
+
+    const isToday = (day: number, today: Date) => {
+        return (
+            today.getUTCFullYear() === month.getUTCFullYear() &&
+            today.getMonth() === month.getMonth() &&
+            today.getDate() === day
+        );
+    }
+
+    return (
+        <Grid
+            templateColumns={"repeat(7, minmax(0, 1fr))"}
+            gridAutoRows="1fr"
+            gap="1px"
+            bg="gray.200"
+            border="1px"
+            borderColor="gray.200"
+            borderTop="none"
+        >
+            {days.map((day, index) => {
+                return (
+                    <GridItem
+                        // The calendar header always start on mondays but
+                        // most month don't start on a monday. Offset the first day
+                        // in the grid to account for this
+                        gridColumnStart={index === 0 ? firstDayOffset : undefined}
+                        key={index}
+                        bg="white"
+                        padding="0.25rem"
+                        paddingTop="calc(0.25rem + 35px)"
+                        minHeight="136px"
+                        position="relative"
+                    >
+                        <CalendarNumber isMarked={isToday(day, today)}>
+                            {day}
+                        </CalendarNumber>
+
+                        <ReservationsList
+                            reservations={reservations}
+                            day={day}
+                            setActiveReservation={setActiveReservation}
+                            onOpen={onOpen}
+                            month={month}
+                        ></ReservationsList>
+                    </GridItem>
+                )
+            })}
+        </Grid>
+    )
+}
+
+interface CalendarNumberProps {
+    children: React.ReactNode;
+    isMarked: boolean;
+}
+
+function CalendarNumber(props: CalendarNumberProps) {
+    return (
+        <Center
+            position="absolute"
+            top="5px"
+            left="5px"
+            width="30px"
+            height="30px"
+        >
+            {props.isMarked ? (
+                <Circle
+                    bg="blue.500"
+                    size="30px"
+                    fontWeight="bold"
+                    color="white"
+                >
+                    {props.children}
+                </Circle>
+            ) : (
+                <Text>{props.children}</Text>
+            )}
+        </Center>
+    )
+}
+
+interface CalendarDetailsModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    reservation: Reservation | undefined;
+    closeAndRefresh: () => void;
+}
+
+function CalendarDetailsModal({
+    isOpen,
+    onClose,
+    reservation: activeReservation,
+    closeAndRefresh,
+}: CalendarDetailsModalProps) {
+    const venues = useVenueStore((state) => state.venues);
+
+    // useSession() doesn't seem to work
+    // const session = useSession().data;
+    // const _isManager = isManager(session);
+    const [session, setSession] = useState<Session>();
+    useEffect(() => {
+        (async () => {
+            const currentSession = await getSession();
+            if (!currentSession) {
+                return;
+            }
+
+            setSession(currentSession);
+        })()
+    }, []);
+    const _isManager = isManager(session);
+
+    const [disabledMenuButtons, setDisabledMenuButtons] = useState({
+        accept: false,
+        deny: false,
+        delete: false,
+        edit: false
+    });
+
+    // Enable all action-buttons again when opening another reservation
+    useEffect(() => {
+        setDisabledMenuButtons({
+            accept: false,
+            deny: false,
+            delete: false,
+            edit: false
+        });
+    }, [ activeReservation ])
+
+    const acceptActiveReservation = async () => {
+        if (!activeReservation) {
+            return;
+        }
+
+        if (activeReservation.status !== Status.PENDING) {
+            return;
+        }
+
+        setDisabledMenuButtons(d => ({ ...d, accept: true }));
+
+        const res = await approveReservationClient(activeReservation.id);
+
+        if (res && res.ok) {
+            console.log("Godkänd");
+            closeAndRefresh();
+        }
+
+        setDisabledMenuButtons(d => ({ ...d, accept: false }));
+    }
+
+    const denyActiveReservation = async () => {
+        if (!activeReservation) {
+            return;
+        }
+
+        if (activeReservation.status !== Status.PENDING) {
+            return;
+        }
+
+        setDisabledMenuButtons(d => ({ ...d, deny: true }));
+
+        const res = await denyReservationClient(activeReservation.id);
+
+        if (res && res.ok) {
+            console.log("Nekad");
+            closeAndRefresh();
+        }
+
+        setDisabledMenuButtons(d => ({ ...d, deny: false }));
+    }
+
+    const deleteActiveReservation = async () => {
+        if (!activeReservation) {
+            return;
+        }
+        setDisabledMenuButtons(d => ({ ...d, delete: true }));
+
+        const res = await deleteReservationClient(activeReservation.id);
+
+        if (res && res.ok) {
+            console.log("Borttagen");
+            closeAndRefresh();
+        }
+
+        setDisabledMenuButtons(d => ({ ...d, delete: false }));
+    }
+
+    const editActiveReservation = () => {
+        if (!activeReservation) {
+            return;
+        }
+
+        window.location.href = `/update-reservation?reservationID=${activeReservation.id}`;
+    }
+
+    return (
+        <Modal isOpen={isOpen} onClose={onClose}>
+            <ModalOverlay />
+            <ModalContent>
+            <ModalHeader>Bokning</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+                {activeReservation && (
+                    <>
+                        {activeReservation.status === Status.PENDING && (
+                            <>
+                                <Text color="yellow.500">Denna bokningen väntar på godkännande</Text>
+                                <br />
+                            </>
+                        )}
+
+                        {activeReservation.status === Status.DENIED && (
+                            <>
+                                <Text color="red.500">Denna bokningen blev nekad</Text>
+                                <br />
+                            </>
+                        )}
+
+                        <Text>{activeReservation.clientName} ({activeReservation.clientEmail}) har bokat <i>{venues.find(v => v.id === activeReservation.venueId)?.name ?? activeReservation.venueId}</i></Text>
+                        <br />
+
+                        <Text as="b">Beskrivning</Text>
+                        <Text>{activeReservation.clientDescription}</Text>
+                        <br />
+
+                        <Text as="b">Tid</Text>
+                        <Text>Från {activeReservation.startTime.toLocaleString()}</Text>
+                        <Text>Till {activeReservation.endTime.toLocaleString()}</Text>
+                    </>
+                )}
+            </ModalBody>
+
+            <ModalFooter>
+                <HStack>
+                    {activeReservation && _isManager && (
+                        <Menu>
+                            <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
+                                Actions
+                            </MenuButton>
+                            <MenuList>
+                                {activeReservation.status === Status.PENDING && (
+                                    <MenuItem closeOnSelect={false} isDisabled={disabledMenuButtons.accept} onClick={acceptActiveReservation} icon={disabledMenuButtons.accept ? <Spinner /> : <CheckIcon />}>Godkänn</MenuItem>
+                                )}
+                                {activeReservation.status === Status.PENDING && (
+                                    <MenuItem closeOnSelect={false} isDisabled={disabledMenuButtons.deny} onClick={denyActiveReservation} icon={disabledMenuButtons.deny ? <Spinner /> : <CloseIcon />}>Neka</MenuItem>
+                                )}
+                                <MenuItem closeOnSelect={false} isDisabled={disabledMenuButtons.delete} onClick={deleteActiveReservation} icon={disabledMenuButtons.delete ? <Spinner /> : <DeleteIcon />}>Ta bort</MenuItem>
+                                <MenuItem isDisabled={disabledMenuButtons.edit} onClick={editActiveReservation} icon={<EditIcon />}>Redigera</MenuItem>
+                            </MenuList>
+                        </Menu>
+                    )}
+
+                    <Button colorScheme='blue' mr={3} onClick={onClose}>
+                        Stäng
+                    </Button>
+                </HStack>
+            </ModalFooter>
+            </ModalContent>
+        </Modal>
+    )
+}
+
+interface ReservationsListProps {
+    reservations: Reservation[],
+    day: number,
+    setActiveReservation: Dispatch<SetStateAction<Reservation | undefined>>,
+    onOpen: () => void,
+    month: Date
+}
+
+// Template for the ui chips showing the
+// reservations in the calendar
 function ReservationsList({
     reservations,
     day,
     setActiveReservation,
     onOpen,
-    venues,
     month
-}: {
-    reservations: Reservation[],
-    day: number,
-    setActiveReservation: Dispatch<SetStateAction<{
-        id: number;
-        createdAt: Date;
-        updatedAt: Date;
-        clientName: string;
-        clientEmail: string;
-        clientDescription: string | null;
-        date: Date;
-        startTime: Date;
-        endTime: Date;
-        status: $Enums.Status;
-        venueId: number | null;
-    } | undefined>>,
-    onOpen: () => void,
-    venues: Venue[],
-    month: Date
-}) {
+}: ReservationsListProps) {
+    const venues = useVenueStore((state) => state.venues);
     const [expanded, setExpanded] = useState(false);
 
     const shouldViewToday = (reservation: Reservation) => {
@@ -155,346 +534,23 @@ function ReservationsList({
     )
 }
 
-export default function Calendar() {
-    const venues = useVenueStore((state) => state.venues);
+async function getReservations(month: Date) {
+    const startTime = month;
+    const endTime = new Date(month.getFullYear(), month.getMonth() + 1, 1);
+    
+    const res = await getReservationsClient(startTime, endTime);
 
-    const [session, setSession] = useState<Session>();
-    useEffect(() => {
-        (async () => {
-        const currentSession = await getSession();
-        if (!currentSession) {
-            return;
-        }
-
-        setSession(currentSession);
-        })()
-    }, []);
-    const isManager = session && (session.user.role === Role.MANAGER || session.user.role === Role.ADMIN);
-
-    // const session = useSession().data;
-    // const isManager = session && (session.user.role === Role.MANAGER || session.user.role === Role.ADMIN);
-
-    const today = new Date();
-    const [month, setMonth] = useState(getCurrentMonth())
-    const firstDayOffset = (month.getDay() - 1 + 7) % 7 + 1;
-    const nrDays = daysInMonth(month);
-    const days = Array.from({length: nrDays}, (_, i) => i + 1);
-
-    const [isLoading, setLoading] = useState(false);
-    const [reservations, setReservations] = useState<Reservation[]>([]);
-    useEffect(() => {
-        (async () => {
-            const startTime = month;
-            const endTime = new Date(month.getFullYear(), month.getMonth() + 1, 1);
-
-            setLoading(true)
-            const res = await getReservationsClient(startTime, endTime);
-
-            const parsedReservations: Reservation[] = res.map((r: any) => {
-                return {
-                    ...r,
-                    date: new Date(r.date),
-                    startTime: new Date(r.startTime),
-                    endTime: new Date(r.endTime),
-                    createdAt: new Date(r.createdAt),
-                    updatedAt: new Date(r.updatedAt)
-                };
-            })
-            setReservations(parsedReservations);
-            setLoading(false)
-        })();
-    }, [ month ]);
-
-    const { isOpen, onOpen, onClose } = useDisclosure()
-    const [activeReservation, setActiveReservation] = useState<Reservation>()
-    const [disabledMenuButtons, setDisabledMenuButtons] = useState({
-        accept: false,
-        deny: false,
-        delete: false,
-        edit: false
+    // Repair all date objects
+    const parsedReservations: Reservation[] = res.map((r: any) => {
+        return {
+            ...r,
+            date: new Date(r.date),
+            startTime: new Date(r.startTime),
+            endTime: new Date(r.endTime),
+            createdAt: new Date(r.createdAt),
+            updatedAt: new Date(r.updatedAt)
+        };
     });
 
-    // Enable all buttons again when opening new reservation
-    useEffect(() => {
-        setDisabledMenuButtons({
-            accept: false,
-            deny: false,
-            delete: false,
-            edit: false
-        });
-    }, [ activeReservation ])
-
-    const closeAndRefresh = () => {
-        onClose();
-        setActiveReservation(undefined);
-
-        // Force a refresh of the calendar
-        setMonth(getCurrentMonth(month));
-    }
-
-    const acceptActiveReservation = async () => {
-        if (!activeReservation) {
-            return;
-        }
-
-        if (activeReservation.status !== Status.PENDING) {
-            return;
-        }
-
-        setDisabledMenuButtons(d => ({ ...d, accept: true }));
-
-        const res = await approveReservationClient(activeReservation.id);
-
-        if (res && res.ok) {
-            console.log("Godkänd");
-            closeAndRefresh();
-        }
-
-        setDisabledMenuButtons(d => ({ ...d, accept: false }));
-    }
-
-    const denyActiveReservation = async () => {
-        if (!activeReservation) {
-            return;
-        }
-
-        if (activeReservation.status !== Status.PENDING) {
-            return;
-        }
-
-        setDisabledMenuButtons(d => ({ ...d, deny: true }));
-
-        const res = await denyReservationClient(activeReservation.id);
-
-        if (res && res.ok) {
-            console.log("Nekad");
-            closeAndRefresh();
-        }
-
-        setDisabledMenuButtons(d => ({ ...d, deny: false }));
-    }
-
-    const deleteActiveReservation = async () => {
-        if (!activeReservation) {
-            return;
-        }
-        setDisabledMenuButtons(d => ({ ...d, delete: true }));
-
-        const res = await deleteReservationClient(activeReservation.id);
-
-        if (res && res.ok) {
-            console.log("Borttagen");
-            closeAndRefresh();
-        }
-
-        setDisabledMenuButtons(d => ({ ...d, delete: false }));
-    }
-
-    const editActiveReservation = () => {
-        if (!activeReservation) {
-            return;
-        }
-
-        window.location.href = `/update-reservation?reservationID=${activeReservation.id}`;
-    }
-
-    const prevMonth = () => {
-        const date = new Date(month);
-        date.setUTCMonth(date.getMonth() - 1)
-        setMonth(date)
-    }
-
-    const nextMonth = () => {
-        const date = new Date(month);
-        date.setUTCMonth(date.getMonth() + 1)
-        setMonth(date)
-    }
-
-    const viewCurrentMonth = () => {
-        const date = getCurrentMonth();
-        setMonth(date);
-    }
-
-    const isToday = (day: number, today: Date) => {
-        return (
-            today.getUTCFullYear() === month.getUTCFullYear() &&
-            today.getMonth() === month.getMonth() &&
-            today.getDate() === day
-        );
-    }
-
-    const renderReservations = (day: number) => {
-        return <ReservationsList
-            reservations={reservations}
-            day={day}
-            setActiveReservation={setActiveReservation}
-            onOpen={onOpen}
-            venues={venues}
-            month={month}
-        ></ReservationsList>
-    }
-
-    return (
-        <>
-            <div style={{
-                maxWidth: "800px",
-            }}>
-                <Center
-                    borderBottom="1px solid black"
-                    position="relative"
-                    paddingBottom="0.5rem"
-                >
-                    <HStack gap="1rem">
-                        <IconButton aria-label='Previous month' icon={<ArrowBackIcon />} onClick={prevMonth} />
-                        <Text>{getNameOfMonth(month)} {month.getFullYear()}</Text>
-                        <IconButton aria-label='Next month' icon={<ArrowForwardIcon />} onClick={nextMonth} />
-                    </HStack>
-
-                    <Button
-                        onClick={viewCurrentMonth}
-                        position="absolute"
-                        left="0"
-                        top="0"
-                    >Jdag</Button>
-
-                    {isLoading && (
-                        <Spinner
-                            position="absolute"
-                            right="1rem"
-                        ></Spinner>
-                    )}
-                </Center>
-
-                <Grid
-                    templateColumns={"repeat(7, minmax(0, 1fr))"}
-                    gap="1px"
-                    bg="gray.200"
-                    border="1px"
-                    borderColor="gray.200"
-                    borderTop="none"
-                    borderBottom="1px solid black"
-                >
-                    {dayNames.map((name, index) => {
-                        return (
-                            <GridItem key={index} bg="white" paddingLeft="0.25rem">
-                                <Text as="b">{name}</Text>
-                            </GridItem>
-                        )
-                    })}
-                </Grid>
-
-                <Grid
-                    templateColumns={"repeat(7, minmax(0, 1fr))"}
-                    gridAutoRows="1fr"
-                    gap="1px"
-                    bg="gray.200"
-                    border="1px"
-                    borderColor="gray.200"
-                    borderTop="none"
-                >
-                    {days.map((day, index) => {
-                        return (
-                            <GridItem
-                                gridColumnStart={index === 0 ? firstDayOffset : undefined}
-                                key={index}
-                                bg="white"
-                                padding="0.25rem"
-                                paddingTop="calc(0.25rem + 35px)"
-                                minHeight="136px"
-                                position="relative"
-                            >
-                                <Center
-                                    position="absolute"
-                                    top="5px"
-                                    left="5px"
-                                    width="30px"
-                                    height="30px"
-                                >
-                                    {isToday(day, today) ? (
-                                        <Circle
-                                            bg="blue.500"
-                                            size="30px"
-                                            fontWeight="bold"
-                                            color="white"
-                                        >
-                                            {day}
-                                        </Circle>
-                                    ) : (
-                                        <Text>{day}</Text>
-                                    )}
-                                </Center>
-
-                                {renderReservations(day)}
-
-                            </GridItem>
-                        )
-                    })}
-                </Grid>
-            </div>
-
-            <Modal isOpen={isOpen} onClose={onClose}>
-                <ModalOverlay />
-                <ModalContent>
-                <ModalHeader>Bokning</ModalHeader>
-                <ModalCloseButton />
-                <ModalBody>
-                    {activeReservation && (
-                        <>
-                            {activeReservation.status === Status.PENDING && (
-                                <>
-                                    <Text color="yellow.500">Denna bokningen väntar på godkännande</Text>
-                                    <br />
-                                </>
-                            )}
-
-                            {activeReservation.status === Status.DENIED && (
-                                <>
-                                    <Text color="red.500">Denna bokningen blev nekad</Text>
-                                    <br />
-                                </>
-                            )}
-
-                            <Text>{activeReservation.clientName} ({activeReservation.clientEmail}) har bokat <i>{venues.find(v => v.id === activeReservation.venueId)?.name ?? activeReservation.venueId}</i></Text>
-                            <br />
-
-                            <Text as="b">Beskrivning</Text>
-                            <Text>{activeReservation.clientDescription}</Text>
-                            <br />
-
-                            <Text as="b">Tid</Text>
-                            <Text>Från {activeReservation.startTime.toLocaleString()}</Text>
-                            <Text>Till {activeReservation.endTime.toLocaleString()}</Text>
-                        </>
-                    )}
-                </ModalBody>
-
-                <ModalFooter>
-                    <HStack>
-                        {activeReservation && isManager && (
-                            <Menu>
-                                <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
-                                    Actions
-                                </MenuButton>
-                                <MenuList>
-                                    {activeReservation.status === Status.PENDING && (
-                                        <MenuItem closeOnSelect={false} isDisabled={disabledMenuButtons.accept} onClick={acceptActiveReservation} icon={disabledMenuButtons.accept ? <Spinner /> : <CheckIcon />}>Godkänn</MenuItem>
-                                    )}
-                                    {activeReservation.status === Status.PENDING && (
-                                        <MenuItem closeOnSelect={false} isDisabled={disabledMenuButtons.deny} onClick={denyActiveReservation} icon={disabledMenuButtons.deny ? <Spinner /> : <CloseIcon />}>Neka</MenuItem>
-                                    )}
-                                    <MenuItem closeOnSelect={false} isDisabled={disabledMenuButtons.delete} onClick={deleteActiveReservation} icon={disabledMenuButtons.delete ? <Spinner /> : <DeleteIcon />}>Ta bort</MenuItem>
-                                    <MenuItem isDisabled={disabledMenuButtons.edit} onClick={editActiveReservation} icon={<EditIcon />}>Redigera</MenuItem>
-                                </MenuList>
-                            </Menu>
-                        )}
-
-                        <Button colorScheme='blue' mr={3} onClick={onClose}>
-                            Stäng
-                        </Button>
-                    </HStack>
-                </ModalFooter>
-                </ModalContent>
-            </Modal>
-        </>
-    )
+    return parsedReservations;
 }

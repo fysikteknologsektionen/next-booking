@@ -7,6 +7,9 @@ export default withAuth(
   },
   {
     callbacks: {
+      // Redirect to the login page when the user is not
+      // logged in and doesn't have the correct permissions
+      
       authorized: ({ req, token }) => {
         if (req.nextUrl.pathname.startsWith('/api/admin')) {
             return token ? token.role === "ADMIN" : false;
