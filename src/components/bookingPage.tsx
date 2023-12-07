@@ -5,7 +5,7 @@ import { createReservationClient } from "@/server/api/createReservation";
 import { getReservationsClient } from "@/server/api/getreservations";
 import { updateReservationClient } from "@/server/api/updateReservation";
 import { WarningIcon } from "@chakra-ui/icons";
-import { Button, FormControl, FormErrorIcon, FormErrorMessage, FormLabel, Heading, HStack, Input, Link, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select, Spinner, Stack, Text, Textarea, useDisclosure } from "@chakra-ui/react";
+import { Button, Checkbox, FormControl, FormErrorIcon, FormErrorMessage, FormHelperText, FormLabel, Heading, HStack, Input, Link, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select, Spinner, Stack, Text, Textarea, useDisclosure } from "@chakra-ui/react";
 import { Reservation, Status, Venue } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { FormEvent, FormEventHandler, useEffect, useMemo, useState } from "react";
@@ -149,9 +149,9 @@ export default function BookingPage({
                 </FormControl>
 
                 <FormControl isRequired>
-                    <FormLabel>Namn</FormLabel>
+                    <FormLabel>Namn på bokningsansvarig</FormLabel>
                     <Input
-                        placeholder="Mitt namn"
+                        placeholder="Ditt namn eller kommitté/förening"
                         value={name}
                         onChange={e => setName(e.target.value)}
                         required
@@ -163,7 +163,7 @@ export default function BookingPage({
                     <FormLabel>E-post</FormLabel>
                     <Input
                         type="email"
-                        placeholder="exempel@mail.se"
+                        placeholder="namn@stavaintefel.se"
                         value={email}
                         onChange={e => setEmail(e.target.value)}
                     ></Input>
@@ -173,7 +173,7 @@ export default function BookingPage({
                 <FormControl isRequired>
                     <FormLabel>Beskrivning</FormLabel>
                     <Textarea
-                        placeholder="test"
+                        placeholder="Beskriv varför du bokar lokalen och annat som kan vara bra att veta"
                         value={description}
                         onChange={e => setDescription(e.target.value)}
                     ></Textarea>
@@ -218,10 +218,16 @@ export default function BookingPage({
                                     onChange={e => setTo(new Date(e.target.value))}
                                 ></Input> */}
                             </Stack>
+                            <FormHelperText>Obs! Vid denna tiden ska ni vara klara för avsyning</FormHelperText>
                             <FormErrorMessage>Sluttid måste vara efter starttid</FormErrorMessage>
                         </FormControl>
                     </div>
                 </HStack>
+
+                <FormControl>
+                    <FormLabel>Jag vill få mail när min bokning godkänns/nekas</FormLabel>
+                    <Checkbox defaultChecked></Checkbox>
+                </FormControl>
 
                 {isUpdating && (
                     <FormControl isRequired>

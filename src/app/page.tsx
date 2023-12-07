@@ -40,6 +40,10 @@ export default function Home() {
     <>
       <Stack gap="3rem">
         <div>
+          <Heading as="h1" size="2xl" marginBottom="0.5em">Lokalbokning</Heading>
+        </div>
+
+        <div>
           <Heading as="h2" size="lg" marginBottom="0.5em">Så här bokar du en lokal</Heading>
           <OrderedList>
             <ListItem>Klicka på <Text as="b"><Link href="/create-reservation">Boka lokal</Link></Text>.</ListItem>
