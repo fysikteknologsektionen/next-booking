@@ -1,6 +1,8 @@
 import { isManager } from "@/lib/helper";
 import { approveReservationServer } from "@/server/api/approveReservation";
+import { getReservationByIDServer } from "@/server/api/getreservations";
 import authOptions from "@/server/lib/authOptions";
+import { sendEmail } from "@/server/lib/mailing";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
@@ -23,6 +25,9 @@ export async function POST(request: Request) {
             statusText: "Collision! Could not approve reservation"
         });
     }
+    const reservation = (await getReservationByIDServer(reservationID))[0];
+    const message = `Din bokning ${reservation.date} är godkänd`
+    const emailrespons = await sendEmail(reservation.clientEmail,"Bokning godkänd", message);
 
     return NextResponse.json(result);
 }
