@@ -1,5 +1,6 @@
 import { Status } from "@prisma/client";
 import prisma from "../lib/prisma";
+import { sendEmail } from "../lib/mailing";
 
 
 // Approve a reservation, used on the server
@@ -9,6 +10,7 @@ export async function approveReservationServer(reservationID: number) {
             id: reservationID,
         },
     });
+    // Get all reservations that could conflict with the one being approved
     const collisions = await prisma.reservation.findMany({
         where: {
             status: Status.ACCEPTED,
@@ -22,8 +24,10 @@ export async function approveReservationServer(reservationID: number) {
         },
     });
 
+    // If conflicting with another already approved reservation, abort 
     if (collisions && collisions.length > 0) return;
 
+    // Approve the reservation in the database
     const result = await prisma.reservation.update({
         where: {
             id: reservationID,
@@ -33,6 +37,10 @@ export async function approveReservationServer(reservationID: number) {
         },
     });
 
+    // TODO: Send email to the accepted booker
+
+
+    // Deny all other bookings that would be conflicting
     const toBeDenied = await prisma.reservation.findMany({
         where: {
             status: Status.PENDING,
@@ -45,6 +53,8 @@ export async function approveReservationServer(reservationID: number) {
             },
         },
     });
+
+    //TODO: send email to all denied bookings
 
     const autoDeny = await prisma.reservation.updateMany({
         where: {
