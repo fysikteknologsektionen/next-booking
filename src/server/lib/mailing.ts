@@ -17,6 +17,7 @@ export async function sendEmail(recipient:string|undefined, subject:string, mess
         },
     });
 
+    // Abort mailing of no recipient given
     if (!recipient) {
         return NextResponse.json({ message: 'No recipient given' });
     }
