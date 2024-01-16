@@ -8,7 +8,7 @@ import { sendEmail } from "../lib/mailing";
 */
 
 // Approve a reservation, used on the server
-export async function approveReservationServer(reservationID: number) {
+export async function approveReservationServer(reservationID: number, statusChangerId?: number) {
     const reservation = await prisma.reservation.findUnique({
         where: {
             id: reservationID,
@@ -37,7 +37,8 @@ export async function approveReservationServer(reservationID: number) {
             id: reservationID,
         },
         data: {
-            status: Status.ACCEPTED
+            status: Status.ACCEPTED,
+            editorId: statusChangerId,
         },
     });
 
@@ -72,12 +73,13 @@ export async function approveReservationServer(reservationID: number) {
         },
         data: {
             status: Status.DENIED,
+            editorId: statusChangerId,
         },
     });
 
     
     // Send email to all denied bookings
-    for (let i = 0; i< toBeDenied.length; i++ ) {
+    for (let i = 0; i < toBeDenied.length; i++ ) {
         const message = `Hej!\n\nDin bokning ${toBeDenied[i].date} har blivit nekad\n\n/Fysikteknologsektionens lokalbokning`
         const emailrespons = await sendEmail(toBeDenied[i].clientEmail,"Bokning nekad", message);
     }

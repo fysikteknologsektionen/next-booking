@@ -23,7 +23,8 @@ export async function updateReservationServer( {
     startTime: Date,
     endTime: Date,
     status: Status
-}) {
+},
+statusChangerId?: number) {
     const result = await prisma.reservation.update({
         where: {id: reservationID},
         data: {
@@ -35,6 +36,7 @@ export async function updateReservationServer( {
             endTime,
             venueId,
             status,
+            editorId: statusChangerId,
         },
     });;
     return result;

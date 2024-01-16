@@ -57,7 +57,7 @@ export default function ReservationsList() {
                     ].join(" ")}>
                         <span>Lokal</span>
                         <span>Bokningsinfo</span>
-                        <span>Skapad</span>
+                        <span>Status ändrad av</span>
                         <span>Datum</span>
 
                         <span></span>
@@ -272,13 +272,10 @@ function ReservationItem({
                     <span>{reservation.clientDescription}</span>
                 </Stack>
 
-                {isPending && <div>
-                    {reservation.createdAt.toLocaleDateString()}
-                </div>}
-
-                {!isPending && <div>
-                    {reservation.clientName}
-                </div>}
+                <div>
+                    {reservation.editorId ? reservation.editorId : reservation.clientName}<br/>
+                    Datum: {reservation.createdAt.toLocaleDateString('sv-SE')}
+                </div>
 
                 <div>
                     {renderTime(reservation)}
