@@ -57,6 +57,7 @@ export default function ReservationsList() {
                     ].join(" ")}>
                         <span>Lokal</span>
                         <span>Bokningsinfo</span>
+                        <span>Skapad</span>
                         <span>Datum</span>
 
                         <span></span>
@@ -68,7 +69,14 @@ export default function ReservationsList() {
                     </div>
 
                     {pendingReservations.filter(r => r.status === Status.PENDING).map((reservation, index) => {
-                        return <ReservationItem reservation={reservation} setReservations={setReservations} key={index}></ReservationItem>
+                        return (
+                            <ReservationItem
+                                reservation={reservation}
+                                setReservations={setReservations}
+                                key={index}
+                                isPending={true}
+                            />
+                        );
                     })}
 
                     {pendingReservations.length === 0 && (
@@ -84,6 +92,7 @@ export default function ReservationsList() {
                         ].join(" ")}>
                             <span>Lokal</span>
                             <span>Bokningsinfo</span>
+                            <span>Status ändrad av</span>
                             <span>Datum</span>
 
                             <span></span>
@@ -95,7 +104,14 @@ export default function ReservationsList() {
                         </div>
 
                         {handledReservations.map((reservation, index) => {
-                            return <ReservationItem reservation={reservation} setReservations={setReservations} key={index}></ReservationItem>
+                            return (
+                                <ReservationItem
+                                    reservation={reservation}
+                                    setReservations={setReservations}
+                                    key={index}
+                                    isPending={false}
+                                />
+                            );
                         })}
                     </div>
                 )}
@@ -106,10 +122,12 @@ export default function ReservationsList() {
 
 function ReservationItem({
     reservation,
-    setReservations
+    setReservations,
+    isPending,
 }: {
     reservation: Reservation,
-    setReservations: Dispatch<SetStateAction<Reservation[]>>
+    setReservations: Dispatch<SetStateAction<Reservation[]>>,
+    isPending: boolean,
 }) {
     const router = useRouter();
     const venues = useVenueStore((state) => state.venues);
@@ -253,6 +271,14 @@ function ReservationItem({
                     <span>{reservation.clientName} ({reservation.clientEmail})</span>
                     <span>{reservation.clientDescription}</span>
                 </Stack>
+
+                {isPending && <div>
+                    {reservation.createdAt.toLocaleDateString()}
+                </div>}
+
+                {!isPending && <div>
+                    {reservation.clientName}
+                </div>}
 
                 <div>
                     {renderTime(reservation)}
