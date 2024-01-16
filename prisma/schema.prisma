@@ -67,7 +67,7 @@ model Reservation {
   clientEmail       String
   clientDescription String?
   editorId          Int?
-  editor            User     @relation(fields: [editorId], references: [id], onDelete: SetNull)
+  editor            User?    @relation(fields: [editorId], references: [id], onDelete: SetNull)
   date              DateTime
   startTime         DateTime
   endTime           DateTime
