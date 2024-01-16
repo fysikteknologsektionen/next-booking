@@ -31,7 +31,7 @@ export async function getReservationsServer(startTime:Date, endTime:Date, venueI
 
 // Gets a reservation by id. Used on the server
 export async function getReservationByIDServer(id:number) {
-    const reservation = await prisma.reservation.findMany({
+    const reservation = await prisma.reservation.findUnique({
         where: {
             id: id,
         }

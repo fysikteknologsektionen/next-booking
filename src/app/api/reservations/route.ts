@@ -13,9 +13,10 @@ export async function GET(request:Request) {
     const startTime = new Date(parseInt(startTimeUnix))
     const endTime = new Date(parseInt(endTimeUnix))
     const reservationID = searchParams.get('id');
-    let reservations:Reservation[];
+    let reservations: Reservation[];
     if (reservationID) {
-        reservations = await getReservationByIDServer(parseInt(reservationID));
+        const reservation = await getReservationByIDServer(parseInt(reservationID));
+        reservations = reservation ? [reservation] : [];
     } else if (venueIDs.length !== 0) {
         reservations = await getReservationsServer(startTime, endTime, venueIDs);
     } else {
