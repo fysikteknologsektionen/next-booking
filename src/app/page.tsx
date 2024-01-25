@@ -45,7 +45,7 @@ export default function Home() {
 
         <div>
           <Link href="create-reservation">
-            <Button colorScheme="blue" as="a">Boka lokal</Button>
+            <Button colorScheme="blue">Boka lokal</Button>
           </Link>
         </div>
 
