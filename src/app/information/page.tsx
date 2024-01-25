@@ -32,7 +32,7 @@ export default function Home() {
 
             <div>
                 <Heading as="h2" size="lg" marginBottom="0.5em">Kostnader</Heading>
-                <Text>När du bokar Focus tillkommer en kostnad enligt <Link href="https://ftek.se/wp-content/uploads/2018/08/Hyreskontrakt-Focus-mobler.pdf">hyreskontraktet</Link> för att använda möblerna som går till täcka slitage- och underhållskostnad samt en deposition som återbetalas enligt <Link href="https://ftek.se/wp-content/uploads/2018/08/Stad-och-depositionslista-Focus.pdf">städ- och depositionslistan</Link>.</Text>
+                <Text>När du bokar Focus tillkommer en kostnad enligt <Link href="https://ftek.se/wp-content/uploads/2018/08/Hyreskontrakt-Focus-mobler.pdf">hyreskontraktet</Link> för att använda möblerna som går till täcka slitage- och underhållskostnad samt en deposition som återbetalas enligt <Link href="https://ftek.se/wp-content/uploads/2018/08/Stad-och-depositionslista-Focus.pdf">städ- och depositionslistan</Link>. Gällande hyra debiteras + deposition för otillräcklig städning eller skada på lokalen.</Text>
             </div>
 
             <div>

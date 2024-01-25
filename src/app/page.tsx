@@ -6,7 +6,7 @@ import Calendar from '@/components/calendar'
 import ReservationsList from '@/components/reservationsList';
 import { useVenueStore } from '@/lib/venueStore'
 import { getVenuesClient } from '@/server/api/getvenues';
-import { Heading, ListItem, OrderedList, Stack, Text, VStack } from '@chakra-ui/react'
+import { Button, Heading, ListItem, OrderedList, Stack, Text, VStack } from '@chakra-ui/react'
 import { Role } from '@prisma/client';
 import { getSession } from 'next-auth/react';
 import { Session } from 'next-auth';
@@ -40,7 +40,13 @@ export default function Home() {
     <>
       <Stack gap="3rem">
         <div>
-          <Heading as="h1" size="2xl" marginBottom="0.5em">Lokalbokning</Heading>
+          <Heading as="h1" size="2xl">Lokalbokning</Heading>
+        </div>
+
+        <div>
+          <Link href="create-reservation">
+            <Button colorScheme="blue" as="a">Boka lokal</Button>
+          </Link>
         </div>
 
         <div>
