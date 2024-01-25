@@ -32,14 +32,18 @@ interface Props {
 }
 
 const Links: NavLink[] = [
-    {
-        label: "Kalender",
-        href: "/"
-    },
-    {
-        label: "Boka lokal",
-        href: "/create-reservation"
-    }
+  {
+    label: "Kalender",
+    href: "/"
+  },
+  {
+    label: "Boka lokal",
+    href: "/create-reservation"
+  },
+  {
+    label: "Information",
+    href: "/information"
+  }
 ]
 
 const NavLink = ({

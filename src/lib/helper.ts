@@ -143,12 +143,12 @@ export function isMailSpelledCorrectly(mail: string): boolean {
     const mailEndings = [
         "chalmers.se",
         "student.chalmers.se",
+        "lists.chalmers.se",
         "ftek.se",
+        "kfkb.se",
+        "f-spexet.se",
         "gu.se",
         "gmail.com",
-        "f-spexet.se",
-        "lists.chalmers.se",
-        "kfkb.se",
     ]
 
     const parts = mail.split("@");
