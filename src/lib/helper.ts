@@ -68,6 +68,12 @@ export function dateToInput(date: Date, useTime = true): string {
     return `${year}-${month}-${day}`;
 }
 
+// Format a date using dateToInput but remove the T :)
+export function formatDate(date: Date) {
+    const fDate = dateToInput(date, true).split('T');
+    return fDate[0] + ' ' + fDate[1];
+}
+
 // Converts date object to a valid string for use in
 // input <input type="time" />
 export function dateToTimeInput(date: Date): string {

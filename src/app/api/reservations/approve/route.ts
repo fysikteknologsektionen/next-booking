@@ -1,5 +1,5 @@
 import { isManager } from "@/lib/helper";
-import { approveReservationServer } from "@/server/api/approveReservation";
+import { approveReservationServer } from "@/server/api/approveReservationServer";
 import authOptions from "@/server/lib/authOptions";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
@@ -17,12 +17,18 @@ export async function POST(request: Request) {
     }
 
     const result = await approveReservationServer(reservationID);
-    if (!result) {
+    if (result.collision) {
         return new NextResponse('Collision! Could not approve reservation', {
             status: 403,
             statusText: "Collision! Could not approve reservation"
         });
+    } else if (result.reservation) {
+        return new NextResponse('Could not find reservation', {
+            status: 400,
+            statusText: "Could not find reservation"
+        });
     }
+
 
     return NextResponse.json(result);
 }

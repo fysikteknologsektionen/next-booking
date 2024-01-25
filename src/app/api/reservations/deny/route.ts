@@ -1,6 +1,8 @@
-import { isManager } from "@/lib/helper";
+import { formatDate, isManager } from "@/lib/helper";
 import { denyReservationServer } from "@/server/api/denyReservation";
+import { getReservationByIDServer } from "@/server/api/getreservations";
 import authOptions from "@/server/lib/authOptions";
+import { sendEmail } from "@/server/lib/mailing";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
@@ -18,5 +20,16 @@ export async function POST(request: Request) {
     }
 
     const result = await denyReservationServer(reservationID);
-    return NextResponse.json(result);
+
+    const reservation = await getReservationByIDServer(reservationID);
+    if (reservation) {
+        const message = `Hej!\n\nDin bokning ${formatDate(reservation.date)} har blivit nekad\n\n/Fysikteknologsektionens lokalbokning`;
+        const emailrespons = await sendEmail(reservation.clientEmail,"Bokning nekad", message);
+        return NextResponse.json(result);
+    }
+
+    return new NextResponse('Could not find reservation', {
+        status: 400,
+        statusText: "Could not find reservation"
+    });
 }

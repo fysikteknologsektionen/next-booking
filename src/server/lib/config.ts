@@ -5,6 +5,8 @@ const envVars = [
     "GOOGLE_OAUTH_CLIENT_ID",
     "GOOGLE_OAUTH_CLIENT_SECRET",
     "DATABASE_URL",
+    "NODEMAILER_EMAIL",
+    "NODEMAILER_PASSWORD",
   ] as const;
   
   const config = envVars.reduce(
