@@ -25,10 +25,10 @@ export async function approveReservationServer(reservationID: number) {
             status: Status.ACCEPTED,
             venueId: reservation?.venueId,
             startTime: {
-                lte: reservation?.endTime,
+                lt: reservation?.endTime,
             },
             endTime: {
-                gte: reservation?.startTime,
+                gt: reservation?.startTime,
             },
         },
     });

@@ -471,10 +471,17 @@ function ReservationsList({
         calendarDayTo.setDate(day + 1);
         calendarDayTo.setHours(0, 0, 0, 0);
 
+        // Only show reservation on the first booked day
         return (
-            reservation.startTime.valueOf() <= calendarDayTo.valueOf() &&
-            reservation.endTime.valueOf() >= calendarDayFrom.valueOf()
+            reservation.startTime.valueOf() >= calendarDayFrom.valueOf() &&
+            reservation.startTime.valueOf() < calendarDayTo.valueOf()
         );
+
+        // Show reservation for all booked days
+        // return (
+        //     reservation.startTime.valueOf() <= calendarDayTo.valueOf() &&
+        //     reservation.endTime.valueOf() >= calendarDayFrom.valueOf()
+        // );
     }
 
     if (!reservations) {

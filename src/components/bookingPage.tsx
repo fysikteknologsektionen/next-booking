@@ -83,7 +83,13 @@ export default function BookingPage({
 
             if (!forceCreate && !reservation) {
                 const reservations = await getReservationsClient(from, to, [parseInt(venue)]);
-                if (reservations && reservations.filter((val: any) => val.status === Status.ACCEPTED).length > 0) {
+                console.log(reservations)
+                if (reservations && reservations.filter((val: any) => (
+                    val.status === Status.ACCEPTED &&
+                    // Remove edge cases where startTime of one = endTime of other
+                    new Date(val.startTime).valueOf() < to.valueOf() &&
+                    new Date(val.endTime).valueOf() > from.valueOf()
+                )).length > 0) {
                     console.error('Overlapping reservation');
                     setLoading(false);
                     onOpen();
