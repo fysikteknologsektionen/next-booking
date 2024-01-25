@@ -24,10 +24,10 @@ export async function createReservationServer( {
             status: Status.ACCEPTED,
             venueId: venueId,
             startTime: {
-                lte: endTime,
+                lt: endTime,
             },
             endTime: {
-                gte: startTime,
+                gt: startTime,
             },
         },
     });
