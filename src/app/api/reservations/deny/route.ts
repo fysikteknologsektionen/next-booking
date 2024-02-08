@@ -1,4 +1,4 @@
-import { isManager } from "@/lib/helper";
+import { formatDate, isManager } from "@/lib/helper";
 import { denyReservationServer } from "@/server/api/denyReservation";
 import { getReservationByIDServer } from "@/server/api/getreservations";
 import authOptions from "@/server/lib/authOptions";
@@ -21,8 +21,15 @@ export async function POST(request: Request) {
 
     const result = await denyReservationServer(reservationID, session?.user.id);
 
-    const reservation = (await getReservationByIDServer(reservationID))[0];
-    const message = `Hej!\n\nDin bokning ${reservation.date} har blivit nekad\n\n/Fysikteknologsektionens lokalbokning`;
-    const emailrespons = await sendEmail(reservation.clientEmail,"Bokning nekad", message);
-    return NextResponse.json(result);
+    const reservation = await getReservationByIDServer(reservationID);
+    if (reservation) {
+        const message = `Hej!\n\nDin bokning ${formatDate(reservation.date)} har blivit nekad\n\n/Fysikteknologsektionens lokalbokning`;
+        const emailrespons = await sendEmail(reservation.clientEmail,"Bokning nekad", message);
+        return NextResponse.json(result);
+    }
+
+    return new NextResponse('Could not find reservation', {
+        status: 400,
+        statusText: "Could not find reservation"
+    });
 }

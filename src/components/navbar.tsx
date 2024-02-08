@@ -20,7 +20,13 @@ import {
 import { HamburgerIcon, CloseIcon } from '@chakra-ui/icons'
 import { useSession } from 'next-auth/react'
 import { signIn, signOut } from "next-auth/react";
-import { Libre_Barcode_39_Extended } from 'next/font/google';
+
+import { useVenueStore } from '@/lib/venueStore'
+import { getVenuesClient } from '@/server/api/getvenues';
+import { getSession } from 'next-auth/react';
+import { Session } from 'next-auth';
+import { useState, useEffect } from 'react';
+
 
 interface NavLink {
     label: string,
@@ -32,14 +38,18 @@ interface Props {
 }
 
 const Links: NavLink[] = [
-    {
-        label: "Kalender",
-        href: "/"
-    },
-    {
-        label: "Boka lokal",
-        href: "/create-reservation"
-    }
+  {
+    label: "Kalender",
+    href: "/"
+  },
+  {
+    label: "Boka lokal",
+    href: "/create-reservation"
+  },
+  {
+    label: "Information",
+    href: "/information"
+  }
 ]
 
 const NavLink = ({
@@ -68,6 +78,28 @@ export default function Navbar() {
   const { isOpen, onOpen, onClose } = useDisclosure()
   const session = useSession();
   const isSignedIn = session.data !== null;
+
+
+  const setVenues = useVenueStore((state) => state.setVenues);
+  const [session_, setSession] = useState<Session>();
+
+  useEffect(() => {
+    (async () => {
+      const venues = await getVenuesClient();
+      setVenues(venues);
+    })()
+  }, [ setVenues ]);
+
+  useEffect(() => {
+    (async () => {
+      const curSession = await getSession();
+      if (!curSession) {
+        return;
+      }
+
+      setSession(curSession);
+    })()
+  }, []);
 
   return (
     <>
@@ -118,9 +150,7 @@ export default function Navbar() {
                   minW={0}>
                   <Avatar
                     size={'sm'}
-                  //   src={
-                  //     'https://images.unsplash.com/photo-1493666438817-866a91353ca9?ixlib=rb-0.3.5&q=80&fm=jpg&crop=faces&fit=crop&h=200&w=200&s=b616b2c5b373a80ffc9636ba24f7a4a9'
-                  //   }
+                    src={session_?.user.image}
                   />
                 </MenuButton>
                 <MenuList>

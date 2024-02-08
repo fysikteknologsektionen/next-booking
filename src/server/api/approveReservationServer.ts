@@ -1,6 +1,7 @@
 import { Status } from "@prisma/client";
 import prisma from "../lib/prisma";
 import { sendEmail } from "../lib/mailing";
+import { formatDate } from "@/lib/helper";
 
 /*  This function needs to be in a file only accessed from server components
     since nodemailer will try to load things not accessible in the browser
@@ -14,22 +15,26 @@ export async function approveReservationServer(reservationID: number, statusChan
             id: reservationID,
         },
     });
+
+    // If no reservation
+    if (!reservation) return { reservation: false }
+
     // Get all reservations that could conflict with the one being approved
     const collisions = await prisma.reservation.findMany({
         where: {
             status: Status.ACCEPTED,
             venueId: reservation?.venueId,
             startTime: {
-                lte: reservation?.endTime,
+                lt: reservation?.endTime,
             },
             endTime: {
-                gte: reservation?.startTime,
+                gt: reservation?.startTime,
             },
         },
     });
 
     // If conflicting with another already approved reservation, abort 
-    if (collisions && collisions.length > 0) return;
+    if (collisions && collisions.length > 0) return { collision: true };
 
     // Approve the reservation in the database
     const result = await prisma.reservation.update({
@@ -43,7 +48,7 @@ export async function approveReservationServer(reservationID: number, statusChan
     });
 
     // Send email to the accepted booker
-    const message = `Hej!\n\nDin bokning ${reservation?.date} är godkänd\n\n/Fysikteknologsektionens lokalbokning`
+    const message = `Hej!\n\nDin bokning ${formatDate(reservation.date)} är godkänd\n\n/Fysikteknologsektionens lokalbokning`
     const emailrespons = await sendEmail(reservation?.clientEmail,"Bokning godkänd", message);
 
     // Deny all other bookings that would be conflicting
@@ -79,8 +84,8 @@ export async function approveReservationServer(reservationID: number, statusChan
 
     
     // Send email to all denied bookings
-    for (let i = 0; i < toBeDenied.length; i++ ) {
-        const message = `Hej!\n\nDin bokning ${toBeDenied[i].date} har blivit nekad\n\n/Fysikteknologsektionens lokalbokning`
+    for (let i = 0; i< toBeDenied.length; i++ ) {
+        const message = `Hej!\n\nDin bokning ${formatDate(toBeDenied[i].date)} har blivit nekad\n\n/Fysikteknologsektionens lokalbokning`
         const emailrespons = await sendEmail(toBeDenied[i].clientEmail,"Bokning nekad", message);
     }
 
