@@ -64,10 +64,6 @@ export default function BookingPage({
 
     const { isOpen, onOpen, onClose } = useDisclosure();
 
-    useEffect(() => {
-        console.log(venue)
-    }, [ venue ]);
-
     const submit = (forceCreate = false) => {
         const f = async (e?: FormEvent<HTMLFormElement>) => {
             e?.preventDefault()
