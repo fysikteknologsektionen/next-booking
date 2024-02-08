@@ -76,19 +76,10 @@ const NavLink = ({
 export default function Navbar() {
   const colorMode = useColorModeValue('gray.200', 'gray.700');
   const { isOpen, onOpen, onClose } = useDisclosure()
-  const session = useSession();
-  const isSignedIn = session.data !== null;
+  const session_use = useSession();
+  const isSignedIn = session_use.data !== null;
 
-
-  const setVenues = useVenueStore((state) => state.setVenues);
-  const [session_, setSession] = useState<Session>();
-
-  useEffect(() => {
-    (async () => {
-      const venues = await getVenuesClient();
-      setVenues(venues);
-    })()
-  }, [ setVenues ]);
+  const [session_get, setSession] = useState<Session>();
 
   useEffect(() => {
     (async () => {
@@ -150,7 +141,7 @@ export default function Navbar() {
                   minW={0}>
                   <Avatar
                     size={'sm'}
-                    src={session_?.user.image}
+                    src={session_get?.user.image} 
                   />
                 </MenuButton>
                 <MenuList>
