@@ -10,15 +10,17 @@ import { approveReservationClient } from "@/server/api/approveReservation";
 import { getNameOfMonth } from "@/lib/helper";
 import { useRouter } from "next/navigation";
 import { denyReservationClient } from "@/server/api/denyReservation";
+import { getUsersClient } from "@/server/api/getUsers";
 
 export default function ReservationsList() {
     const [isLoading, setLoading] = useState(false);
     const [reservations, setReservations] = useState<Reservation[]>([]);
     useEffect(() => {
         (async () => {
-            const startTime = new Date("1970-01-01");
-            const endTime = new Date()
-            endTime.setDate(endTime.getDate() + 365)
+            const startTime = new Date();
+            const endTime = new Date();
+            startTime.setDate(endTime.getDate() - 1);
+            endTime.setDate(endTime.getDate() + 365);
 
             setLoading(true)
             const res = await getReservationsClient(startTime, endTime);
@@ -33,7 +35,7 @@ export default function ReservationsList() {
                     updatedAt: new Date(r.updatedAt)
                 };
             })
-            parsedReservations.sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
+            parsedReservations.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
             setReservations(parsedReservations);
             setLoading(false)
         })();
@@ -57,6 +59,7 @@ export default function ReservationsList() {
                     ].join(" ")}>
                         <span>Lokal</span>
                         <span>Bokningsinfo</span>
+                        <span>Status ändrad av</span>
                         <span>Datum</span>
 
                         <span></span>
@@ -67,8 +70,15 @@ export default function ReservationsList() {
                         </span>
                     </div>
 
-                    {pendingReservations.filter(r => r.status === Status.PENDING).map((reservation, index) => {
-                        return <ReservationItem reservation={reservation} setReservations={setReservations} key={index}></ReservationItem>
+                    {pendingReservations.map((reservation, index) => {
+                        return (
+                            <ReservationItem
+                                reservation={reservation}
+                                setReservations={setReservations}
+                                key={index}
+                                isPending={true}
+                            />
+                        );
                     })}
 
                     {pendingReservations.length === 0 && (
@@ -84,6 +94,7 @@ export default function ReservationsList() {
                         ].join(" ")}>
                             <span>Lokal</span>
                             <span>Bokningsinfo</span>
+                            <span>Status ändrad av</span>
                             <span>Datum</span>
 
                             <span></span>
@@ -95,7 +106,14 @@ export default function ReservationsList() {
                         </div>
 
                         {handledReservations.map((reservation, index) => {
-                            return <ReservationItem reservation={reservation} setReservations={setReservations} key={index}></ReservationItem>
+                            return (
+                                <ReservationItem
+                                    reservation={reservation}
+                                    setReservations={setReservations}
+                                    key={index}
+                                    isPending={false}
+                                />
+                            );
                         })}
                     </div>
                 )}
@@ -106,10 +124,12 @@ export default function ReservationsList() {
 
 function ReservationItem({
     reservation,
-    setReservations
+    setReservations,
+    isPending,
 }: {
     reservation: Reservation,
-    setReservations: Dispatch<SetStateAction<Reservation[]>>
+    setReservations: Dispatch<SetStateAction<Reservation[]>>,
+    isPending: boolean,
 }) {
     const router = useRouter();
     const venues = useVenueStore((state) => state.venues);
@@ -189,7 +209,6 @@ function ReservationItem({
         setStatus(Status.PENDING);
 
         const res = await approveReservationClient(reservation.id);
-        console.log(res);
 
         if (!res || !res.ok) {
             setDisabled(false);
@@ -245,6 +264,20 @@ function ReservationItem({
         window.location.href = `/update-reservation?reservationID=${reservation.id}`; // router, I hardly know her
     }
 
+    const [editor, setEditor] = useState<string>("");
+    useEffect(() => {
+        (async () => {
+            if (!reservation.editorId) {
+                setEditor(reservation.clientName);
+                return;
+            }
+
+            const users = await getUsersClient(undefined, undefined) as any[];
+            const editor = users.find(a => a.id == reservation.editorId);
+            setEditor(editor.name);
+        })()
+    }, [reservation]);
+
     return (
         <Card>
             <div className={styles.item}>
@@ -253,6 +286,11 @@ function ReservationItem({
                     <span>{reservation.clientName} ({reservation.clientEmail})</span>
                     <span>{reservation.clientDescription}</span>
                 </Stack>
+
+                <div>
+                    {editor}<br/>
+                    Datum: {reservation.createdAt.toLocaleDateString('sv-SE')}
+                </div>
 
                 <div>
                     {renderTime(reservation)}

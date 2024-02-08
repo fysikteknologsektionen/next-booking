@@ -9,7 +9,7 @@ import { formatDate } from "@/lib/helper";
 */
 
 // Approve a reservation, used on the server
-export async function approveReservationServer(reservationID: number) {
+export async function approveReservationServer(reservationID: number, statusChangerId?: number) {
     const reservation = await prisma.reservation.findUnique({
         where: {
             id: reservationID,
@@ -42,7 +42,8 @@ export async function approveReservationServer(reservationID: number) {
             id: reservationID,
         },
         data: {
-            status: Status.ACCEPTED
+            status: Status.ACCEPTED,
+            editorId: statusChangerId,
         },
     });
 
@@ -77,6 +78,7 @@ export async function approveReservationServer(reservationID: number) {
         },
         data: {
             status: Status.DENIED,
+            editorId: statusChangerId,
         },
     });
 

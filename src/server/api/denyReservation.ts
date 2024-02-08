@@ -3,13 +3,14 @@ import prisma from "../lib/prisma";
 
 
 // Deny a reservation, used on the server
-export async function denyReservationServer(reservationID: number) {
+export async function denyReservationServer(reservationID: number, statusChangerId?: number) {
     const result = await prisma.reservation.update({
         where: {
             id: reservationID,
         },
         data: {
             status: Status.DENIED,
+            editorId: statusChangerId,
         },
     });
     return result;

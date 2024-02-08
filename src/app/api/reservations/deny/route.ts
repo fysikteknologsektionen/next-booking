@@ -19,7 +19,7 @@ export async function POST(request: Request) {
         });
     }
 
-    const result = await denyReservationServer(reservationID);
+    const result = await denyReservationServer(reservationID, session?.user.id);
 
     const reservation = await getReservationByIDServer(reservationID);
     if (reservation) {

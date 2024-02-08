@@ -16,8 +16,8 @@ export async function POST(request: Request) {
         });
     }
 
-    const result = await approveReservationServer(reservationID);
-    if (result.collision) {
+    const result = await approveReservationServer(reservationID, session?.user.id);
+    if (!result) {
         return new NextResponse('Collision! Could not approve reservation', {
             status: 403,
             statusText: "Collision! Could not approve reservation"

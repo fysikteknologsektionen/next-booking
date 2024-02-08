@@ -17,6 +17,6 @@ export async function POST(request: Request) {
         });
     }
 
-    const result = await updateReservationServer(reservationDetails);
+    const result = await updateReservationServer(reservationDetails, session?.user.id);
     return NextResponse.json(result);
 }

@@ -8,16 +8,15 @@ datasource db {
 }
 
 model User {
-  id           Int                @id @default(autoincrement())
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
-  name         String
-  email        String
-  googleId     String             @unique
-  image        String?
-  role         Role               @default(USER)
-  venues       UserManagesVenue[]
-  reservations Reservation[]
+  id        Int                @id @default(autoincrement())
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  name      String
+  email     String
+  googleId  String             @unique
+  image     String?
+  role      Role               @default(USER)
+  venues    UserManagesVenue[]
 }
 
 enum Role {
@@ -67,7 +66,6 @@ model Reservation {
   clientEmail       String
   clientDescription String?
   editorId          Int?
-  editor            User?    @relation(fields: [editorId], references: [id], onDelete: SetNull)
   date              DateTime
   startTime         DateTime
   endTime           DateTime
