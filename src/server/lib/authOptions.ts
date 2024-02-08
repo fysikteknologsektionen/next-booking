@@ -50,13 +50,14 @@ const authOptions: NextAuthOptions = {
         role: localUser.role,
       };
     },
-    session({ session, token }) {
+    async session({ session, token }) {
       // Attach additional fields to session
+      const localUser = await prisma.user.findFirst({where: { id: token.sub }})
       return {
         ...session,
         user: {
           name: session.user.name,
-          image: session.user.image,
+          image: localUser?.image,
           id: token.sub,
           role: token.role,
         },
