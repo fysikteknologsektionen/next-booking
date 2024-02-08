@@ -57,10 +57,10 @@ export async function approveReservationServer(reservationID: number, statusChan
             status: Status.PENDING,
             venueId: result?.venueId,
             startTime: {
-                lte: result?.endTime,
+                lt: result?.endTime,
             },
             endTime: {
-                gte: result?.startTime,
+                gt: result?.startTime,
             },
         },
     });
@@ -70,10 +70,10 @@ export async function approveReservationServer(reservationID: number, statusChan
             status: Status.PENDING,
             venueId: result?.venueId,
             startTime: {
-                lte: result?.endTime,
+                lt: result?.endTime,
             },
             endTime: {
-                gte: result?.startTime,
+                gt: result?.startTime,
             },
         },
         data: {

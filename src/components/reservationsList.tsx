@@ -75,7 +75,7 @@ export default function ReservationsList() {
                             <ReservationItem
                                 reservation={reservation}
                                 setReservations={setReservations}
-                                key={index}
+                                key={reservation.id}
                                 isPending={true}
                             />
                         );
@@ -110,7 +110,7 @@ export default function ReservationsList() {
                                 <ReservationItem
                                     reservation={reservation}
                                     setReservations={setReservations}
-                                    key={index}
+                                    key={reservation.id}
                                     isPending={false}
                                 />
                             );
