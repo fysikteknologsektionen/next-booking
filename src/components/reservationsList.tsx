@@ -10,6 +10,7 @@ import { approveReservationClient } from "@/server/api/approveReservation";
 import { getNameOfMonth } from "@/lib/helper";
 import { useRouter } from "next/navigation";
 import { denyReservationClient } from "@/server/api/denyReservation";
+import { getUsersClient } from "@/server/api/getUsers";
 
 export default function ReservationsList() {
     const [isLoading, setLoading] = useState(false);
@@ -18,7 +19,7 @@ export default function ReservationsList() {
         (async () => {
             const startTime = new Date();
             const endTime = new Date();
-            startTime.setDate(endTime.getDate()-1);
+            startTime.setDate(endTime.getDate() - 1);
             endTime.setDate(endTime.getDate() + 365);
 
             setLoading(true)
@@ -34,7 +35,7 @@ export default function ReservationsList() {
                     updatedAt: new Date(r.updatedAt)
                 };
             })
-            parsedReservations.sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
+            parsedReservations.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
             setReservations(parsedReservations);
             setLoading(false)
         })();
@@ -69,7 +70,7 @@ export default function ReservationsList() {
                         </span>
                     </div>
 
-                    {pendingReservations.filter(r => r.status === Status.PENDING).map((reservation, index) => {
+                    {pendingReservations.map((reservation, index) => {
                         return (
                             <ReservationItem
                                 reservation={reservation}
@@ -208,7 +209,6 @@ function ReservationItem({
         setStatus(Status.PENDING);
 
         const res = await approveReservationClient(reservation.id);
-        console.log(res);
 
         if (!res || !res.ok) {
             setDisabled(false);
@@ -264,6 +264,20 @@ function ReservationItem({
         window.location.href = `/update-reservation?reservationID=${reservation.id}`; // router, I hardly know her
     }
 
+    const [editor, setEditor] = useState<string>("");
+    useEffect(() => {
+        (async () => {
+            if (!reservation.editorId) {
+                setEditor(reservation.clientName);
+                return;
+            }
+
+            const users = await getUsersClient(undefined, undefined) as any[];
+            const editor = users.find(a => a.id == reservation.editorId);
+            setEditor(editor.name);
+        })()
+    }, [reservation]);
+
     return (
         <Card>
             <div className={styles.item}>
@@ -274,7 +288,7 @@ function ReservationItem({
                 </Stack>
 
                 <div>
-                    {reservation.editorId ? reservation.editorId : reservation.clientName}<br/>
+                    {editor}<br/>
                     Datum: {reservation.createdAt.toLocaleDateString('sv-SE')}
                 </div>
 
