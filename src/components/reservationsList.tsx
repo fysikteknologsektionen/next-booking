@@ -16,9 +16,10 @@ export default function ReservationsList() {
     const [reservations, setReservations] = useState<Reservation[]>([]);
     useEffect(() => {
         (async () => {
-            const startTime = new Date("1970-01-01");
-            const endTime = new Date()
-            endTime.setDate(endTime.getDate() + 365)
+            const startTime = new Date();
+            const endTime = new Date();
+            startTime.setDate(endTime.getDate()-1);
+            endTime.setDate(endTime.getDate() + 365);
 
             setLoading(true)
             const res = await getReservationsClient(startTime, endTime);
