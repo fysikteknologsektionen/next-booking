@@ -1,4 +1,4 @@
-import { Status } from "@prisma/client";
+import { Recurring, Status } from "@prisma/client";
 import prisma from "../lib/prisma";
 
 
@@ -12,6 +12,8 @@ export async function updateReservationServer( {
     date,
     startTime,
     endTime,
+    recurring,
+    recurringUntil,
     status
 }:{
     reservationID: number,
@@ -22,6 +24,8 @@ export async function updateReservationServer( {
     date: Date,
     startTime: Date,
     endTime: Date,
+    recurring: Recurring,
+    recurringUntil: Date | null,
     status: Status
 },
 statusChangerId?: number) {
@@ -34,6 +38,8 @@ statusChangerId?: number) {
             date,
             startTime,
             endTime,
+            recurring,
+            recurringUntil,
             venueId,
             status,
             editorId: statusChangerId,
@@ -53,6 +59,8 @@ export async function updateReservationClient(reservationDetails:{
     date: Date,
     startTime: Date,
     endTime: Date,
+    recurring: Recurring,
+    recurringUntil: Date | null,
     status: Status
 }) {
     try {

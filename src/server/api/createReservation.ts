@@ -1,4 +1,4 @@
-import { Status } from "@prisma/client";
+import { Recurring, Status } from "@prisma/client";
 import prisma from "../lib/prisma";
 
 // Create a reservation, used on the server
@@ -10,6 +10,8 @@ export async function createReservationServer( {
     date,
     startTime,
     endTime,
+    recurring,
+    recurringUntil,
 }:{
     clientName: string,
     clientEmail: string,
@@ -18,6 +20,8 @@ export async function createReservationServer( {
     date: Date,
     startTime: Date,
     endTime: Date,
+    recurring: Recurring,
+    recurringUntil: Date | null
 }) {
     const collisions = await prisma.reservation.findMany({
         where: {
@@ -40,6 +44,8 @@ export async function createReservationServer( {
             date,
             startTime,
             endTime,
+            recurring,
+            recurringUntil,
             venueId,
             status: (collisions && collisions.length > 0) ? Status.DENIED : Status.PENDING,
         },
@@ -57,6 +63,8 @@ export async function createReservationClient(reservationDetails:{
     date: Date,
     startTime: Date,
     endTime: Date,
+    recurring: Recurring,
+    recurringUntil: Date | null
 }) {
 
     try {

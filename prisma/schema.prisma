@@ -59,9 +59,9 @@ model Timeslot {
 }
 
 model Reservation {
-  id                Int      @id @default(autoincrement())
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id                Int       @id @default(autoincrement())
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
   clientName        String
   clientEmail       String
   clientDescription String?
@@ -69,9 +69,17 @@ model Reservation {
   date              DateTime
   startTime         DateTime
   endTime           DateTime
-  status            Status   @default(PENDING)
+  recurring         Recurring @default(NEVER)
+  recurringUntil    DateTime?
+  status            Status    @default(PENDING)
   venueId           Int?
-  venue             Venue?   @relation(fields: [venueId], references: [id], onDelete: SetNull)
+  venue             Venue?    @relation(fields: [venueId], references: [id], onDelete: SetNull)
+}
+
+enum Recurring {
+  NEVER
+  WEEKLY
+  MONTHLY
 }
 
 enum Status {

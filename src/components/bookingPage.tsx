@@ -5,8 +5,8 @@ import { createReservationClient } from "@/server/api/createReservation";
 import { getReservationsClient } from "@/server/api/getreservations";
 import { updateReservationClient } from "@/server/api/updateReservation";
 import { WarningIcon } from "@chakra-ui/icons";
-import { Button, Checkbox, FormControl, FormErrorIcon, FormErrorMessage, FormHelperText, FormLabel, Heading, HStack, Input, Link, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select, Spinner, Stack, Text, Textarea, useDisclosure } from "@chakra-ui/react";
-import { Reservation, Status, Venue } from "@prisma/client";
+import { Button, Checkbox, FormControl, FormErrorIcon, FormErrorMessage, FormHelperText, FormLabel, Heading, HStack, Input, Link, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Radio, RadioGroup, Select, Spinner, Stack, Text, Textarea, useDisclosure } from "@chakra-ui/react";
+import { Recurring, Reservation, Status, Venue } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { FormEvent, FormEventHandler, useEffect, useMemo, useState } from "react";
 
@@ -15,6 +15,9 @@ fromDefault.setSeconds(0, 0);
 
 const toDefault = new Date(fromDefault);
 toDefault.setHours(toDefault.getHours() + 1);
+
+const recurringUntilDefault = new Date(fromDefault);
+recurringUntilDefault.setFullYear(recurringUntilDefault.getFullYear() + 1);
 
 export default function BookingPage({
     venues, reservation
@@ -32,7 +35,9 @@ export default function BookingPage({
         startTime: fromDefault,
         endTime: toDefault,
         venueId: "",
-        status: Status.PENDING
+        status: Status.PENDING,
+        recurring: Recurring.NEVER,
+        recurringUntil: recurringUntilDefault
     }
 
     const [venue, setVenue] = useState<string>(defaultReservationData.venueId?.toString()??"")
@@ -56,6 +61,11 @@ export default function BookingPage({
         to.valueOf() -
         from.valueOf()
     ), [ from, to ]);
+
+    // Recurring reservation
+    const [recurring, setRecurring] = useState(defaultReservationData.recurring);
+    const [recurringUntilDateString, setRecurringUntilDateString] = useState(dateToInput(new Date(defaultReservationData.recurringUntil ?? recurringUntilDefault), false));
+    const recurringUntil = useMemo(() => new Date(recurringUntilDateString), [ recurringUntilDateString ]);
 
     const [status, setStatus] = useState(defaultReservationData.status);
 
@@ -103,6 +113,8 @@ export default function BookingPage({
                 date: from,
                 startTime: from,
                 endTime: to,
+                recurring: recurring,
+                recurringUntil: recurringUntil
             }
 
             // Make POST fetch request using the data
@@ -225,6 +237,35 @@ export default function BookingPage({
                         </FormControl>
                     </div>
                 </HStack>
+
+                <FormControl isRequired>
+                    <FormLabel>Stående bokning</FormLabel>
+                    <FormHelperText>Denna bokningen återkommer:</FormHelperText>
+                    <RadioGroup onChange={(value) => {
+                        setRecurring(value as Recurring);
+                    }} value={recurring}>
+                        <Stack direction='row'>
+                            <Radio value={Recurring.NEVER}>Aldrig</Radio>
+                            <Radio value={Recurring.WEEKLY}>Varje vecka</Radio>
+                            <Radio value={Recurring.MONTHLY}>Varje månad</Radio>
+                        </Stack>
+                    </RadioGroup>
+                </FormControl>
+
+                {recurring !== Recurring.NEVER && (
+                    <FormControl isRequired isInvalid={showErrors && recurringUntil.valueOf() <= to.valueOf()}>
+                        <FormLabel>Stående till</FormLabel>
+                        <Stack>
+                            <Input
+                                type="date"
+                                value={recurringUntilDateString}
+                                onChange={e => setRecurringUntilDateString(e.target.value)}
+                            ></Input>
+                        </Stack>
+                        <FormHelperText>Bokningen återkommer till och med denna dag</FormHelperText>
+                        <FormErrorMessage>Tiden måste vara efter sluttid på bokningen</FormErrorMessage>
+                    </FormControl>
+                )}
 
                 {/* <FormControl>
                     <FormLabel>Jag vill få mail när min bokning godkänns/nekas</FormLabel>

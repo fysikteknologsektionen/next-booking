@@ -23,7 +23,7 @@ export default function ReservationsList() {
             endTime.setDate(endTime.getDate() + 365);
 
             setLoading(true)
-            const res = await getReservationsClient(startTime, endTime);
+            const res = await getReservationsClient(startTime, endTime, undefined, true);
 
             const parsedReservations: Reservation[] = res.map((r: any) => {
                 return {
@@ -48,10 +48,11 @@ export default function ReservationsList() {
         <Card>
             <CardHeader>
                 <Heading>Hantera bokningar</Heading>
-                <Text>Endast admins kan se detta.</Text>
             </CardHeader>
 
             <CardBody>
+                <Text>Väntar på godkännande</Text>
+
                 <div className={styles.reservations}>
                     <div className={[
                         styles.item,
@@ -87,35 +88,38 @@ export default function ReservationsList() {
                 </div>
 
                 {handledReservations.length > 0 && (
-                    <div className={styles.reservations} style={{ marginTop: "2rem" }}>
-                        <div className={[
-                            styles.item,
-                            styles.header
-                        ].join(" ")}>
-                            <span>Lokal</span>
-                            <span>Bokningsinfo</span>
-                            <span>Status ändrad av</span>
-                            <span>Datum</span>
+                    <>
+                        <Text style={{ marginTop: "2rem" }}>Redan hanterade bokningar</Text>
+                        <div className={styles.reservations}>
+                            <div className={[
+                                styles.item,
+                                styles.header
+                            ].join(" ")}>
+                                <span>Lokal</span>
+                                <span>Bokningsinfo</span>
+                                <span>Status ändrad av</span>
+                                <span>Datum</span>
 
-                            <span></span>
-                            <span style={{ textAlign: "right" }}>
-                                {isLoading && (
-                                    <Spinner></Spinner>
-                                )}
-                            </span>
+                                <span></span>
+                                <span style={{ textAlign: "right" }}>
+                                    {isLoading && (
+                                        <Spinner></Spinner>
+                                    )}
+                                </span>
+                            </div>
+
+                            {handledReservations.map((reservation, index) => {
+                                return (
+                                    <ReservationItem
+                                        reservation={reservation}
+                                        setReservations={setReservations}
+                                        key={reservation.id}
+                                        isPending={false}
+                                    />
+                                );
+                            })}
                         </div>
-
-                        {handledReservations.map((reservation, index) => {
-                            return (
-                                <ReservationItem
-                                    reservation={reservation}
-                                    setReservations={setReservations}
-                                    key={reservation.id}
-                                    isPending={false}
-                                />
-                            );
-                        })}
-                    </div>
+                    </>
                 )}
             </CardBody>
         </Card>
