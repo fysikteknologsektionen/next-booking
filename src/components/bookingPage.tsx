@@ -74,6 +74,12 @@ export default function BookingPage({
                 console.error("> 0min pls")
                 return;
             }
+            if (description.length > 500) {
+                return;
+            }
+            if (name.length > 80) {
+                return;
+            }
 
             setLoading(true);
 
@@ -154,6 +160,7 @@ export default function BookingPage({
                     <FormLabel>Namn på bokningsansvarig</FormLabel>
                     <Input
                         placeholder="Ditt namn eller kommitté/förening"
+                        maxLength={80}
                         value={name}
                         onChange={e => setName(e.target.value)}
                         required
@@ -176,9 +183,11 @@ export default function BookingPage({
                     <FormLabel>Beskrivning</FormLabel>
                     <Textarea
                         placeholder="Beskriv varför du bokar lokalen och annat som kan vara bra att veta"
+                        maxLength={500}
                         value={description}
                         onChange={e => setDescription(e.target.value)}
                     ></Textarea>
+                    <FormHelperText>{description.length}/500 tecken</FormHelperText>
                 </FormControl>
 
                 <HStack alignItems="flex-start">

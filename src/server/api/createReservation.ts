@@ -19,6 +19,11 @@ export async function createReservationServer( {
     startTime: Date,
     endTime: Date,
 }) {
+    // Validate data
+    if (clientName.length > 80 || (clientDescription && clientDescription.length > 500)) {
+        return false;
+    }
+
     const collisions = await prisma.reservation.findMany({
         where: {
             status: Status.ACCEPTED,
