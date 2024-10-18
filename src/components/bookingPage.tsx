@@ -6,7 +6,7 @@ import { getReservationsClient } from "@/server/api/getreservations";
 import { updateReservationClient } from "@/server/api/updateReservation";
 import { WarningIcon } from "@chakra-ui/icons";
 import { Button, Checkbox, FormControl, FormErrorIcon, FormErrorMessage, FormHelperText, FormLabel, Heading, HStack, Input, Link, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Radio, RadioGroup, Select, Spinner, Stack, Text, Textarea, useDisclosure } from "@chakra-ui/react";
-import { Recurring, Reservation, Status, Venue } from "@prisma/client";
+import { Recurring, Reservation, ReservationType, Status, Venue } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { FormEvent, FormEventHandler, useEffect, useMemo, useState } from "react";
 
@@ -30,8 +30,10 @@ export default function BookingPage({
     const router = useRouter();
     const defaultReservationData = reservation ? reservation : {
         clientName: "",
+        clientCommittee: "",
         clientEmail: "",
         clientDescription: "",
+        type: ReservationType.PREPARATION,
         startTime: fromDefault,
         endTime: toDefault,
         venueId: "",
@@ -42,8 +44,10 @@ export default function BookingPage({
 
     const [venue, setVenue] = useState<string>(defaultReservationData.venueId?.toString()??"")
     const [name, setName] = useState(defaultReservationData.clientName)
+    const [committee, setCommittee] = useState(defaultReservationData.clientCommittee)
     const [email, setEmail] = useState(defaultReservationData.clientEmail)
-    const [description, setDescription] = useState(defaultReservationData.clientDescription??"")
+    const [reservationType, setReservationType] = useState(defaultReservationData.type)
+    const [description, setDescription] = useState(defaultReservationData.clientDescription)
     
     const [fromDateString, setFromDateString] = useState(dateToInput(new Date(defaultReservationData.startTime), false));
     const [fromTimeString, setFromTimeString] = useState(dateToTimeInput(new Date(defaultReservationData.startTime)));
@@ -107,8 +111,10 @@ export default function BookingPage({
             // Collect all reservation details
             const reservationDetails = {
                 clientName: name,
+                clientCommittee: committee,
                 clientEmail: email,
                 clientDescription: description,
+                type: reservationType,
                 venueId: parseInt(venue),
                 date: from,
                 startTime: from,
@@ -165,9 +171,20 @@ export default function BookingPage({
                 <FormControl isRequired>
                     <FormLabel>Namn på bokningsansvarig</FormLabel>
                     <Input
-                        placeholder="Ditt namn eller kommitté/förening"
+                        placeholder="Ditt namn"
                         value={name}
                         onChange={e => setName(e.target.value)}
+                        required
+                    ></Input>
+                    <FormErrorMessage>Error</FormErrorMessage>
+                </FormControl>
+
+                <FormControl>
+                    <FormLabel>Kommitté/förening</FormLabel>
+                    <Input
+                        placeholder="Namn på kommitté/förening"
+                        value={committee ?? ""}
+                        onChange={e => setCommittee(e.target.value)}
                         required
                     ></Input>
                     <FormErrorMessage>Error</FormErrorMessage>
@@ -182,6 +199,21 @@ export default function BookingPage({
                         onChange={e => setEmail(e.target.value)}
                     ></Input>
                     <FormErrorMessage color="orange.400">Din e-post kan vara felstavad!</FormErrorMessage>
+                </FormControl>
+
+                <FormControl isRequired>
+                    <FormLabel>Typ av arrangemang</FormLabel>
+                    <RadioGroup onChange={(value) => {
+                        setReservationType(value as ReservationType);
+                    }} value={reservationType}>
+                        <Stack direction='row'>
+                            <Radio value={ReservationType.PREPARATION}>Förberedelser</Radio>
+                            <Radio value={ReservationType.SITTING}>Sittning</Radio>
+                            <Radio value={ReservationType.PUB}>Pub</Radio>
+                            <Radio value={ReservationType.PERFORMANCE}>Föreställning</Radio>
+                            <Radio value={ReservationType.OTHER}>Övrigt</Radio>
+                        </Stack>
+                    </RadioGroup>
                 </FormControl>
 
                 <FormControl isRequired>

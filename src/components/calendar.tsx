@@ -395,12 +395,12 @@ function CalendarDetailsModal({
                             </>
                         )}
 
-                        <Text>{activeReservation.clientName} ({activeReservation.clientEmail}) har bokat <i>{venues.find(v => v.id === activeReservation.venueId)?.name ?? activeReservation.venueId}</i></Text>
-                        <br />
-
-                        <Text as="b">Beskrivning</Text>
-                        <Text>{activeReservation.clientDescription}</Text>
-                        <br />
+                        <Text>Typ: {activeReservation.type}</Text>
+                        <Text>Lokal: {venues.find(v => v.id === activeReservation.venueId)?.name ?? activeReservation.venueId}</Text>
+                        <Text>Ansvarig: {activeReservation.clientName}</Text>
+                        <Text>Email: {activeReservation.clientEmail}</Text>
+                        <Text>Kommitté: {activeReservation.clientCommittee}</Text>
+                        <Text>Beskrivning: {activeReservation.clientDescription}</Text>
 
                         <Text as="b">Tid</Text>
                         <Text>Från {activeReservation.startTime.toLocaleString()}</Text>

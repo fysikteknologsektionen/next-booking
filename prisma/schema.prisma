@@ -63,8 +63,10 @@ model Reservation {
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
   clientName        String
+  clientCommittee   String?
   clientEmail       String
-  clientDescription String?
+  clientDescription String
+  type              ReservationType @default(OTHER)
   editorId          Int?
   date              DateTime
   startTime         DateTime
@@ -74,6 +76,14 @@ model Reservation {
   status            Status    @default(PENDING)
   venueId           Int?
   venue             Venue?    @relation(fields: [venueId], references: [id], onDelete: SetNull)
+}
+
+enum ReservationType {
+  PREPARATION
+  SITTING
+  PUB
+  PERFORMANCE
+  OTHER
 }
 
 enum Recurring {
