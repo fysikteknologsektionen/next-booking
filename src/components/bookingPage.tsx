@@ -4,6 +4,7 @@ import { dateToInput, dateToTimeInput, formatDuration, isMailSpelledCorrectly } 
 import { createReservationClient } from "@/server/api/createReservation";
 import { getReservationsClient } from "@/server/api/getreservations";
 import { updateReservationClient } from "@/server/api/updateReservation";
+import { CHARACTER_LIMIT } from "@/lib/helper";
 import { WarningIcon } from "@chakra-ui/icons";
 import { Button, Checkbox, FormControl, FormErrorIcon, FormErrorMessage, FormHelperText, FormLabel, Heading, HStack, Input, Link, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Radio, RadioGroup, Select, Spinner, Stack, Text, Textarea, useDisclosure } from "@chakra-ui/react";
 import { Recurring, Reservation, ReservationType, Status, Venue } from "@prisma/client";
@@ -30,7 +31,7 @@ export default function BookingPage({
     const router = useRouter();
     const defaultReservationData = reservation ? reservation : {
         clientName: "",
-        clientCommittee: "",
+        clientCommittee: null,
         clientEmail: "",
         clientDescription: "",
         type: ReservationType.PREPARATION,
@@ -88,10 +89,13 @@ export default function BookingPage({
                 console.error("> 0min pls")
                 return;
             }
-            if (description.length > 500) {
+            if (description.length > CHARACTER_LIMIT.description) {
                 return;
             }
-            if (name.length > 80) {
+            if (committee && committee.length > CHARACTER_LIMIT.comittee) {
+                return;
+            }
+            if (name.length > CHARACTER_LIMIT.name) {
                 return;
             }
 
@@ -177,8 +181,8 @@ export default function BookingPage({
                 <FormControl isRequired>
                     <FormLabel>Namn på bokningsansvarig</FormLabel>
                     <Input
-                        placeholder="Ditt namn eller kommitté/förening"
-                        maxLength={80}
+                        placeholder="Ditt namn"
+                        maxLength={CHARACTER_LIMIT.name}
                         value={name}
                         onChange={e => setName(e.target.value)}
                         required
@@ -190,9 +194,9 @@ export default function BookingPage({
                     <FormLabel>Kommitté/förening</FormLabel>
                     <Input
                         placeholder="Namn på kommitté/förening"
+                        maxLength={CHARACTER_LIMIT.comittee}
                         value={committee ?? ""}
                         onChange={e => setCommittee(e.target.value)}
-                        required
                     ></Input>
                     <FormErrorMessage>Error</FormErrorMessage>
                 </FormControl>
@@ -231,7 +235,7 @@ export default function BookingPage({
                         value={description}
                         onChange={e => setDescription(e.target.value)}
                     ></Textarea>
-                    <FormHelperText>{description.length}/500 tecken</FormHelperText>
+                    <FormHelperText>{description.length}/{CHARACTER_LIMIT.description} tecken</FormHelperText>
                 </FormControl>
 
                 <HStack alignItems="flex-start">

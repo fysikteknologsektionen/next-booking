@@ -1,5 +1,6 @@
 import { Recurring, ReservationType, Status } from "@prisma/client";
-import prisma from "../lib/prisma";
+import prisma from "@/server/lib/prisma";
+import { CHARACTER_LIMIT } from "@/lib/helper";
 
 // Create a reservation, used on the server
 export async function createReservationServer( {
@@ -28,7 +29,11 @@ export async function createReservationServer( {
     recurringUntil: Date | null
 }) {
     // Validate data
-    if (clientName.length > 80 || (clientDescription && clientDescription.length > 500)) {
+    if (
+        clientName.length > CHARACTER_LIMIT.name ||
+        clientDescription.length > CHARACTER_LIMIT.description ||
+        (clientCommittee && clientCommittee.length > CHARACTER_LIMIT.comittee)
+    ) {
         return false;
     }
 
