@@ -1,23 +1,31 @@
-import { Status } from "@prisma/client";
+import { Recurring, ReservationType, Status } from "@prisma/client";
 import prisma from "../lib/prisma";
 
 // Create a reservation, used on the server
 export async function createReservationServer( {
     clientName,
+    clientCommittee,
     clientEmail,
     clientDescription,
+    type,
     venueId,
     date,
     startTime,
     endTime,
+    recurring,
+    recurringUntil,
 }:{
     clientName: string,
+    clientCommittee: string | null,
     clientEmail: string,
-    clientDescription: string | null,
+    clientDescription: string,
+    type: ReservationType,
     venueId: number | null,
     date: Date,
     startTime: Date,
     endTime: Date,
+    recurring: Recurring,
+    recurringUntil: Date | null
 }) {
     // Validate data
     if (clientName.length > 80 || (clientDescription && clientDescription.length > 500)) {
@@ -40,11 +48,15 @@ export async function createReservationServer( {
     const result = await prisma.reservation.create({
         data: {
             clientName,
+            clientCommittee,
             clientEmail,
             clientDescription,
+            type,
             date,
             startTime,
             endTime,
+            recurring,
+            recurringUntil,
             venueId,
             status: (collisions && collisions.length > 0) ? Status.DENIED : Status.PENDING,
         },
@@ -54,16 +66,7 @@ export async function createReservationServer( {
 
 
 // Create a reservation, used on the client
-export async function createReservationClient(reservationDetails:{
-    clientName: string,
-    clientEmail: string,
-    clientDescription: string | null,
-    venueId: number | null,
-    date: Date,
-    startTime: Date,
-    endTime: Date,
-}) {
-
+export async function createReservationClient(reservationDetails: any) {
     try {
         const body = { reservationDetails: reservationDetails };
         const rawResponse = await fetch('/api/reservations/create', {

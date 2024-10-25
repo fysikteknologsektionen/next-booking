@@ -28,6 +28,7 @@ export default function Home() {
   useEffect(() => {
     (async () => {
       const curSession = await getSession();
+      console.log(curSession);
       if (!curSession) {
         return;
       }

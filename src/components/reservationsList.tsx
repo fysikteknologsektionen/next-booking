@@ -1,13 +1,13 @@
 import { useVenueStore } from "@/lib/venueStore";
 import { getReservationsClient } from "@/server/api/getreservations";
-import { Button, Card, CardBody, CardHeader, Center, Heading, IconButton, Spinner, Stack, Text } from "@chakra-ui/react";
+import { Button, Card, CardBody, CardHeader, Center, Heading, IconButton, Spinner, Stack, Tag, Text } from "@chakra-ui/react";
 import { Reservation, Status, Venue } from "@prisma/client";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
 import styles from "@/components/reservationsList.module.css";
 import { CloseIcon, EditIcon } from "@chakra-ui/icons";
 import { approveReservationClient } from "@/server/api/approveReservation";
-import { getNameOfMonth } from "@/lib/helper";
+import { getNameOfMonth, getVenueColor } from "@/lib/helper";
 import { useRouter } from "next/navigation";
 import { denyReservationClient } from "@/server/api/denyReservation";
 import { getUsersClient } from "@/server/api/getUsers";
@@ -23,7 +23,7 @@ export default function ReservationsList() {
             endTime.setDate(endTime.getDate() + 365);
 
             setLoading(true)
-            const res = await getReservationsClient(startTime, endTime);
+            const res = await getReservationsClient(startTime, endTime, undefined, true);
 
             const parsedReservations: Reservation[] = res.map((r: any) => {
                 return {
@@ -45,56 +45,53 @@ export default function ReservationsList() {
     const handledReservations = reservations.filter(r => r.status !== Status.PENDING);
 
     return (
-        <Card>
-            <CardHeader>
-                <Heading>Hantera bokningar</Heading>
-                <Text>Endast admins kan se detta.</Text>
-            </CardHeader>
+        <div>
+            <Heading>Hantera bokningar</Heading>
 
-            <CardBody>
-                <div className={styles.reservations}>
-                    <div className={[
-                        styles.item,
-                        styles.header
-                    ].join(" ")}>
-                        <span>Lokal</span>
-                        <span>Bokningsinfo</span>
-                        <span>Status ändrad av</span>
-                        <span>Datum</span>
+            <Text style={{ marginTop: "4rem", marginBottom: "1rem" }}>Väntar på godkännande</Text>
+            <div className={styles.reservations}>
+                <div className={[
+                    styles.item,
+                    styles.header
+                ].join(" ")}>
+                    <span>Lokal</span>
+                    <span>Bokningsinfo</span>
+                    <span>Datum</span>
 
-                        <span></span>
-                        <span style={{ textAlign: "right" }}>
-                            {isLoading && (
-                                <Spinner></Spinner>
-                            )}
-                        </span>
-                    </div>
-
-                    {pendingReservations.map((reservation, index) => {
-                        return (
-                            <ReservationItem
-                                reservation={reservation}
-                                setReservations={setReservations}
-                                key={reservation.id}
-                                isPending={true}
-                            />
-                        );
-                    })}
-
-                    {pendingReservations.length === 0 && (
-                        <Text color="gray.500">Inga nya bokningar</Text>
-                    )}
+                    <span></span>
+                    <span style={{ textAlign: "right" }}>
+                        {isLoading && (
+                            <Spinner></Spinner>
+                        )}
+                    </span>
                 </div>
 
-                {handledReservations.length > 0 && (
-                    <div className={styles.reservations} style={{ marginTop: "2rem" }}>
+                {pendingReservations.map((reservation, index) => {
+                    return (
+                        <ReservationItem
+                            reservation={reservation}
+                            setReservations={setReservations}
+                            key={reservation.id}
+                            isPending={true}
+                        />
+                    );
+                })}
+
+                {pendingReservations.length === 0 && (
+                    <Text color="gray.500">Inga nya bokningar</Text>
+                )}
+            </div>
+
+            {handledReservations.length > 0 && (
+                <>
+                    <Text style={{ marginTop: "4rem", marginBottom: "1rem" }}>Redan hanterade bokningar</Text>
+                    <div className={styles.reservations}>
                         <div className={[
                             styles.item,
                             styles.header
                         ].join(" ")}>
                             <span>Lokal</span>
                             <span>Bokningsinfo</span>
-                            <span>Status ändrad av</span>
                             <span>Datum</span>
 
                             <span></span>
@@ -116,9 +113,9 @@ export default function ReservationsList() {
                             );
                         })}
                     </div>
-                )}
-            </CardBody>
-        </Card>
+                </>
+            )}
+        </div>
     )
 }
 
@@ -281,16 +278,19 @@ function ReservationItem({
     return (
         <Card>
             <div className={styles.item}>
-                <span>{getVenueName(reservation.venueId)}</span>
+                <Tag
+                    width="100%"
+                    height="fit-content"
+                    bg={getVenueColor(reservation.venueId)}
+                    color="white"
+                >
+                    <Text>{getVenueName(reservation.venueId)}</Text>
+                </Tag>
                 <Stack>
-                    <span>{reservation.clientName} ({reservation.clientEmail})</span>
+                    <Text as="b">{reservation.clientName} ({reservation.clientEmail})</Text>
                     <span>{reservation.clientDescription}</span>
+                    <Text as="i" fontSize="sm" color="gray.500">Ändrad av {editor} ({reservation.createdAt.toLocaleDateString('sv-SE')})</Text>
                 </Stack>
-
-                <div>
-                    {editor}<br/>
-                    Datum: {reservation.createdAt.toLocaleDateString('sv-SE')}
-                </div>
 
                 <div>
                     {renderTime(reservation)}

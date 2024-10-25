@@ -1,4 +1,4 @@
-import { Status } from "@prisma/client";
+import { Recurring, ReservationType, Status } from "@prisma/client";
 import prisma from "../lib/prisma";
 
 
@@ -6,22 +6,30 @@ import prisma from "../lib/prisma";
 export async function updateReservationServer( {
     reservationID,
     clientName,
+    clientCommittee,
     clientEmail,
     clientDescription,
+    type,
     venueId,
     date,
     startTime,
     endTime,
+    recurring,
+    recurringUntil,
     status
 }:{
     reservationID: number,
     clientName: string,
+    clientCommittee: string | null,
     clientEmail: string,
-    clientDescription: string | null,
+    clientDescription: string,
+    type: ReservationType,
     venueId: number | null,
     date: Date,
     startTime: Date,
     endTime: Date,
+    recurring: Recurring,
+    recurringUntil: Date | null,
     status: Status
 },
 statusChangerId?: number) {
@@ -29,11 +37,15 @@ statusChangerId?: number) {
         where: {id: reservationID},
         data: {
             clientName,
+            clientCommittee,
             clientEmail,
             clientDescription,
+            type,
             date,
             startTime,
             endTime,
+            recurring,
+            recurringUntil,
             venueId,
             status,
             editorId: statusChangerId,
@@ -44,17 +56,7 @@ statusChangerId?: number) {
 
 
 // Create a reservation, used on the client
-export async function updateReservationClient(reservationDetails:{
-    reservationID: number,
-    clientName: string,
-    clientEmail: string,
-    clientDescription: string | null,
-    venueId: number | null,
-    date: Date,
-    startTime: Date,
-    endTime: Date,
-    status: Status
-}) {
+export async function updateReservationClient(reservationDetails: any) {
     try {
         const body = { reservationDetails: reservationDetails };
         const rawResponse = await fetch('/api/reservations/update', {
