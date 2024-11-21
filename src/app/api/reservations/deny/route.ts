@@ -2,7 +2,7 @@ import { formatDate, isManager } from "@/lib/helper";
 import { denyReservationServer } from "@/server/api/denyReservation";
 import { getReservationByIDServer } from "@/server/api/getreservations";
 import authOptions from "@/server/lib/authOptions";
-import { sendEmail } from "@/server/lib/mailing";
+import { denyMail, sendEmail } from "@/server/lib/mailing";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
 
     const reservation = await getReservationByIDServer(reservationID);
     if (reservation) {
-        const message = `Hej!\n\nDin bokning ${formatDate(reservation.date)} har blivit nekad\n\n/Fysikteknologsektionens lokalbokning`;
+        const message = denyMail(reservation.date);
         const emailrespons = await sendEmail(reservation.clientEmail,"Bokning nekad", message);
         return NextResponse.json(result);
     }

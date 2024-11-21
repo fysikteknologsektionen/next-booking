@@ -66,7 +66,8 @@ export async function createReservationServer( {
             status: (collisions && collisions.length > 0) ? Status.DENIED : Status.PENDING,
         },
     });
-    return result;
+
+    return true;
 }
 
 
@@ -79,9 +80,10 @@ export async function createReservationClient(reservationDetails: any) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body),
         });
-        return rawResponse;
+        const result = await rawResponse.json();
+        return !!result;
     } catch (error) {
         console.error(error);
     }
-    return;
+    return false;
 }
