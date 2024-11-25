@@ -1,6 +1,6 @@
 "use client";
 
-import { dateToInput, dateToTimeInput, formatDuration, isMailSpelledCorrectly } from "@/lib/helper";
+import { dateToInput, dateToTimeInput, formatDuration, getRecurringLabel, isMailSpelledCorrectly } from "@/lib/helper";
 import { createReservationClient } from "@/server/api/createReservation";
 import { getReservationsClient } from "@/server/api/getreservations";
 import { updateReservationClient } from "@/server/api/updateReservation";
@@ -290,9 +290,9 @@ export default function BookingPage({
                         setRecurring(value as Recurring);
                     }} value={recurring}>
                         <Stack direction='row'>
-                            <Radio value={Recurring.NEVER}>Aldrig</Radio>
-                            <Radio value={Recurring.WEEKLY}>Varje vecka</Radio>
-                            <Radio value={Recurring.MONTHLY}>Varje månad</Radio>
+                            {Object.keys(Recurring).map((key) => {
+                                return <Radio value={key}>{getRecurringLabel(key as Recurring)}</Radio>
+                            })}
                         </Stack>
                     </RadioGroup>
                 </FormControl>

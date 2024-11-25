@@ -7,7 +7,7 @@ import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import styles from "@/components/reservationsList.module.css";
 import { CloseIcon, EditIcon } from "@chakra-ui/icons";
 import { approveReservationClient } from "@/server/api/approveReservation";
-import { getNameOfMonth, getVenueColor } from "@/lib/helper";
+import { formatTimeInterval, getNameOfMonth, getVenueColor } from "@/lib/helper";
 import { useRouter } from "next/navigation";
 import { denyReservationClient } from "@/server/api/denyReservation";
 import { getUsersClient } from "@/server/api/getUsers";
@@ -143,47 +143,8 @@ function ReservationItem({
         return venue.name;
     }
 
-    const isSameDay = (a: Date, b: Date) => {
-        return (
-            a.getFullYear() === b.getFullYear() &&
-            a.getMonth() === b.getMonth() &&
-            a.getDate() === b.getDate()
-        )
-    }
-
-    const formatTime = (date: Date) => {
-        const hours = date.getHours().toString().padStart(2, "0");
-        const minutes = date.getMinutes().toString().padStart(2, "0");
-
-        return `${hours}:${minutes}`;
-    }
-
-    const formatDate = (date: Date, today = new Date()) => {
-        const day = date.getDate();
-        const month = getNameOfMonth(date).toLocaleLowerCase();
-        const year = date.getFullYear();
-
-        if (year === today.getFullYear()) {
-            return `${day} ${month}`;
-        }
-
-        return `${day} ${month} ${year}`;
-    }
-
     const renderTime = (reservation: Reservation) => {
-        if (isSameDay(reservation.startTime, reservation.endTime)) {
-            return (
-                <span>
-                    {formatDate(reservation.startTime)} {formatTime(reservation.startTime)} - {formatTime(reservation.endTime)}
-                </span>
-            )
-        }
-
-        return (
-            <span>
-                {formatDate(reservation.startTime)} {formatTime(reservation.startTime)} - {formatDate(reservation.endTime)} {formatTime(reservation.endTime)}
-            </span>
-        )
+        return <span>{formatTimeInterval(reservation.startTime, reservation.endTime)}</span>
     }
 
     const formatStatus = (status: Status) => {
