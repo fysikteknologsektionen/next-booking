@@ -12,14 +12,14 @@ import { useRouter } from "next/navigation";
 import { denyReservationClient } from "@/server/api/denyReservation";
 import { getUsersClient } from "@/server/api/getUsers";
 
-export default function ReservationsList() {
+export default function AdminReservationsList() {
     const [isLoading, setLoading] = useState(false);
     const [reservations, setReservations] = useState<Reservation[]>([]);
     useEffect(() => {
         (async () => {
             const startTime = new Date();
             const endTime = new Date();
-            startTime.setDate(endTime.getDate() - 1);
+            startTime.setDate(endTime.getDate() - 365);
             endTime.setDate(endTime.getDate() + 365);
 
             setLoading(true)
@@ -232,7 +232,8 @@ function ReservationItem({
 
             const users = await getUsersClient(undefined, undefined) as any[];
             const editor = users.find(a => a.id == reservation.editorId);
-            setEditor(editor.name);
+            const editorName = editor?.name ?? "???";
+            setEditor(editorName);
         })()
     }, [reservation]);
 

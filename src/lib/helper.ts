@@ -154,6 +154,26 @@ export const formatTimeInterval = (from: Date, to: Date) => {
     return `${formatDateShort(from)} ${formatTime(from)} - ${formatDateShort(to)} ${formatTime(to)}`;
 };
 
+/**
+ * @param timeString Format: hh:mm
+ */
+export const closest10min = (timeString: string) => {
+    const split = timeString.split(":");
+    const hours = parseInt(split[0]);
+    const minutes = parseInt(split[1]);
+
+    const tenMin = 1000 * 60 * 10;
+    const date = new Date(0);
+    date.setUTCHours(hours);
+    date.setUTCMinutes(minutes);
+
+    const rounded = new Date(Math.round(date.getTime() / tenMin) * tenMin);
+    const roundedHours = rounded.getUTCHours();
+    const roundedMinutes = rounded.getUTCMinutes();
+
+    return `${hours}:${minutes}`;
+};
+
 const venueColors = [
     "black",
     "orange.500",

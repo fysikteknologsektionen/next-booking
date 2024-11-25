@@ -1,6 +1,6 @@
 "use client";
 
-import { dateToInput, dateToTimeInput, formatDuration, getRecurringLabel, isMailSpelledCorrectly } from "@/lib/helper";
+import { closest10min, dateToInput, dateToTimeInput, formatDuration, getRecurringLabel, isMailSpelledCorrectly } from "@/lib/helper";
 import { createReservationClient } from "@/server/api/createReservation";
 import { getReservationsClient } from "@/server/api/getreservations";
 import { updateReservationClient } from "@/server/api/updateReservation";

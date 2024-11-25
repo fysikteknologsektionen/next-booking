@@ -3,7 +3,7 @@
 "use client";
 
 import Calendar from '@/components/calendar'
-import ReservationsList from '@/components/reservationsList';
+import AdminReservationsList from '@/components/adminReservationsList';
 import { useVenueStore } from '@/lib/venueStore'
 import { getVenuesClient } from '@/server/api/getvenues';
 import { Button, Heading, ListItem, OrderedList, Stack, Text, VStack } from '@chakra-ui/react'
@@ -66,7 +66,7 @@ export default function Home() {
         </div>
 
         {isManager(session) && (
-          <ReservationsList></ReservationsList>
+          <AdminReservationsList></AdminReservationsList>
         )}
       </Stack>
     </>

@@ -128,7 +128,7 @@ function CalendarActionHeader(props: CalendarActionHeaderProps) {
                 position="absolute"
                 left="0"
                 top="0"
-            >Jdag</Button>
+            >Idag</Button>
 
             {props.isLoading && (
                 <Spinner
