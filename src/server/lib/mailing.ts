@@ -2,8 +2,15 @@ import nodemailer from 'nodemailer'
 import config from './config'
 import Mail from 'nodemailer/lib/mailer';
 import { NextResponse } from 'next/server';
+import { formatDate } from '@/lib/helper';
 
+export function acceptMail(date: Date) {
+    return `Hej!\n\nDin bokning ${formatDate(date)} är godkänd\n\n/Fysikteknologsektionens lokalbokning`
+}
 
+export function denyMail(date: Date) {
+    return `Hej!\n\nDin bokning ${formatDate(date)} har blivit nekad\n\n/Fysikteknologsektionens lokalbokning`
+}
 
 export async function sendEmail(recipient:string|undefined, subject:string, message:string) {
     const transport = nodemailer.createTransport({

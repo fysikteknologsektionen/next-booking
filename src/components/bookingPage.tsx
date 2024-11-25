@@ -134,18 +134,23 @@ export default function BookingPage({
             }
 
             // Make POST fetch request using the data
+            let result;
             if (reservation) {
                 const reservationDetailsWithID = {
                     ...reservationDetails,
                     reservationID: reservation.id,
                     status: status,
                 }
-                await updateReservationClient(reservationDetailsWithID)
+                result = await updateReservationClient(reservationDetailsWithID)
             } else {
-                await createReservationClient(reservationDetails);
+                result = await createReservationClient(reservationDetails);
             }
 
-            router.push("/");
+            if (result) {
+                router.push("/");
+            } else {
+                setLoading(false);
+            }
         }
 
         return f;
