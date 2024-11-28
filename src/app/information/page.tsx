@@ -1,3 +1,4 @@
+'use client'
 import { Heading, Link, ListItem, OrderedList, Stack, Text, UnorderedList } from "@chakra-ui/react";
 
 export default function Home() {

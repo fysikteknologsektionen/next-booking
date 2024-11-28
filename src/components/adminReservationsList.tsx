@@ -83,8 +83,8 @@ export default function AdminReservationsList() {
             </div>
 
             {handledReservations.length > 0 && (
-                <>
-                    <Text style={{ marginTop: "4rem", marginBottom: "1rem" }}>Redan hanterade bokningar</Text>
+                <details>
+                    <summary style={{ marginTop: "4rem", marginBottom: "1rem" }}>Redan hanterade bokningar</summary>
                     <div className={styles.reservations}>
                         <div className={[
                             styles.item,
@@ -113,7 +113,7 @@ export default function AdminReservationsList() {
                             );
                         })}
                     </div>
-                </>
+                </details>
             )}
         </div>
     )
