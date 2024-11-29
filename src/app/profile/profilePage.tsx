@@ -25,7 +25,6 @@ export default function ProfilePage() {
                     </VStack>
                 ) : (
                     <VStack gap="1rem" align="start">
-                        <Text>Inte inloggad</Text>
                         <Button onClick={() => signIn()}>Logga in</Button>
                     </VStack>
                 )}
