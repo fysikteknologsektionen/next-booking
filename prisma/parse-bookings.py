@@ -30,9 +30,8 @@ with open(SEED_FILE, "w", encoding='utf-8') as file:
     file.write("const prisma = new PrismaClient()\n\n")
     file.write("async function main() {")
 
-    if len(bookings) > 0:
-        # Venues
-        file.write("""
+    # Venues
+    file.write("""
     // Venues
     await prisma.venue.upsert({
         where: {id: 1},
@@ -59,95 +58,10 @@ with open(SEED_FILE, "w", encoding='utf-8') as file:
             name: "Focus studiedel",
             description: "Tidigare kallad Hilbert."
         }
-    })
+    })\n\n""")
 
-    // Bookings""")
-    else:
-        file.write("""
-    await prisma.venue.upsert({
-        where: {id: 1},
-        update: {},
-        create: {
-            name:"Focus bardel",
-            description:"Den norra halvan med sofforna.",
-            managers: {},
-            timeslots: {},
-            reservations:{
-                create: [
-                    {
-                        clientName: "Client1",
-                        clientEmail: "client1@example.com",
-                        clientDescription: "Unnecessary information",
-                        date: new Date(2023, 9, 17),
-                        startTime: new Date(2023, 9, 17, 14, 18),  // 2023-09-17,14:18:00
-                        endTime: new Date(2023, 9, 17, 22, 55),
-                    },
-                    {
-                        clientName: "Client2",
-                        clientEmail: "client2@example.com",
-                        clientDescription: "Lack of information",
-                        date: new Date(2023, 11, 17),
-                        startTime: new Date(2023, 11, 17, 14, 18),  // 2023-09-17,14:18:00
-                        endTime: new Date(2023, 11, 17, 22, 55),
-                    }
-                ]
-            }
-        }
-    })
-
-    await prisma.venue.upsert({
-        where: {id: 2},
-        update: {},
-        create: {
-            name:"Focus mittendel",
-            description:"Den mellersta delen med bord och stolar.",
-            managers: {},
-            timeslots: {},
-            reservations:{
-                create: [
-                    {
-                        clientName: "Client1",
-                        clientEmail: "client1@example.com",
-                        clientDescription: "Information",
-                        date: new Date(2023, 9, 17),
-                        startTime: new Date(2023, 9, 17, 14, 18),  // 2023-09-17,14:18:00
-                        endTime: new Date(2023, 9, 17, 22, 55),
-                    },
-                    {
-                        clientName: "Client3",
-                        clientEmail: "client3@example.com",
-                        clientDescription: "Other information",
-                        date: new Date(2023, 9, 18),
-                        startTime: new Date(2023, 9, 18, 15, 15),  // 2023-09-17,14:18:00
-                        endTime: new Date(2023, 9, 18, 12, 34),
-                    }
-                ]
-            }
-        }
-    })
-
-    await prisma.venue.upsert({
-        where: {id: 3},
-        update: {},
-        create: {
-            name:"Focus studiedel",
-            description:"Tidigare kallad Hilbert.",
-            managers: {},
-            timeslots: {},
-            reservations:{
-                create: [
-                    {
-                        clientName: "Client3",
-                        clientEmail: "client3@example.com",
-                        clientDescription: "Other information",
-                        date: new Date(2023, 9, 18),
-                        startTime: new Date(2023, 9, 18, 15, 15),  // 2023-09-17,14:18:00
-                        endTime: new Date(2023, 9, 18, 12, 34),
-                    }
-                ]
-            }
-        }
-    })""")
+    # Bookings
+    file.write("// Bookings\n")
 
     for i, booking in enumerate(bookings):
         create_time = datetime.strftime(datetime.now(), '%Y-%m-%dT%H:00')
@@ -226,5 +140,4 @@ main().then(async () => {
         console.error(e)
         await prisma.$disconnect()
         process.exit(1)
-    })
-    """)
+    })\n""")
