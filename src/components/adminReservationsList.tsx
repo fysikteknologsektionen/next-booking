@@ -4,8 +4,8 @@ import { Button, Card, CardBody, CardHeader, Center, Heading, IconButton, Spinne
 import { Recurring, Reservation, Status, Venue } from "@prisma/client";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
-import styles from "@/components/reservationsList.module.css";
-import { CloseIcon, EditIcon } from "@chakra-ui/icons";
+import styles from "@/components/adminReservationsList.module.css";
+import { CheckIcon, CloseIcon, EditIcon } from "@chakra-ui/icons";
 import { approveReservationClient } from "@/server/api/approveReservation";
 import { formatTimeInterval, getNameOfMonth, getRecurringLabel, getVenueColor } from "@/lib/helper";
 import { useRouter } from "next/navigation";
@@ -264,13 +264,20 @@ function ReservationItem({
 
                 {status === Status.PENDING ? (
                     <>
-                        <Button isLoading={disabled} isDisabled={disabled} colorScheme="green" onClick={() => approve()}>Godkänn</Button>
+                        <Button isLoading={disabled} isDisabled={disabled} colorScheme="green" onClick={() => approve()} className={styles.approveButton}>
+                            <span className={styles.long}>Godkänn</span>
+                            <CheckIcon className={styles.short} />
+                        </Button>
                         <IconButton isLoading={disabled} isDisabled={disabled} aria-label="Neka bokning" title="Neka bokning" icon={<CloseIcon />} onClick={() => deny()} colorScheme="red"></IconButton>
                     </>
                 ) : (
-                    <Button isDisabled={true} colorScheme={status === Status.ACCEPTED ? "green" : "red"} gridColumn="span 2">
-                        {formatStatus(status)}
-                    </Button>
+                    <>
+                        <Button isDisabled={true} colorScheme={status === Status.ACCEPTED ? "green" : "red"} gridColumn="span 2">
+                            {formatStatus(status)}
+                        </Button>
+                        {/* Add empty element to make sure everything is aligned as an element is missing here */}
+                        <span></span>
+                    </>
                 )}
 
                 <IconButton aria-label="Ändra bokning" title="Ändra bokning" icon={<EditIcon />} onClick={edit}></IconButton>
