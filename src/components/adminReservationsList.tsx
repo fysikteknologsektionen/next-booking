@@ -219,7 +219,7 @@ function ReservationItem({
     const status = overrideStatus === Status.PENDING ? reservation.status : overrideStatus;
 
     const edit = async () => {
-        window.location.href = `/update-reservation?reservationID=${reservation.id}`; // router, I hardly know her
+        window.location.href = `/update?reservationID=${reservation.id}`; // router, I hardly know her
     }
 
     const [editor, setEditor] = useState<string>("");

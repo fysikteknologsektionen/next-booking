@@ -45,16 +45,17 @@ export default function Home() {
         </div>
 
         <div>
-          <Link href="create-reservation">
+          <Link href="/create">
             <Button colorScheme="blue">Boka lokal</Button>
           </Link>
         </div>
 
         <div>
-          <Heading as="h2" size="lg" marginBottom="0.5em">Så här bokar du en lokal</Heading>
+          <Heading as="h2" size="lg" marginBottom="0.5em">Så här bokar du en lokal:</Heading>
           <OrderedList>
-            <ListItem>Klicka på <Text as="b"><Link href="/create-reservation">Boka lokal</Link></Text>.</ListItem>
-            <ListItem>Fyll i all information.</ListItem>
+            <ListItem>Läs under fliken <Text as="b"><Link href="/information" color="teal" isExternal>Information</Link></Text>.</ListItem>
+            <ListItem>Klicka på <Text as="b"><Link href="/create" color="teal" isExternal>Boka lokal</Link></Text>.</ListItem>
+            <ListItem>Fyll i all information och skicka in din bokning.</ListItem>
             <ListItem><Text as="b">Klart!</Text> Din bokning ska nu synas i kalendern nedan.</ListItem>
           </OrderedList>
         </div>

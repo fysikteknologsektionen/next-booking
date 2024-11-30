@@ -3,8 +3,8 @@ import prisma from "../lib/prisma";
 //------ Venues ------
 // Gets all venues. Used on the server
 export async function getVenuesServer() {
-    const reservations = await prisma.venue.findMany();
-    return reservations;
+    const venues = await prisma.venue.findMany();
+    return venues;
 }
 
 // Gets all venues. Used on the client

@@ -372,7 +372,7 @@ function CalendarDetailsModal({
             return;
         }
 
-        window.location.href = `/update-reservation?reservationID=${activeReservation.id}`;
+        window.location.href = `/update?reservationID=${activeReservation.id}`;
     }
 
     return (
