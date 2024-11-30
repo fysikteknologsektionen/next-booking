@@ -16,7 +16,7 @@ export default function Home() {
                     <ListItem>Läs under fliken <Text as="b"><Link href="/information" color="teal" isExternal>Information</Link></Text>.</ListItem>
                     <ListItem>Klicka på <Text as="b"><Link href="/create" color="teal" isExternal>Boka lokal</Link></Text>.</ListItem>
                     <ListItem>Fyll i all information och skicka in din bokning.</ListItem>
-                    <ListItem><Text as="b">Klart!</Text> Din bokning ska nu synas i kalendern nedan.</ListItem>
+                    <ListItem><Text as="b">Klart!</Text> Din bokning ska nu synas i kalendern.</ListItem>
                 </OrderedList>
             </div>
 

@@ -1,13 +1,13 @@
 import { useVenueStore } from "@/lib/venueStore";
 import { getReservationsClient } from "@/server/api/getreservations";
 import { Button, Card, CardBody, CardHeader, Center, Heading, IconButton, Spinner, Stack, Tag, Text } from "@chakra-ui/react";
-import { Reservation, Status, Venue } from "@prisma/client";
+import { Recurring, Reservation, Status, Venue } from "@prisma/client";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
 import styles from "@/components/reservationsList.module.css";
 import { CloseIcon, EditIcon } from "@chakra-ui/icons";
 import { approveReservationClient } from "@/server/api/approveReservation";
-import { formatTimeInterval, getNameOfMonth, getVenueColor } from "@/lib/helper";
+import { formatTimeInterval, getNameOfMonth, getRecurringLabel, getVenueColor } from "@/lib/helper";
 import { useRouter } from "next/navigation";
 import { denyReservationClient } from "@/server/api/denyReservation";
 import { getUsersClient } from "@/server/api/getUsers";
@@ -250,12 +250,16 @@ function ReservationItem({
                 </Tag>
                 <Stack>
                     <Text as="b">{reservation.clientName} ({reservation.clientEmail})</Text>
+                    {reservation.clientCommittee && <Text>{reservation.clientCommittee}</Text>}
                     <span>{reservation.clientDescription}</span>
                     <Text as="i" fontSize="sm" color="gray.500">Ändrad av {editor} ({reservation.createdAt.toLocaleDateString('sv-SE')})</Text>
                 </Stack>
 
                 <div>
                     {renderTime(reservation)}
+                    {reservation.recurring !== Recurring.NEVER && <Text>
+                        Stående bokning: Återkommer {getRecurringLabel(reservation.recurring).toLocaleLowerCase()}
+                    </Text>}
                 </div>
 
                 {status === Status.PENDING ? (

@@ -16,11 +16,14 @@ export async function approveReservationServer(reservationID: number, statusChan
     });
 
     // If no reservation
-    if (!reservation) return { reservation: false }
+    if (!reservation) return { reservation: true }
 
     // Get all reservations that could conflict with the one being approved
     const collisions = await prisma.reservation.findMany({
         where: {
+            id: {
+                not: reservation?.id,
+            },
             status: Status.ACCEPTED,
             venueId: reservation?.venueId,
             startTime: {
