@@ -28,7 +28,7 @@ export default function Home() {
   useEffect(() => {
     (async () => {
       const curSession = await getSession();
-      console.log(curSession);
+      //console.log(curSession);
       if (!curSession) {
         return;
       }
@@ -53,10 +53,10 @@ export default function Home() {
         <div>
           <Heading as="h2" size="lg" marginBottom="0.5em">Så här bokar du en lokal:</Heading>
           <OrderedList>
-            <ListItem>Läs under fliken <Text as="b"><Link href="/information" color="teal" isExternal>Information</Link></Text>.</ListItem>
-            <ListItem>Klicka på <Text as="b"><Link href="/create" color="teal" isExternal>Boka lokal</Link></Text>.</ListItem>
+            <ListItem>Läs under fliken <Text as="b"><Link href="/information" color="teal">Information</Link></Text>.</ListItem>
+            <ListItem>Klicka på <Text as="b"><Link href="/create" color="teal">Boka lokal</Link></Text>.</ListItem>
             <ListItem>Fyll i all information och skicka in din bokning.</ListItem>
-            <ListItem><Text as="b">Klart!</Text> Din bokning ska nu synas i kalendern nedan.</ListItem>
+            <ListItem><Text as="b">Klart!</Text> Din bokning ska nu synas i <Text as="b"><Link href="/" color="teal">Kalendern</Link></Text> nedan.</ListItem>
           </OrderedList>
         </div>
 

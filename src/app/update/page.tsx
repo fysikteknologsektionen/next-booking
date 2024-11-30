@@ -26,7 +26,7 @@ export default function Home() {
                     return;
                 }
                 const reservationFetched = reservationsFetched[0];
-                console.log(reservationFetched);
+                //console.log(reservationFetched);
                 setReservation(reservationFetched);
             } else {
                 router.push("/");

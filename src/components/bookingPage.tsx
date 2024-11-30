@@ -103,7 +103,7 @@ export default function BookingPage({
 
             if (!forceCreate && !reservation) {
                 const reservations = await getReservationsClient(from, to, [parseInt(venue)]);
-                console.log(reservations)
+                //console.log(reservations)
                 if (reservations && reservations.filter((val: any) => (
                     val.status === Status.ACCEPTED &&
                     // Remove edge cases where startTime of one = endTime of other
@@ -290,7 +290,7 @@ export default function BookingPage({
 
                 <FormControl isRequired>
                     <FormLabel>Stående bokning</FormLabel>
-                    <FormHelperText>Denna bokningen återkommer:</FormHelperText>
+                    <FormHelperText>Denna bokning återkommer:</FormHelperText>
                     <RadioGroup onChange={(value) => {
                         setRecurring(value as Recurring);
                     }} value={recurring}>

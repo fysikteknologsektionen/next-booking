@@ -206,7 +206,7 @@ function ReservationItem({
         setStatus(Status.PENDING);
 
         const res = await denyReservationClient(reservation.id);
-        console.log(res);
+        //console.log(res);
 
         if (!res || !res.ok) {
             setDisabled(false);

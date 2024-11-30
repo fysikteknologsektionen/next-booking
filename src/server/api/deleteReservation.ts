@@ -15,7 +15,7 @@ export async function deleteReservationServer(reservationID: number) {
 // Delete a reservation, used on the client
 export async function deleteReservationClient(reservationID: number) {
     try {
-        console.log(reservationID)
+        //console.log(reservationID)
         const body = { reservationID: reservationID };
         const rawResponse = await fetch('/api/reservations/delete', {
             method: 'POST',
