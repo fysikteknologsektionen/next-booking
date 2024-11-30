@@ -2,8 +2,20 @@ import nodemailer from 'nodemailer'
 import config from './config'
 import Mail from 'nodemailer/lib/mailer';
 import { NextResponse } from 'next/server';
+import { formatDate } from '@/lib/helper';
+import { Reservation } from '@prisma/client';
 
+export function confirmationMail(reservation: Reservation, venue: string) {
+    return `Hej!\n\nVi har mottagit följande bokning från dig:\nNamn på bokningsansvarig: ${reservation.clientName}\nLokal: ${venue}\nStarttid: ${reservation.startTime}\nSluttid: ${reservation.endTime}\n\n/Fysikteknologsektionens lokalbokning`
+}
 
+export function acceptMail(date: Date) {
+    return `Hej!\n\nDin bokning ${formatDate(date)} är godkänd.\n\n/Fysikteknologsektionens lokalbokning`
+}
+
+export function denyMail(date: Date) {
+    return `Hej!\n\nDin bokning ${formatDate(date)} har blivit nekad.\n\n/Fysikteknologsektionens lokalbokning`
+}
 
 export async function sendEmail(recipient:string|undefined, subject:string, message:string) {
     const transport = nodemailer.createTransport({

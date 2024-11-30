@@ -12,19 +12,22 @@ import {
     MenuButton,
     MenuList,
     MenuItem,
+    Heading,
+    Icon,
 } from '@chakra-ui/react'
 import { Text, Grid, GridItem, Center, Button, Circle, HStack, VStack, Tag, Spinner, IconButton, useDisclosure } from "@chakra-ui/react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { Reservation, Status } from "@prisma/client";
+import { Recurring, Reservation, Status } from "@prisma/client";
 import { getReservationsClient } from "@/server/api/getreservations";
 import { ArrowBackIcon, ArrowForwardIcon, CheckIcon, ChevronDownIcon, CloseIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import { useVenueStore } from "@/lib/venueStore";
-import { daysInMonth, DAY_NAMES, getCurrentMonth, getNameOfMonth, getVenueColor, isManager } from "@/lib/helper";
+import { daysInMonth, DAY_NAMES, formatTimeInterval, getCurrentMonth, getNameOfMonth, getRecurringLabel, getReservationTypeLabel, getVenueColor, getVenueLabel, isManager } from "@/lib/helper";
 import { approveReservationClient } from "@/server/api/approveReservation";
 import { denyReservationClient } from "@/server/api/denyReservation";
 import { getSession } from "next-auth/react";
 import { deleteReservationClient } from "@/server/api/deleteReservation";
 import { Session } from "next-auth";
+import { MdAccessTime, MdInsertInvitation, MdNotes, MdOutlinePeople } from "react-icons/md";
 
 export default function Calendar() {
     const [month, setMonth] = useState(getCurrentMonth())
@@ -125,7 +128,7 @@ function CalendarActionHeader(props: CalendarActionHeaderProps) {
                 position="absolute"
                 left="0"
                 top="0"
-            >Jdag</Button>
+            >Idag</Button>
 
             {props.isLoading && (
                 <Spinner
@@ -369,7 +372,7 @@ function CalendarDetailsModal({
             return;
         }
 
-        window.location.href = `/update-reservation?reservationID=${activeReservation.id}`;
+        window.location.href = `/update?reservationID=${activeReservation.id}`;
     }
 
     return (
@@ -381,30 +384,59 @@ function CalendarDetailsModal({
             <ModalBody>
                 {activeReservation && (
                     <>
+                        <Heading size="xl">{getVenueLabel(venues, activeReservation.venueId)}</Heading>
+
+                        <div style={{
+                            marginTop: "2rem",
+                            display: "grid",
+                            gridTemplateColumns: "min-content auto",
+                            gap: "1rem",
+                        }}>
+                            <Icon fontSize="1.25rem">
+                                <MdOutlinePeople />
+                            </Icon>
+                            {activeReservation.clientCommittee == null ? (
+                                <Text>{activeReservation.clientName} ({activeReservation.clientEmail})</Text>
+                            ) : (
+                                <Text>
+                                    <Text as="span">{activeReservation.clientName} ({activeReservation.clientEmail})</Text> åt <Text as="span" fontStyle="italic">{activeReservation.clientCommittee}</Text>
+                                </Text>
+                            )}
+                            
+                            <Icon fontSize="1.25rem">
+                                <MdInsertInvitation />
+                            </Icon>
+                            <Text>{getReservationTypeLabel(activeReservation.type)}</Text>
+
+                            <Icon fontSize="1.25rem">
+                                <MdAccessTime />
+                            </Icon>
+                            <Text>{formatTimeInterval(
+                                activeReservation.startTime,
+                                activeReservation.endTime
+                            )} {activeReservation.recurring !== Recurring.NEVER && (
+                                <Text>Stående bokning: Återkommer {getRecurringLabel(activeReservation.recurring).toLocaleLowerCase()}</Text>
+                            )}</Text>
+
+                            <Icon fontSize="1.25rem">
+                                <MdNotes />
+                            </Icon>
+                            <Text>{activeReservation.clientDescription}</Text>
+                        </div>
+
                         {activeReservation.status === Status.PENDING && (
                             <>
-                                <Text color="yellow.500">Denna bokningen väntar på godkännande</Text>
                                 <br />
+                                <Text color="yellow.500">Denna bokningen väntar på godkännande</Text>
                             </>
                         )}
 
                         {activeReservation.status === Status.DENIED && (
                             <>
-                                <Text color="red.500">Denna bokningen blev nekad</Text>
                                 <br />
+                                <Text color="red.500">Denna bokningen blev nekad</Text>
                             </>
                         )}
-
-                        <Text>{activeReservation.clientName} ({activeReservation.clientEmail}) har bokat <i>{venues.find(v => v.id === activeReservation.venueId)?.name ?? activeReservation.venueId}</i></Text>
-                        <br />
-
-                        <Text as="b">Beskrivning</Text>
-                        <Text>{activeReservation.clientDescription}</Text>
-                        <br />
-
-                        <Text as="b">Tid</Text>
-                        <Text>Från {activeReservation.startTime.toLocaleString()}</Text>
-                        <Text>Till {activeReservation.endTime.toLocaleString()}</Text>
                     </>
                 )}
             </ModalBody>
@@ -414,7 +446,7 @@ function CalendarDetailsModal({
                     {activeReservation && _isManager && (
                         <Menu>
                             <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
-                                Actions
+                                Adminåtgärder
                             </MenuButton>
                             <MenuList>
                                 {activeReservation.status === Status.PENDING && (
@@ -517,7 +549,7 @@ function ReservationsList({
                             key={index}
                         >
                             <Text isTruncated>
-                                {venues.find(v => v.id === reservation.venueId)?.name ?? reservation.venueId}
+                                {getVenueLabel(venues, reservation.venueId)}
                             </Text>
                         </Tag>
                     )

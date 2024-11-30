@@ -1,12 +1,13 @@
 "use client";
 
-import { dateToInput, dateToTimeInput, formatDuration, isMailSpelledCorrectly } from "@/lib/helper";
+import { closest10min, dateToInput, dateToTimeInput, formatDuration, getRecurringLabel, isMailSpelledCorrectly } from "@/lib/helper";
 import { createReservationClient } from "@/server/api/createReservation";
 import { getReservationsClient } from "@/server/api/getreservations";
 import { updateReservationClient } from "@/server/api/updateReservation";
+import { CHARACTER_LIMIT } from "@/lib/helper";
 import { WarningIcon } from "@chakra-ui/icons";
-import { Button, Checkbox, FormControl, FormErrorIcon, FormErrorMessage, FormHelperText, FormLabel, Heading, HStack, Input, Link, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select, Spinner, Stack, Text, Textarea, useDisclosure } from "@chakra-ui/react";
-import { Reservation, Status, Venue } from "@prisma/client";
+import { Button, Checkbox, FormControl, FormErrorIcon, FormErrorMessage, FormHelperText, FormLabel, Heading, HStack, Input, Link, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Radio, RadioGroup, Select, Spinner, Stack, Text, Textarea, useDisclosure } from "@chakra-ui/react";
+import { Recurring, Reservation, ReservationType, Status, Venue } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { FormEvent, FormEventHandler, useEffect, useMemo, useState } from "react";
 
@@ -15,6 +16,9 @@ fromDefault.setSeconds(0, 0);
 
 const toDefault = new Date(fromDefault);
 toDefault.setHours(toDefault.getHours() + 1);
+
+const recurringUntilDefault = new Date(fromDefault);
+recurringUntilDefault.setFullYear(recurringUntilDefault.getFullYear() + 1);
 
 export default function BookingPage({
     venues, reservation
@@ -27,18 +31,24 @@ export default function BookingPage({
     const router = useRouter();
     const defaultReservationData = reservation ? reservation : {
         clientName: "",
+        clientCommittee: null,
         clientEmail: "",
         clientDescription: "",
+        type: ReservationType.PREPARATION,
         startTime: fromDefault,
         endTime: toDefault,
         venueId: "",
-        status: Status.PENDING
+        status: Status.PENDING,
+        recurring: Recurring.NEVER,
+        recurringUntil: recurringUntilDefault
     }
 
     const [venue, setVenue] = useState<string>(defaultReservationData.venueId?.toString()??"")
     const [name, setName] = useState(defaultReservationData.clientName)
+    const [committee, setCommittee] = useState(defaultReservationData.clientCommittee)
     const [email, setEmail] = useState(defaultReservationData.clientEmail)
-    const [description, setDescription] = useState(defaultReservationData.clientDescription??"")
+    const [reservationType, setReservationType] = useState(defaultReservationData.type)
+    const [description, setDescription] = useState(defaultReservationData.clientDescription)
     
     const [fromDateString, setFromDateString] = useState(dateToInput(new Date(defaultReservationData.startTime), false));
     const [fromTimeString, setFromTimeString] = useState(dateToTimeInput(new Date(defaultReservationData.startTime)));
@@ -57,6 +67,11 @@ export default function BookingPage({
         from.valueOf()
     ), [ from, to ]);
 
+    // Recurring reservation
+    const [recurring, setRecurring] = useState(defaultReservationData.recurring);
+    const [recurringUntilDateString, setRecurringUntilDateString] = useState(dateToInput(new Date(defaultReservationData.recurringUntil ?? recurringUntilDefault), false));
+    const recurringUntil = useMemo(() => new Date(recurringUntilDateString), [ recurringUntilDateString ]);
+
     const [status, setStatus] = useState(defaultReservationData.status);
 
     const [showErrors, setShowErrors] = useState(false);
@@ -74,12 +89,21 @@ export default function BookingPage({
                 console.error("> 0min pls")
                 return;
             }
+            if (description.length > CHARACTER_LIMIT.description) {
+                return;
+            }
+            if (committee && committee.length > CHARACTER_LIMIT.comittee) {
+                return;
+            }
+            if (name.length > CHARACTER_LIMIT.name) {
+                return;
+            }
 
             setLoading(true);
 
             if (!forceCreate && !reservation) {
                 const reservations = await getReservationsClient(from, to, [parseInt(venue)]);
-                console.log(reservations)
+                //console.log(reservations)
                 if (reservations && reservations.filter((val: any) => (
                     val.status === Status.ACCEPTED &&
                     // Remove edge cases where startTime of one = endTime of other
@@ -97,27 +121,36 @@ export default function BookingPage({
             // Collect all reservation details
             const reservationDetails = {
                 clientName: name,
+                clientCommittee: committee,
                 clientEmail: email,
                 clientDescription: description,
+                type: reservationType,
                 venueId: parseInt(venue),
                 date: from,
                 startTime: from,
                 endTime: to,
+                recurring: recurring,
+                recurringUntil: recurringUntil
             }
 
             // Make POST fetch request using the data
+            let result;
             if (reservation) {
                 const reservationDetailsWithID = {
                     ...reservationDetails,
                     reservationID: reservation.id,
                     status: status,
                 }
-                await updateReservationClient(reservationDetailsWithID)
+                result = await updateReservationClient(reservationDetailsWithID)
             } else {
-                await createReservationClient(reservationDetails);
+                result = await createReservationClient(reservationDetails);
             }
 
-            router.push("/");
+            if (result) {
+                router.push("/");
+            } else {
+                setLoading(false);
+            }
         }
 
         return f;
@@ -126,7 +159,7 @@ export default function BookingPage({
     return (
         <>
             <Heading marginBottom="0.5em">Boka lokal</Heading>
-            <Text marginBottom="1em">Läs mer om hur du bokar under fliken <Text as="b"><Link href="/information">Information</Link></Text>. När du har fyllt i och skapat bokningen kan du se den i <Link href="/">kalendern</Link>.</Text>
+            <Text marginBottom="1em">Läs noga igenom <Text as="b"><Link href="/information" color="teal" isExternal>Informationen</Link></Text> innan du bokar!</Text>
             
             <form onSubmit={submit(false)} style={{
                 display: "flex",
@@ -153,10 +186,22 @@ export default function BookingPage({
                 <FormControl isRequired>
                     <FormLabel>Namn på bokningsansvarig</FormLabel>
                     <Input
-                        placeholder="Ditt namn eller kommitté/förening"
+                        placeholder="Ditt namn"
+                        maxLength={CHARACTER_LIMIT.name}
                         value={name}
                         onChange={e => setName(e.target.value)}
                         required
+                    ></Input>
+                    <FormErrorMessage>Error</FormErrorMessage>
+                </FormControl>
+
+                <FormControl>
+                    <FormLabel>Kommitté/förening</FormLabel>
+                    <Input
+                        placeholder="Namn på kommitté/förening"
+                        maxLength={CHARACTER_LIMIT.comittee}
+                        value={committee ?? ""}
+                        onChange={e => setCommittee(e.target.value)}
                     ></Input>
                     <FormErrorMessage>Error</FormErrorMessage>
                 </FormControl>
@@ -173,12 +218,29 @@ export default function BookingPage({
                 </FormControl>
 
                 <FormControl isRequired>
+                    <FormLabel>Typ av arrangemang</FormLabel>
+                    <RadioGroup onChange={(value) => {
+                        setReservationType(value as ReservationType);
+                    }} value={reservationType}>
+                        <Stack direction='row'>
+                            <Radio value={ReservationType.PREPARATION}>Förberedelser</Radio>
+                            <Radio value={ReservationType.SITTING}>Sittning</Radio>
+                            <Radio value={ReservationType.PUB}>Pub</Radio>
+                            <Radio value={ReservationType.PERFORMANCE}>Föreställning</Radio>
+                            <Radio value={ReservationType.OTHER}>Övrigt</Radio>
+                        </Stack>
+                    </RadioGroup>
+                </FormControl>
+
+                <FormControl isRequired>
                     <FormLabel>Beskrivning</FormLabel>
                     <Textarea
                         placeholder="Beskriv varför du bokar lokalen och annat som kan vara bra att veta"
+                        maxLength={500}
                         value={description}
                         onChange={e => setDescription(e.target.value)}
                     ></Textarea>
+                    <FormHelperText>{description.length}/{CHARACTER_LIMIT.description} tecken</FormHelperText>
                 </FormControl>
 
                 <HStack alignItems="flex-start">
@@ -225,6 +287,35 @@ export default function BookingPage({
                         </FormControl>
                     </div>
                 </HStack>
+
+                <FormControl isRequired>
+                    <FormLabel>Stående bokning</FormLabel>
+                    <FormHelperText>Denna bokning återkommer:</FormHelperText>
+                    <RadioGroup onChange={(value) => {
+                        setRecurring(value as Recurring);
+                    }} value={recurring}>
+                        <Stack direction='row'>
+                            {Object.keys(Recurring).map((key) => {
+                                return <Radio key={key} value={key}>{getRecurringLabel(key as Recurring)}</Radio>
+                            })}
+                        </Stack>
+                    </RadioGroup>
+                </FormControl>
+
+                {recurring !== Recurring.NEVER && (
+                    <FormControl isRequired isInvalid={showErrors && recurringUntil.valueOf() <= to.valueOf()}>
+                        <FormLabel>Stående till</FormLabel>
+                        <Stack>
+                            <Input
+                                type="date"
+                                value={recurringUntilDateString}
+                                onChange={e => setRecurringUntilDateString(e.target.value)}
+                            ></Input>
+                        </Stack>
+                        <FormHelperText>Bokningen återkommer till och med denna dag</FormHelperText>
+                        <FormErrorMessage>Tiden måste vara efter sluttid på bokningen</FormErrorMessage>
+                    </FormControl>
+                )}
 
                 {/* <FormControl>
                     <FormLabel>Jag vill få mail när min bokning godkänns/nekas</FormLabel>

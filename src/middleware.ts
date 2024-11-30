@@ -15,7 +15,7 @@ export default withAuth(
             return token ? token.role === "ADMIN" : false;
         } else if (req.nextUrl.pathname.startsWith('/api/manager')) {
             return token ? (token.role === "MANAGER" || token.role === "ADMIN") : false;
-        } else if (req.nextUrl.pathname.startsWith('/update-reservation')) {
+        } else if (req.nextUrl.pathname.startsWith('/update')) {
             return token ? (token.role === "MANAGER" || token.role === "ADMIN") : false;
         }
         return true;

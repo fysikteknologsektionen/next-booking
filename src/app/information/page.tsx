@@ -1,24 +1,28 @@
+'use client'
+import DocumentLink from "@/components/documentLink";
 import { Heading, Link, ListItem, OrderedList, Stack, Text, UnorderedList } from "@chakra-ui/react";
 
 export default function Home() {
     return (
-        <Stack gap="3rem">
+        <>
+        <Stack gap="3rem" marginBottom="6rem">
             <div>
-                <Heading as="h1" size="2xl" marginBottom="0.5em">Allmän information</Heading>
+                <Heading as="h1" size="2xl" marginTop="2rem" marginBottom="0.5em">Allmän information</Heading>
             </div>
 
             <div>
-                <Heading as="h2" size="lg" marginBottom="0.5em">Så här bokar du en lokal</Heading>
+                <Heading as="h2" size="lg" marginBottom="0.5em">Så här bokar du en lokal:</Heading>
                 <OrderedList>
-                    <ListItem>Klicka på <Text as="b"><Link href="/create-reservation">Boka lokal</Link></Text>.</ListItem>
-                    <ListItem>Fyll i all information.</ListItem>
-                    <ListItem><Text as="b">Klart!</Text> Din bokning ska nu synas i <Link href="/">kalendern</Link>.</ListItem>
+                    <ListItem>Läs under fliken <Text as="b"><Link href="/information" color="teal">Information</Link></Text>.</ListItem>
+                    <ListItem>Klicka på <Text as="b"><Link href="/create" color="teal">Boka lokal</Link></Text>.</ListItem>
+                    <ListItem>Fyll i all information och skicka in din bokning.</ListItem>
+                    <ListItem><Text as="b">Klart!</Text> Din bokning ska nu synas i <Text as="b"><Link href="/" color="teal">Kalendern</Link></Text>.</ListItem>
                 </OrderedList>
             </div>
 
             <div>
                 <Heading as="h2" size="lg" marginBottom="0.5em">Bokningsregler</Heading>
-                <Text>Alla arrangemang måste anmälas minst två dagar i förväg. Information om hur du gör detta finner du på sidan om <Link href="https://ftek.se/festanmalan/">Anmälan av arrangemang</Link>. Vid slutet av bokningen ska ni vara klara för avsyning.</Text>
+                <Text>Alla arrangemang måste anmälas minst två dagar i förväg. Information om hur du gör detta finner du på sidan om <Text as="b"><Link href="https://ftek.se/festanmalan/" color="teal" isExternal>Anmälan av arrangemang</Link></Text>. Vid slutet av bokningen ska ni vara klara för avsyning.</Text>
             
                 <br/>
 
@@ -32,7 +36,10 @@ export default function Home() {
 
             <div>
                 <Heading as="h2" size="lg" marginBottom="0.5em">Kostnader</Heading>
-                <Text>När du bokar Focus tillkommer en kostnad enligt <Link href="https://ftek.se/wp-content/uploads/2018/08/Hyreskontrakt-Focus-mobler.pdf">hyreskontraktet</Link> för att använda möblerna som går till täcka slitage- och underhållskostnad samt en deposition som återbetalas enligt <Link href="https://ftek.se/wp-content/uploads/2018/08/Stad-och-depositionslista-Focus.pdf">städ- och depositionslistan</Link>. Gällande hyra debiteras + deposition för otillräcklig städning eller skada på lokalen.</Text>
+                <Text>När du bokar Focus tillkommer en kostnad enligt <Text as="b">hyreskontraktet</Text> för att använda möblerna som går till att täcka slitage- och underhållskostnad samt en deposition som återbetalas enligt <Text as="b">städ- och depositionslistan</Text>. Vid otillräcklig städning, missbruk eller skada på lokalen debiteras motsvarande kostnad från depositionen.</Text>
+            
+                <DocumentLink href="/assets/Hyreskontrakt24_25.docx.pdf" name="Hyreskontrakt 2024/2025.pdf"></DocumentLink>
+                <DocumentLink href="/assets/Städ_depostitionslista Focus 24_25.docx.pdf" name="Städ- och depositionslista 2024/2025.pdf"></DocumentLink>
             </div>
 
             <div>
@@ -40,5 +47,6 @@ export default function Home() {
                 <Text>Kontakta Rustmästaren på <Link href="mailto:dp.rust@ftek.se">dp.rust@ftek.se</Link> innan du bokar.</Text>
             </div>
         </Stack>
+        </>
     )
 }

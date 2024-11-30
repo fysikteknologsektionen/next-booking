@@ -1,4 +1,4 @@
-import { createReservationServer } from "@/server/api/createReservation";
+import { createReservationServer } from "@/server/api/createReservationServer";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {

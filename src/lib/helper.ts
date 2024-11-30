@@ -1,7 +1,7 @@
 // This file contains generic helper functions that
 // are nice to have access to from time to time
 
-import { Role } from "@prisma/client";
+import { Recurring, ReservationType, Role, Venue } from "@prisma/client";
 import { Session } from "next-auth";
 
 export const MONTH_NAMES = [
@@ -74,6 +74,14 @@ export function formatDate(date: Date) {
     return fDate[0] + ' ' + fDate[1];
 }
 
+// Get hours and minutes from date object and display as hh:mm
+export const formatTime = (date: Date) => {
+    const hours = date.getHours().toString().padStart(2, "0");
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+
+    return `${hours}:${minutes}`;
+}
+
 // Converts date object to a valid string for use in
 // input <input type="time" />
 export function dateToTimeInput(date: Date): string {
@@ -115,6 +123,56 @@ export function formatDuration(duration: Date) {
 
     return (sign < 0 ? "-" : "") + output.join(" ");
 }
+
+// Checks if two dates have the same year, month and day
+const isSameDay = (a: Date, b: Date) => {
+    return (
+        a.getFullYear() === b.getFullYear() &&
+        a.getMonth() === b.getMonth() &&
+        a.getDate() === b.getDate()
+    )
+}
+
+export const formatDateShort = (date: Date, today = new Date()) => {
+    const day = date.getDate();
+    const month = getNameOfMonth(date).toLocaleLowerCase();
+    const year = date.getFullYear();
+
+    if (year === today.getFullYear()) {
+        return `${day} ${month}`;
+    }
+
+    return `${day} ${month} ${year}`;
+}
+
+// Get, as short as possible, a string representation of a time interval
+export const formatTimeInterval = (from: Date, to: Date) => {
+    if (isSameDay(from, to)) {
+        return `${formatDateShort(from)} ${formatTime(from)} - ${formatTime(to)}`;
+    }
+
+    return `${formatDateShort(from)} ${formatTime(from)} - ${formatDateShort(to)} ${formatTime(to)}`;
+};
+
+/**
+ * @param timeString Format: hh:mm
+ */
+export const closest10min = (timeString: string) => {
+    const split = timeString.split(":");
+    const hours = parseInt(split[0]);
+    const minutes = parseInt(split[1]);
+
+    const tenMin = 1000 * 60 * 10;
+    const date = new Date(0);
+    date.setUTCHours(hours);
+    date.setUTCMinutes(minutes);
+
+    const rounded = new Date(Math.round(date.getTime() / tenMin) * tenMin);
+    const roundedHours = rounded.getUTCHours();
+    const roundedMinutes = rounded.getUTCMinutes();
+
+    return `${hours}:${minutes}`;
+};
 
 const venueColors = [
     "black",
@@ -218,4 +276,48 @@ export const isManager = (session: Session | undefined | null): boolean => {
 
 export const isAdmin = (session: Session | undefined | null): boolean => {
     return !!session && session.user.role === Role.ADMIN;
+}
+
+export const CHARACTER_LIMIT = {
+    name: 80,
+    description: 500,
+    comittee: 80,
+};
+
+// Get readable label for `ReservationType`
+const reservationTypeLabels = {
+    [ReservationType.PREPARATION]: "Förberedelser",
+    [ReservationType.SITTING]: "Sittning",
+    [ReservationType.PUB]: "Pub",
+    [ReservationType.PERFORMANCE]: "Föreställning",
+    [ReservationType.OTHER]: "Övrig bokning",
+}
+
+export const getReservationTypeLabel = (type: ReservationType) => {
+    return reservationTypeLabels[type];
+}
+
+// Get readable label for `Recurring` enum
+const recurringLabels = {
+    [Recurring.NEVER]: "Aldrig",
+    [Recurring.WEEKLY]: "Varje vecka",
+    [Recurring.MONTHLY]: "Varje månad",
+}
+
+export const getRecurringLabel = (recurring: Recurring) => {
+    return recurringLabels[recurring];
+}
+
+// Get venue name from id
+export const getVenueLabel = (venues: Venue[], id: number | null) => {
+    if (id == null) {
+        return `ID is null`;
+    }
+
+    const venue = venues.find(v => v.id === id);
+    const label = venue ?
+        (venue?.name ?? `Lokal utan namn: ${id}`) :
+        `Lokal ID: ${id}`;
+
+    return label;
 }

@@ -44,7 +44,7 @@ const Links: NavLink[] = [
   },
   {
     label: "Boka lokal",
-    href: "/create-reservation"
+    href: "/create"
   },
   {
     label: "Information",
@@ -151,21 +151,7 @@ export default function Navbar() {
                 </MenuList>
               </Menu>
             </Flex>
-          ) : (
-            <Box
-              as="button"
-              px={2}
-              py={1}
-              rounded={'md'}
-              _hover={{
-                textDecoration: 'none',
-                bg: colorMode,
-              }}
-              onClick={() => signIn()}  
-            >
-              Logga in
-            </Box>
-          )}
+          ) : <></>}
         </Flex>
 
         {isOpen ? (
