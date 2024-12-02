@@ -13,6 +13,7 @@ import { Session } from 'next-auth';
 import { useState, useEffect } from 'react';
 import { Link } from '@chakra-ui/next-js';
 import { isManager } from '@/lib/helper';
+import { FeedbackSection, HowToCreateReservationSection } from './information/page';
 
 export default function Home() {
   const setVenues = useVenueStore((state) => state.setVenues);
@@ -50,20 +51,8 @@ export default function Home() {
           </Link>
         </div>
 
-        <div>
-          <Heading as="h2" size="lg" marginBottom="0.5em">Så här bokar du en lokal:</Heading>
-          <OrderedList>
-            <ListItem>Läs under fliken <Text as="b"><Link href="/information" color="teal">Information</Link></Text>.</ListItem>
-            <ListItem>Klicka på <Text as="b"><Link href="/create" color="teal">Boka lokal</Link></Text>.</ListItem>
-            <ListItem>Fyll i all information och skicka in din bokning.</ListItem>
-            <ListItem><Text as="b">Klart!</Text> Din bokning ska nu synas i <Text as="b"><Link href="/" color="teal">Kalendern</Link></Text> nedan.</ListItem>
-          </OrderedList>
-        </div>
-
-        <div>
-          <Heading as="h2" size="lg" marginBottom="0.5em">Feedback</Heading>
-          <Text>Har du hittat en bugg, är det något som inte fungerar eller har du andra synpunkter? Skicka feedback till <Link href="mailto:spidera@ftek.se">spidera@ftek.se</Link>!</Text>
-        </div>
+        <HowToCreateReservationSection />
+        <FeedbackSection />
 
         <div>
           <Heading as="h2" size="lg" marginBottom="0.5em">Kalender</Heading>

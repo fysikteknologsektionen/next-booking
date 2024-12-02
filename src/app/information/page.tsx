@@ -10,15 +10,7 @@ export default function Home() {
                 <Heading as="h1" size="2xl" marginTop="2rem" marginBottom="0.5em">Allmän information</Heading>
             </div>
 
-            <div>
-                <Heading as="h2" size="lg" marginBottom="0.5em">Så här bokar du en lokal:</Heading>
-                <OrderedList>
-                    <ListItem>Läs under fliken <Text as="b"><Link href="/information" color="teal">Information</Link></Text>.</ListItem>
-                    <ListItem>Klicka på <Text as="b"><Link href="/create" color="teal">Boka lokal</Link></Text>.</ListItem>
-                    <ListItem>Fyll i all information och skicka in din bokning.</ListItem>
-                    <ListItem><Text as="b">Klart!</Text> Din bokning ska nu synas i <Text as="b"><Link href="/" color="teal">Kalendern</Link></Text>.</ListItem>
-                </OrderedList>
-            </div>
+            <HowToCreateReservationSection />
 
             <div>
                 <Heading as="h2" size="lg" marginBottom="0.5em">Bokningsregler</Heading>
@@ -32,6 +24,14 @@ export default function Home() {
                     <ListItem>Som Fysikteknologsförening eller phaddergrupp kan du bara boka Hilbert på helgen.</ListItem>
                     <ListItem>Gällande hyra debiteras + deposition för otillräcklig städning eller skada på lokalen.</ListItem>
                 </UnorderedList>
+
+                <br />
+
+                <Text>Följande tider gäller:</Text>
+                <UnorderedList>
+                    <ListItem>På vardagar kan Focus bokas 08:00 till 12:00, 12:00 till 17:00 samt 17:00 till senast 03:00.</ListItem>
+                    <ListItem>På helger gäller alla bokningar under hela dagen.</ListItem>
+                </UnorderedList>
             </div>
 
             <div>
@@ -44,14 +44,34 @@ export default function Home() {
 
             <div>
                 <Heading as="h2" size="lg" marginBottom="0.5em">Inte sektionsmedlem?</Heading>
-                <Text>Kontakta Rustmästaren på <Link href="mailto:dp.rust@ftek.se">dp.rust@ftek.se</Link> innan du bokar.</Text>
+                <Text>Kontakta Rustmästaren på <Link href="mailto:dp.rust@ftek.se" fontWeight="bold" textDecoration="underline">dp.rust@ftek.se</Link> innan du bokar.</Text>
             </div>
 
-            <div>
-                <Heading as="h2" size="lg" marginBottom="0.5em">Feedback</Heading>
-                <Text>Har du hittat en bugg, är det något som inte fungerar eller har du andra synpunkter? Skicka feedback till <Link href="mailto:spidera@ftek.se">spidera@ftek.se</Link>!</Text>
-            </div>
+            <FeedbackSection />
         </Stack>
         </>
+    )
+}
+
+export function HowToCreateReservationSection() {
+    return (
+        <div>
+            <Heading as="h2" size="lg" marginBottom="0.5em">Så här bokar du en lokal:</Heading>
+            <OrderedList>
+                <ListItem>Läs under fliken <Text as="b"><Link href="/information" color="teal">Information</Link></Text>.</ListItem>
+                <ListItem>Klicka på <Text as="b"><Link href="/create" color="teal">Boka lokal</Link></Text>.</ListItem>
+                <ListItem>Fyll i all information och skicka in din bokning.</ListItem>
+                <ListItem><Text as="b">Klart!</Text> Din bokning ska nu synas i <Text as="b"><Link href="/" color="teal">Kalendern</Link></Text>.</ListItem>
+            </OrderedList>
+        </div>
+    )
+}
+
+export function FeedbackSection() {
+    return (
+        <div>
+            <Heading as="h2" size="lg" marginBottom="0.5em">Feedback</Heading>
+            <Text>Har du hittat en bugg? Är det något som inte fungerar? Var det bättre förr? Har du andra synpunkter? Skicka feedback till <Link href="mailto:spidera@ftek.se" fontWeight="bold" textDecoration="underline">spidera@ftek.se</Link>!</Text>
+        </div>
     )
 }
