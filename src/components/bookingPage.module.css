@@ -1,0 +1,16 @@
+.radioStack > * {
+    margin-bottom: 0.5rem;
+    margin-right: 1rem;
+}
+
+.timeStack > * {
+    display: inline-flex;
+    width: calc(50% - 0.5rem);
+    min-width: 200px;
+    flex: 1;
+}
+
+.timeStack > *:first-child {
+    margin-right: 1rem;
+    margin-bottom: 1rem;
+}

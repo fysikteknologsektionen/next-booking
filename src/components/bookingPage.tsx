@@ -1,6 +1,7 @@
 "use client";
 
-import { closest10min, dateToInput, dateToTimeInput, formatDuration, getRecurringLabel, isMailSpelledCorrectly } from "@/lib/helper";
+import styles from "./bookingPage.module.css";
+import { closest10min, dateToInput, dateToTimeInput, formatDateShort, formatDuration, getRecurringLabel, isMailSpelledCorrectly } from "@/lib/helper";
 import { createReservationClient } from "@/server/api/createReservation";
 import { getReservationsClient } from "@/server/api/getreservations";
 import { updateReservationClient } from "@/server/api/updateReservation";
@@ -222,13 +223,13 @@ export default function BookingPage({
                     <RadioGroup onChange={(value) => {
                         setReservationType(value as ReservationType);
                     }} value={reservationType}>
-                        <Stack direction='row'>
+                        <div className={styles.radioStack}>
                             <Radio value={ReservationType.PREPARATION}>Förberedelser</Radio>
                             <Radio value={ReservationType.SITTING}>Sittning</Radio>
                             <Radio value={ReservationType.PUB}>Pub</Radio>
                             <Radio value={ReservationType.PERFORMANCE}>Föreställning</Radio>
                             <Radio value={ReservationType.OTHER}>Övrigt</Radio>
-                        </Stack>
+                        </div>
                     </RadioGroup>
                 </FormControl>
 
@@ -243,8 +244,8 @@ export default function BookingPage({
                     <FormHelperText>{description.length}/{CHARACTER_LIMIT.description} tecken</FormHelperText>
                 </FormControl>
 
-                <HStack alignItems="flex-start">
-                    <div style={{ flex: 1 }}>
+                <div className={styles.timeStack}>
+                    <div>
                         <FormControl isRequired>
                             <FormLabel>Från</FormLabel>
                             <Stack>
@@ -262,7 +263,7 @@ export default function BookingPage({
                         </FormControl>
                     </div>
 
-                    <div style={{ flex: 1 }}>
+                    <div>
                         <FormControl isRequired isInvalid={showErrors && duration.valueOf() <= 0}>
                             <FormLabel>Till</FormLabel>
                             <Stack>
@@ -286,7 +287,7 @@ export default function BookingPage({
                             <FormErrorMessage>Sluttid måste vara efter starttid</FormErrorMessage>
                         </FormControl>
                     </div>
-                </HStack>
+                </div>
 
                 <FormControl isRequired>
                     <FormLabel>Stående bokning</FormLabel>
@@ -294,11 +295,11 @@ export default function BookingPage({
                     <RadioGroup onChange={(value) => {
                         setRecurring(value as Recurring);
                     }} value={recurring}>
-                        <Stack direction='row'>
+                        <div className={styles.radioStack}>
                             {Object.keys(Recurring).map((key) => {
                                 return <Radio key={key} value={key}>{getRecurringLabel(key as Recurring)}</Radio>
                             })}
-                        </Stack>
+                        </div>
                     </RadioGroup>
                 </FormControl>
 
@@ -340,14 +341,20 @@ export default function BookingPage({
                     </FormControl>
                 )}
 
-                {venue !== "" && duration.valueOf() > 0 && (
-                    <Text>Jag vill boka {venues.find(v => v.id.toString() === venue)?.name} i {formatDuration(duration)}</Text>
+                <Heading marginTop="1em" size="lg">Granska bokning</Heading>
+
+                {venue == "" ? (
+                    <Text>Välj en lokal först</Text>
+                ) : duration.valueOf() <= 0 ? (
+                    <Text>Sluttid måste vara efter starttid!</Text>
+                ) : (
+                    <Text>Jag vill boka {venues.find(v => v.id.toString() === venue)?.name} i {formatDuration(duration)}.{recurring !== Recurring.NEVER && (" Bokningen återkommer " + getRecurringLabel(recurring).toLowerCase() + " fram till " + formatDateShort(recurringUntil) + ".")}</Text>
                 )}
 
                 <HStack>
                     <Button
                         type="submit"
-                        isDisabled={isLoading}
+                        isDisabled={isLoading || venue == "" || duration.valueOf() <= 0}
                         colorScheme="blue"
                     >
                         {isUpdating ? "Uppdatera bokning" : "Skapa bokning"}
@@ -366,7 +373,7 @@ export default function BookingPage({
                 <ModalCloseButton />
                 <ModalBody>
                     <Text>
-                        Denna bokningen överlappar befintliga bokningar och kommer automatiskt att nekas. Vill du boka ändå? (bokningen kommer inte visas i kalendern)
+                        Denna bokningen överlappar befintliga bokningar och kommer automatiskt att nekas. Vill du boka ändå? (bokningen kommer då inte visas i kalendern)
                     </Text>
                 </ModalBody>
 
@@ -380,7 +387,6 @@ export default function BookingPage({
                     }}>
                         Boka ändå
                     </Button>
-                    {/* <Button variant='ghost'>Secondary Action</Button> */}
                 </ModalFooter>
                 </ModalContent>
             </Modal>
