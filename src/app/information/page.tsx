@@ -1,8 +1,19 @@
 'use client'
 import DocumentLink from "@/components/documentLink";
+import { isManager } from "@/lib/helper";
 import { Heading, Link, ListItem, OrderedList, Stack, Text, UnorderedList } from "@chakra-ui/react";
+import { Session } from "next-auth";
+import { getSession } from "next-auth/react";
+import { useEffect, useState } from "react";
 
 export default function Home() {
+    const [session, setSession] = useState<Session | null>();
+    useEffect(() => {
+        (async () => {
+          setSession(await getSession());
+        })()
+    }, []);
+
     return (
         <>
         <Stack gap="3rem" marginBottom="6rem">
@@ -11,6 +22,25 @@ export default function Home() {
             </div>
 
             <HowToCreateReservationSection />
+
+            <div>
+                <Heading as="h2" size="lg" marginBottom="0.5em">Vad har förändrats?</Heading>
+                <Text>Målet med det nya bokningssystemet är att slippa Exceldokumentet som användes som databas och alla buggar som uppkom när dokumentet ändrades manuellt. För den som bokar Focus är det likt det gamla bokningssystemet förutom några förändringar:</Text>
+                <UnorderedList>
+                    <ListItem>Arrangemangstyp väljs utifrån färdiga kategorier istället för ett textfält.</ListItem>
+                    <ListItem>Ett extra fält för beskrivning av arrangemanget har lagts till.</ListItem>
+                    <ListItem>Det finns inga bokningstyper som bestämmer tiden utan tider matar man in själv.</ListItem>
+                    <ListItem>Det går att göra stående bokningar som återkommer varje vecka eller varje månad (samma datum varje månad).</ListItem>
+                </UnorderedList>
+
+                {isManager(session) && (
+                    <>
+                        <br />
+
+                        <Text>Som admin godkänner och nekar du bokningar från <Link href="/">startsidan</Link>. Du kan även ändra bokningar innan eller efter de har blivit godkännda.</Text>
+                    </>
+                )}
+            </div>
 
             <div>
                 <Heading as="h2" size="lg" marginBottom="0.5em">Bokningsregler</Heading>
