@@ -61,6 +61,11 @@ export default function Home() {
         </div>
 
         <div>
+          <Heading as="h2" size="lg" marginBottom="0.5em">Feedback</Heading>
+          <Text>Har du hittat en bugg, är det något som inte fungerar eller har du andra synpunkter? Skicka feedback till <Link href="mailto:spidera@ftek.se">spidera@ftek.se</Link>!</Text>
+        </div>
+
+        <div>
           <Heading as="h2" size="lg" marginBottom="0.5em">Kalender</Heading>
           <Text marginBottom="1rem">I kalendern visas alla bokningar. Bokningar som väntar på godkännande visas blekta.</Text>
           <Calendar></Calendar>

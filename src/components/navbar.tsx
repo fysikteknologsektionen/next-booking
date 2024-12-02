@@ -40,7 +40,7 @@ interface Props {
 const Links: NavLink[] = [
   {
     label: "Kalender",
-    href: "/"
+    href: "/#calendar"
   },
   {
     label: "Boka lokal",
