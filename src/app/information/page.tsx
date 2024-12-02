@@ -38,15 +38,15 @@ export default function Home() {
                 <Heading as="h2" size="lg" marginBottom="0.5em">Kostnader</Heading>
                 <Text>När du bokar Focus tillkommer en kostnad enligt <Text as="b">hyreskontraktet</Text> för att använda möblerna som går till att täcka slitage- och underhållskostnad samt en deposition som återbetalas enligt <Text as="b">städ- och depositionslistan</Text>. Vid otillräcklig städning, missbruk eller skada på lokalen debiteras motsvarande kostnad från depositionen.</Text>
             
-                <DocumentLink href="/assets/Hyreskontrakt24_25.docx.pdf" name="Hyreskontrakt 2024/2025.pdf"></DocumentLink>
-                <DocumentLink href="/assets/Städ_depostitionslista Focus 24_25.docx.pdf" name="Städ- och depositionslista 2024/2025.pdf"></DocumentLink>
+                <DocumentLink href="/assets/Hyreskontrakt för Focus.pdf" name="Hyreskontrakt 2024/2025.pdf"></DocumentLink>
+                <DocumentLink href="/assets/Städ- och depostitionslista för Focus.pdf" name="Städ- och depositionslista 2024/2025.pdf"></DocumentLink>
             </div>
 
             <div>
                 <Heading as="h2" size="lg" marginBottom="0.5em">Inte sektionsmedlem?</Heading>
                 <Text>Kontakta Rustmästaren på <Link href="mailto:dp.rust@ftek.se">dp.rust@ftek.se</Link> innan du bokar.</Text>
             </div>
-            
+
             <div>
                 <Heading as="h2" size="lg" marginBottom="0.5em">Feedback</Heading>
                 <Text>Har du hittat en bugg, är det något som inte fungerar eller har du andra synpunkter? Skicka feedback till <Link href="mailto:spidera@ftek.se">spidera@ftek.se</Link>!</Text>
