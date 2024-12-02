@@ -276,7 +276,7 @@ function ReservationItem({
                             {formatStatus(status)}
                         </Button>
                         {/* Add empty element to make sure everything is aligned as an element is missing here */}
-                        <span></span>
+                        <span style={{ display: "none" }}></span>
                     </>
                 )}
 
