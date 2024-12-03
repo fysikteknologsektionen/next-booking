@@ -13,7 +13,7 @@ import { Session } from 'next-auth';
 import { useState, useEffect } from 'react';
 import { Link } from '@chakra-ui/next-js';
 import { isManager } from '@/lib/helper';
-import { HowToCreateReservationSection } from './information/page';
+import { HowToCreateReservationSection } from '@/components/information';
 
 export default function Home() {
   const setVenues = useVenueStore((state) => state.setVenues);
