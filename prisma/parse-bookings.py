@@ -16,8 +16,11 @@ if os.path.isfile(BOOKINGS_FILE):
         header = list(next(reader))
 
         for row in reader:
-            if row[1] != '' and int(''.join(row[1][2:4])) >= 24 and int(''.join(row[1][5:7])) >= 11:
-                bookings.append(row)
+            if row[1] != '':
+                year = int(''.join(row[1][2:4]))
+                month = int(''.join(row[1][5:7]))
+                if ((year == 24 and month >= 11) or (year >= 25)): # and int(''.join(row[1][5:7])) >= 11:
+                    bookings.append(row)
 
     def dateSort(e):
         return e[1]
@@ -61,7 +64,10 @@ with open(SEED_FILE, "w", encoding='utf-8') as file:
     })\n\n""")
 
     # Bookings
-    file.write("// Bookings\n")
+    file.write("""
+    // Bookings
+    let peek;
+    \n""")
 
     for i, booking in enumerate(bookings):
         create_time = datetime.strftime(datetime.now(), '%Y-%m-%dT%H:00')
@@ -82,7 +88,7 @@ with open(SEED_FILE, "w", encoding='utf-8') as file:
             end = 17
         elif "Bok" in booking[3]:
             start = 17
-            end = 8 if "Ann" in booking[8] else int(booking[8][0:2])
+            end = 8 if "Ann" in booking[8] or booking[8] == '' else int(booking[8][0:2])
             if end >= 0 and end <= 17:
                 date = datetime.strptime(booking_end, '%Y-%m-%d')
                 date += timedelta(days=1)
@@ -108,10 +114,8 @@ with open(SEED_FILE, "w", encoding='utf-8') as file:
             status = "DENIED"
 
         file.write(f"""
-    await prisma.reservation.upsert({{
-        where: {{id: {i+1}}},
-        update: {{}},
-        create: {{
+    peek = await prisma.reservation.findFirst({{
+        where: {{
             clientName: "{booking[4]}",
             clientEmail: "{booking[6]}",""")
         if booking[5] != '':
@@ -119,17 +123,38 @@ with open(SEED_FILE, "w", encoding='utf-8') as file:
             clientCommittee: "{booking[5]}",""")
         file.write(f"""
             clientDescription: "{booking[7]}",
-            createdAt: new Date("{create_time}"),
             date: new Date("{booking[1]}"),
             startTime: new Date("{booking[1]}T{start:02d}:00"),
             endTime: new Date("{booking_end}T{end:02d}:00"),
             type: "{typ}",
             status: "{status}",
             venue: {{
-                connect: {{id: {venue}}},
+                id: {venue},
             }}
-        }},
-    }})""")
+        }}
+    }});
+    if (!peek) {{
+        await prisma.reservation.create({{
+            data: {{
+                clientName: "{booking[4]}",
+                clientEmail: "{booking[6]}",""")
+        if booking[5] != '':
+            file.write(f"""
+                clientCommittee: "{booking[5]}",""")
+        file.write(f"""
+                clientDescription: "{booking[7]}",
+                createdAt: new Date("{create_time}"),
+                date: new Date("{booking[1]}"),
+                startTime: new Date("{booking[1]}T{start:02d}:00"),
+                endTime: new Date("{booking_end}T{end:02d}:00"),
+                type: "{typ}",
+                status: "{status}",
+                venue: {{
+                    connect: {{id: {venue}}},
+                }}
+            }},
+        }})
+    }}\n""")
 
     file.write("""
 }
