@@ -48,39 +48,41 @@ export default function AdminReservationsList() {
         <div>
             <Heading>Hantera bokningar</Heading>
 
-            <Text style={{ marginTop: "4rem", marginBottom: "1rem" }}>Väntar på godkännande</Text>
-            <div className={styles.reservations}>
-                <div className={[
-                    styles.item,
-                    styles.header
-                ].join(" ")}>
-                    <span>Lokal</span>
-                    <span>Bokningsinfo</span>
-                    <span>Datum</span>
+            <details open={true}>
+                <summary style={{ marginTop: "4rem", marginBottom: "1rem" }}>Väntar på godkännande</summary>
+                <div className={styles.reservations}>
+                    <div className={[
+                        styles.item,
+                        styles.header
+                    ].join(" ")}>
+                        <span>Lokal</span>
+                        <span>Bokningsinfo</span>
+                        <span>Datum</span>
 
-                    <span></span>
-                    <span style={{ textAlign: "right" }}>
-                        {isLoading && (
-                            <Spinner></Spinner>
-                        )}
-                    </span>
+                        <span></span>
+                        <span style={{ textAlign: "right" }}>
+                            {isLoading && (
+                                <Spinner></Spinner>
+                            )}
+                        </span>
+                    </div>
+
+                    {pendingReservations.map((reservation, index) => {
+                        return (
+                            <ReservationItem
+                                reservation={reservation}
+                                setReservations={setReservations}
+                                key={reservation.id}
+                                isPending={true}
+                            />
+                        );
+                    })}
+
+                    {pendingReservations.length === 0 && (
+                        <Text color="gray.500">Inga nya bokningar</Text>
+                    )}
                 </div>
-
-                {pendingReservations.map((reservation, index) => {
-                    return (
-                        <ReservationItem
-                            reservation={reservation}
-                            setReservations={setReservations}
-                            key={reservation.id}
-                            isPending={true}
-                        />
-                    );
-                })}
-
-                {pendingReservations.length === 0 && (
-                    <Text color="gray.500">Inga nya bokningar</Text>
-                )}
-            </div>
+            </details>
 
             {handledReservations.length > 0 && (
                 <details>

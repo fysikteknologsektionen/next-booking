@@ -37,7 +37,7 @@ export default function Home() {
                     <>
                         <br />
 
-                        <Text>Som admin godkänner och nekar du bokningar från <Link href="/">startsidan</Link>. Du kan även ändra bokningar innan eller efter de har blivit godkännda.</Text>
+                        <Text>Som admin godkänner och nekar du bokningar från <Link href="/">startsidan</Link>. Du kan även ändra bokningar innan eller efter de har blivit godkända.</Text>
                     </>
                 )}
             </div>
