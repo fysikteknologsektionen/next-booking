@@ -7,7 +7,7 @@ import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import styles from "@/components/adminReservationsList.module.css";
 import { CheckIcon, CloseIcon, EditIcon } from "@chakra-ui/icons";
 import { approveReservationClient } from "@/server/api/approveReservation";
-import { formatTimeInterval, getNameOfMonth, getRecurringLabel, getVenueColor } from "@/lib/helper";
+import { formatDate, formatTimeInterval, getNameOfMonth, getRecurringLabel, getReservationTypeLabel, getVenueColor } from "@/lib/helper";
 import { useRouter } from "next/navigation";
 import { denyReservationClient } from "@/server/api/denyReservation";
 import { getUsersClient } from "@/server/api/getUsers";
@@ -35,7 +35,7 @@ export default function AdminReservationsList() {
                     updatedAt: new Date(r.updatedAt)
                 };
             })
-            parsedReservations.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+            parsedReservations.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
             setReservations(parsedReservations);
             setLoading(false)
         })();
@@ -162,7 +162,7 @@ function ReservationItem({
     }
 
     const [disabled, setDisabled] = useState(false);
-    const [overrideStatus, setStatus] = useState<Status>(Status.PENDING); 
+    const [overrideStatus, setStatus] = useState<Status>(Status.PENDING);
 
     const approve = async () => {
         setDisabled(true);
@@ -251,10 +251,18 @@ function ReservationItem({
                     <Text>{getVenueName(reservation.venueId)}</Text>
                 </Tag>
                 <Stack>
-                    <Text as="b">{reservation.clientName} ({reservation.clientEmail})</Text>
-                    {reservation.clientCommittee && <Text>{reservation.clientCommittee}</Text>}
+                    {reservation.clientCommittee == null ? (
+                        <Text fontWeight="bold">{reservation.clientName} ({reservation.clientEmail})</Text>
+                    ) : (
+                        <Text>
+                            <Text as="span" fontWeight="bold">{reservation.clientName} ({reservation.clientEmail})</Text> åt <Text as="span" fontStyle="italic" fontWeight="bold">{reservation.clientCommittee}</Text>
+                        </Text>
+                    )}
+                    <Text>{getReservationTypeLabel(reservation.type)}</Text>
                     <span>{reservation.clientDescription}</span>
-                    <Text as="i" fontSize="sm" color="gray.500">Ändrad av {editor} ({reservation.createdAt.toLocaleDateString('sv-SE')})</Text>
+
+                    <Text as="i" fontSize="sm" color="gray.500">Ändrad av {editor} ({formatDate(reservation.updatedAt)})</Text>
+                    <Text as="i" fontSize="sm" color="gray.500">Skapad {formatDate(reservation.createdAt)}</Text>
                 </Stack>
 
                 <div>
