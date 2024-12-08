@@ -1,16 +1,17 @@
 import { useVenueStore } from "@/lib/venueStore";
 import { getReservationsClient } from "@/server/api/getreservations";
-import { Button, Card, CardBody, CardHeader, Center, Heading, IconButton, Spinner, Stack, Tag, Text } from "@chakra-ui/react";
+import { AlertDialog, AlertDialogBody, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogOverlay, Button, Card, CardBody, CardHeader, Center, Heading, IconButton, Menu, MenuButton, MenuItem, MenuList, Spinner, Stack, Tag, Text, useDisclosure } from "@chakra-ui/react";
 import { Recurring, Reservation, Status, Venue } from "@prisma/client";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 
 import styles from "@/components/adminReservationsList.module.css";
-import { CheckIcon, CloseIcon, EditIcon } from "@chakra-ui/icons";
+import { CheckIcon, CloseIcon, DeleteIcon, DragHandleIcon, EditIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { approveReservationClient } from "@/server/api/approveReservation";
 import { formatDate, formatTimeInterval, getNameOfMonth, getRecurringLabel, getReservationTypeLabel, getVenueColor } from "@/lib/helper";
 import { useRouter } from "next/navigation";
 import { denyReservationClient } from "@/server/api/denyReservation";
 import { getUsersClient } from "@/server/api/getUsers";
+import { deleteReservationClient } from "@/server/api/deleteReservation";
 
 export default function AdminReservationsList() {
     const [isLoading, setLoading] = useState(false);
@@ -218,11 +219,28 @@ function ReservationItem({
         }
     }
 
-    const status = overrideStatus === Status.PENDING ? reservation.status : overrideStatus;
-
     const edit = async () => {
         window.location.href = `/update?reservationID=${reservation.id}`; // router, I hardly know her
     }
+
+    const remove = async () => {
+        if (disabled) {
+            return;
+        }
+        setDisabled(true);
+
+        const res = await deleteReservationClient(reservation.id);
+        if (res && res.ok) {
+            setReservations(o => o.filter(r => r !== reservation));
+        }
+        else {
+            console.error("Error removing!");
+        }
+
+        setDisabled(false);
+    };
+
+    const status = overrideStatus === Status.PENDING ? reservation.status : overrideStatus;
 
     const [editor, setEditor] = useState<string>("");
     useEffect(() => {
@@ -238,6 +256,13 @@ function ReservationItem({
             setEditor(editorName);
         })()
     }, [reservation]);
+
+    const {
+        isOpen: isConfirmDeleteOpen,
+        onOpen: openConfirmDelete,
+        onClose: closeConfirmDelete
+    } = useDisclosure()
+    const cancelRef = useRef<HTMLButtonElement>(null);
 
     return (
         <Card>
@@ -290,8 +315,46 @@ function ReservationItem({
                     </>
                 )}
 
-                <IconButton aria-label="Ändra bokning" title="Ändra bokning" icon={<EditIcon />} onClick={edit}></IconButton>
+                <Menu>
+                    <MenuButton as={IconButton}>
+                        <HamburgerIcon />
+                    </MenuButton>
+                    <MenuList>
+                        <MenuItem isDisabled={disabled} onClick={edit} icon={<EditIcon />}>Ändra bokning</MenuItem>
+                        <MenuItem isDisabled={disabled} onClick={openConfirmDelete} icon={<DeleteIcon />}>Ta bort bokning</MenuItem>
+                    </MenuList>
+                </Menu>
             </div>
+
+            <AlertDialog
+                isOpen={isConfirmDeleteOpen}
+                leastDestructiveRef={cancelRef}
+                onClose={closeConfirmDelete}
+            >
+                <AlertDialogOverlay>
+                    <AlertDialogContent>
+                        <AlertDialogHeader fontSize='lg' fontWeight='bold'>
+                            Ta bort bokning
+                        </AlertDialogHeader>
+
+                        <AlertDialogBody>
+                            Är du säker? Inget mejl skickas till bokaren.
+                        </AlertDialogBody>
+
+                        <AlertDialogFooter>
+                        <Button isDisabled={disabled} ref={cancelRef} onClick={closeConfirmDelete}>
+                            Avbryt
+                        </Button>
+                        <Button isDisabled={disabled} colorScheme='red' onClick={async () => {
+                            await remove();
+                            closeConfirmDelete();
+                        }} ml={3}>
+                            Ta bort
+                        </Button>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialogOverlay>
+            </AlertDialog>
         </Card>
     )
 }
