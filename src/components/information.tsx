@@ -8,7 +8,7 @@ export function HowToCreateReservationSection() {
                 <ListItem>Läs under fliken <Text as="b"><Link href="/information" color="teal">Information</Link></Text>.</ListItem>
                 <ListItem>Klicka på <Text as="b"><Link href="/create" color="teal">Boka lokal</Link></Text>.</ListItem>
                 <ListItem>Fyll i all information och skicka in din bokning.</ListItem>
-                <ListItem><Text as="b">Klart!</Text> Din bokning ska nu synas i <Text as="b"><Link href="/" color="teal">Kalendern</Link></Text>.</ListItem>
+                <ListItem><Text as="b">Klart!</Text> Din bokning ska nu synas i <Text as="b"><Link href="/#calendar" color="teal">Kalendern</Link></Text>.</ListItem>
             </OrderedList>
         </div>
     )
