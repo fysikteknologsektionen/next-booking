@@ -76,6 +76,33 @@ export async function getReservationsServer(queryStartTime: Date, queryEndTime: 
                 continue;
             }
 
+            let weekNumber = -1; // The months week number, 0-indexed
+            let reservationDay = -1; // Day of week for reservation
+            if (recurringReservationBase.recurring === Recurring.MONTHLY_SAME_DAY) {
+                const firstDayOfMonth = getCurrentMonth(recurringReservationBase.startTime);
+                const startingDay = firstDayOfMonth.getDay();
+
+                const startDate = new Date(recurringReservationBase.startTime);
+                startDate.setUTCHours(0, 0, 0, 0);
+                const refDay = recurringReservationBase.startTime.getDay();
+                const dayDiff = mod(refDay - startingDay, 7);
+
+                for (let i = 0; i < 6; i++) {
+                    const d = new Date(firstDayOfMonth);
+                    d.setUTCDate(d.getUTCDate() + dayDiff);
+                    d.setUTCDate(d.getUTCDate() + i * 7);
+
+                    if (d.valueOf() >= startDate.valueOf()) {
+                        weekNumber = i;
+                        break;
+                    }
+                }
+
+                const reservationDate = new Date(recurringReservationBase.startTime);
+                reservationDate.setUTCHours(0, 0, 0, 0);
+                reservationDay = recurringReservationBase.startTime.getDay();
+            }
+
             const currentDate = new Date(recurringReservationBase.startTime);
             while (true) {
                 // Jump to next recurring reservation
@@ -89,36 +116,9 @@ export async function getReservationsServer(queryStartTime: Date, queryEndTime: 
                     currentDate.setUTCMonth(currentDate.getUTCMonth() + 1);
                 }
                 else if (recurringReservationBase.recurring === Recurring.MONTHLY_SAME_DAY) {
-                    const firstDayOfMonth = getCurrentMonth(recurringReservationBase.startTime);
-                    const startingDay = firstDayOfMonth.getDay();
-
-                    const startDate = new Date(recurringReservationBase.startTime);
-                    startDate.setUTCHours(0, 0, 0, 0);
-                    const refDay = recurringReservationBase.startTime.getDay();
-                    const dayDiff = mod(refDay - startingDay, 7);
-
-                    // The months week number, 0-indexed
-                    let weekNumber = -1;
-                    for (let i = 0; i < 6; i++) {
-                        const d = new Date(firstDayOfMonth);
-                        d.setUTCDate(d.getUTCDate() + dayDiff);
-                        d.setUTCDate(d.getUTCDate() + i * 7);
-
-                        if (d.valueOf() >= startDate.valueOf()) {
-                            weekNumber = i;
-                            break;
-                        }
-                    }
-
-                    // Allows us to use the same variable names as above
-                    {
                     currentDate.setUTCMonth(currentDate.getUTCMonth() + 1);
                     const compareMonth = currentDate.getUTCMonth();
                     const firstDayOfMonth = getCurrentMonth(currentDate).getDay();
-
-                    const reservationDate = new Date(recurringReservationBase.startTime);
-                    reservationDate.setUTCHours(0, 0, 0, 0);
-                    const reservationDay = recurringReservationBase.startTime.getDay();
 
                     const dayDiff = mod(reservationDay - firstDayOfMonth, 7);
                     currentDate.setUTCDate(1 + dayDiff + weekNumber * 7);
@@ -128,7 +128,6 @@ export async function getReservationsServer(queryStartTime: Date, queryEndTime: 
                     // monday those month that only have 4 mondays
                     if (currentDate.getUTCMonth() !== compareMonth) {
                         currentDate.setUTCDate(currentDate.getUTCDate() - 7);
-                    }
                     }
                 }
 
