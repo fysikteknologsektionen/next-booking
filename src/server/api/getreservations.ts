@@ -1,3 +1,4 @@
+import { getCurrentMonth, mod } from "@/lib/helper";
 import { Recurring } from "@prisma/client";
 import prisma from "../lib/prisma";
 
@@ -68,7 +69,9 @@ export async function getReservationsServer(queryStartTime: Date, queryEndTime: 
             // Prevent infinite while loop
             if (
                 recurringReservationBase.recurring !== Recurring.WEEKLY &&
-                recurringReservationBase.recurring !== Recurring.MONTHLY
+                recurringReservationBase.recurring !== Recurring.MONTHLY &&
+                recurringReservationBase.recurring !== Recurring.MONTHLY_SAME_DATE &&
+                recurringReservationBase.recurring !== Recurring.MONTHLY_SAME_DAY
             ) {
                 continue;
             }
@@ -77,15 +80,62 @@ export async function getReservationsServer(queryStartTime: Date, queryEndTime: 
             while (true) {
                 // Jump to next recurring reservation
                 if (recurringReservationBase.recurring === Recurring.WEEKLY) {
-                    currentDate.setDate(currentDate.getDate() + 7);
+                    currentDate.setUTCDate(currentDate.getUTCDate() + 7);
                 }
-                else if (recurringReservationBase.recurring === Recurring.MONTHLY) {
-                    currentDate.setMonth(currentDate.getMonth() + 1);
+                else if (
+                    recurringReservationBase.recurring === Recurring.MONTHLY ||
+                    recurringReservationBase.recurring === Recurring.MONTHLY_SAME_DATE
+                ) {
+                    currentDate.setUTCMonth(currentDate.getUTCMonth() + 1);
+                }
+                else if (recurringReservationBase.recurring === Recurring.MONTHLY_SAME_DAY) {
+                    const firstDayOfMonth = getCurrentMonth(recurringReservationBase.startTime);
+                    const startingDay = firstDayOfMonth.getDay();
+
+                    const startDate = new Date(recurringReservationBase.startTime);
+                    startDate.setUTCHours(0, 0, 0, 0);
+                    const refDay = recurringReservationBase.startTime.getDay();
+                    const dayDiff = mod(refDay - startingDay, 7);
+
+                    // The months week number, 0-indexed
+                    let weekNumber = -1;
+                    for (let i = 0; i < 6; i++) {
+                        const d = new Date(firstDayOfMonth);
+                        d.setUTCDate(d.getUTCDate() + dayDiff);
+                        d.setUTCDate(d.getUTCDate() + i * 7);
+
+                        if (d.valueOf() >= startDate.valueOf()) {
+                            console.log("Diff", d.valueOf() - startDate.valueOf());
+                            weekNumber = i;
+                            break;
+                        }
+                    }
+
+                    // Allows us to use the same variable names as above
+                    {
+                    currentDate.setUTCMonth(currentDate.getUTCMonth() + 1);
+                    const compareMonth = currentDate.getUTCMonth();
+                    const firstDayOfMonth = getCurrentMonth(currentDate).getDay();
+
+                    const reservationDate = new Date(recurringReservationBase.startTime);
+                    reservationDate.setUTCHours(0, 0, 0, 0);
+                    const reservationDay = recurringReservationBase.startTime.getDay();
+
+                    const dayDiff = mod(reservationDay - firstDayOfMonth, 7);
+                    currentDate.setUTCDate(1 + dayDiff + weekNumber * 7);
+
+                    // There are atleast 4 (wlog) mondays every month but possibly 5,
+                    // so if the reservation is on the 5:th monday, move it to the 4:th
+                    // monday those month that only have 4 mondays
+                    if (currentDate.getUTCMonth() !== compareMonth) {
+                        currentDate.setUTCDate(currentDate.getUTCDate() - 7);
+                    }
+                    }
                 }
 
-                const currentDay = new Date(currentDate);
-                currentDay.setHours(0, 0, 0, 0);
-                if (currentDay.valueOf() > recurringReservationBase.recurringUntil.valueOf()) {
+                const currentDateWithoutTime = new Date(currentDate);
+                currentDateWithoutTime.setHours(0, 0, 0, 0);
+                if (currentDateWithoutTime.valueOf() > recurringReservationBase.recurringUntil.valueOf()) {
                     break;
                 }
 

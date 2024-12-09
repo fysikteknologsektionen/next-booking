@@ -7,7 +7,7 @@ import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import styles from "@/components/adminReservationsList.module.css";
 import { CheckIcon, CloseIcon, DeleteIcon, DragHandleIcon, EditIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { approveReservationClient } from "@/server/api/approveReservation";
-import { formatDate, formatTimeInterval, getNameOfMonth, getRecurringLabel, getReservationTypeLabel, getVenueColor } from "@/lib/helper";
+import { formatDate, formatTimeInterval, getNameOfMonth, getRecurringLabel, getReservationTypeLabel, getStatusLabel, getVenueColor } from "@/lib/helper";
 import { useRouter } from "next/navigation";
 import { denyReservationClient } from "@/server/api/denyReservation";
 import { getUsersClient } from "@/server/api/getUsers";
@@ -148,18 +148,6 @@ function ReservationItem({
 
     const renderTime = (reservation: Reservation) => {
         return <span>{formatTimeInterval(reservation.startTime, reservation.endTime)}</span>
-    }
-
-    const formatStatus = (status: Status) => {
-        if (status === Status.ACCEPTED) {
-            return "Godkänd";
-        }
-        if (status === Status.DENIED) {
-            return "Nekad";
-        }
-        if (status === Status.PENDING) {
-            return "Väntar";
-        }
     }
 
     const [disabled, setDisabled] = useState(false);
@@ -308,7 +296,7 @@ function ReservationItem({
                 ) : (
                     <>
                         <Button isDisabled={true} colorScheme={status === Status.ACCEPTED ? "green" : "red"} gridColumn="span 2">
-                            {formatStatus(status)}
+                            {getStatusLabel(status)}
                         </Button>
                         {/* Add empty element to make sure everything is aligned as an element is missing here */}
                         <span style={{ display: "none" }}></span>

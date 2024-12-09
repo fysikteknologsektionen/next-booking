@@ -89,7 +89,9 @@ enum ReservationType {
 enum Recurring {
   NEVER
   WEEKLY
-  MONTHLY
+  MONTHLY // Legacy
+  MONTHLY_SAME_DATE
+  MONTHLY_SAME_DAY
 }
 
 enum Status {

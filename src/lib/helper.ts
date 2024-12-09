@@ -1,7 +1,7 @@
 // This file contains generic helper functions that
 // are nice to have access to from time to time
 
-import { Recurring, ReservationType, Role, Venue } from "@prisma/client";
+import { Recurring, ReservationType, Role, Status, Venue } from "@prisma/client";
 import { Session } from "next-auth";
 
 export const MONTH_NAMES = [
@@ -30,7 +30,7 @@ export const DAY_NAMES = [
 ];
 
 // Returns copy of `now` with the date set to 1st of the same month
-// at 00:00 in UTC timezone (will be 01:00 in sweden)
+// at 00:00 in UTC timezone
 export const getCurrentMonth = (now = new Date()) => {
     const date = new Date(now);
     date.setUTCDate(1);
@@ -301,11 +301,24 @@ export const getReservationTypeLabel = (type: ReservationType) => {
 const recurringLabels = {
     [Recurring.NEVER]: "Aldrig",
     [Recurring.WEEKLY]: "Varje vecka",
-    [Recurring.MONTHLY]: "Varje månad",
+    [Recurring.MONTHLY]: "Varje månad (samma datum)",
+    [Recurring.MONTHLY_SAME_DATE]: "Varje månad (samma datum)",
+    [Recurring.MONTHLY_SAME_DAY]: "Varje månad (samma dag på veckan)",
 }
 
 export const getRecurringLabel = (recurring: Recurring) => {
     return recurringLabels[recurring];
+}
+
+// Get readable label for `Status` enum
+const statusLabels = {
+    [Status.ACCEPTED]: "Godkänd",
+    [Status.DENIED]: "Nekad",
+    [Status.PENDING]: "Väntar",
+}
+
+export const getStatusLabel = (status: Status) => {
+    return statusLabels[status];
 }
 
 // Get venue name from id
@@ -321,3 +334,8 @@ export const getVenueLabel = (venues: Venue[], id: number | null) => {
 
     return label;
 }
+
+// Non-negative modulo
+export const mod = (x: number, n: number) => {
+    return ((x % n) + n) % n;
+};

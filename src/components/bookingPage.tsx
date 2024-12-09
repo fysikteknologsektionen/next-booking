@@ -297,6 +297,10 @@ export default function BookingPage({
                     }} value={recurring}>
                         <div className={styles.radioStack}>
                             {Object.keys(Recurring).map((key) => {
+                                if (key === Recurring.MONTHLY) {
+                                    return;
+                                }
+
                                 return <Radio key={key} value={key}>{getRecurringLabel(key as Recurring)}</Radio>
                             })}
                         </div>
