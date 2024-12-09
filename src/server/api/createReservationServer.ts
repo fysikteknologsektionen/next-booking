@@ -1,6 +1,6 @@
 import { Recurring, ReservationType, Status } from "@prisma/client";
 import prisma from "@/server/lib/prisma";
-import { CHARACTER_LIMIT } from "@/lib/helper";
+import { CHARACTER_LIMIT, validateDateString, validateVenueId } from "@/lib/helper";
 import { denyMail, confirmationMail, sendEmail } from "../lib/mailing";
 
 // Create a reservation, used on the server
@@ -22,12 +22,12 @@ export async function createReservationServer( {
     clientEmail: string,
     clientDescription: string,
     type: ReservationType,
-    venueId: number | null,
-    date: Date,
-    startTime: Date,
-    endTime: Date,
+    venueId: string,
+    date: string,
+    startTime: string,
+    endTime: string,
     recurring: Recurring,
-    recurringUntil: Date | null
+    recurringUntil: string | null
 }) {
     // Validate data
     if (
@@ -38,10 +38,29 @@ export async function createReservationServer( {
         return false;
     }
 
+    if (
+        !validateDateString(startTime) ||
+        !validateDateString(endTime) ||
+        !validateDateString(date) ||
+        (recurringUntil !== null && !validateDateString(recurringUntil)) ||
+        !validateVenueId(venueId)
+    ) {
+        return false;
+    }
+
+    startTime = new Date(startTime).toISOString();
+    endTime = new Date(endTime).toISOString();
+    date = new Date(date).toISOString();
+    recurringUntil = recurringUntil == null ? null : new Date(recurringUntil).toISOString();
+    const venueIdNumber = parseInt(venueId);
+
+    clientName = clientName.toString();
+    clientDescription = clientDescription.toString();
+
     const collisions = await prisma.reservation.findMany({
         where: {
             status: Status.ACCEPTED,
-            venueId: venueId,
+            venueId: venueIdNumber,
             startTime: {
                 lt: endTime,
             },
@@ -51,22 +70,30 @@ export async function createReservationServer( {
         },
     });
 
-    const result = await prisma.reservation.create({
-        data: {
-            clientName,
-            clientCommittee,
-            clientEmail,
-            clientDescription,
-            type,
-            date,
-            startTime,
-            endTime,
-            recurring,
-            recurringUntil,
-            venueId,
-            status: (collisions && collisions.length > 0) ? Status.DENIED : Status.PENDING,
-        },
-    });
+    const status = collisions.length > 0 ? Status.DENIED : Status.PENDING;
+
+    try {
+        const result = await prisma.reservation.create({
+            data: {
+                clientName,
+                clientCommittee,
+                clientEmail,
+                clientDescription,
+                type,
+                date,
+                startTime,
+                endTime,
+                recurring,
+                recurringUntil,
+                venueId: venueIdNumber,
+                status,
+            },
+        });
+    }
+    catch (e) {
+        console.error(e);
+        return false;
+    }
 
     // Confirmation mail
     // if (result && result.venueId) {
@@ -82,5 +109,5 @@ export async function createReservationServer( {
     //     const emailresponse = await sendEmail(result.clientEmail, "Bokning", message);
     // }
 
-    return !!result;
+    return true;
 }

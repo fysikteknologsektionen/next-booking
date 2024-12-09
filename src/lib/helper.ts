@@ -29,6 +29,16 @@ export const DAY_NAMES = [
     "Sön"
 ];
 
+// Checks if string is a valid date
+// FIXME: Needs more careful consideration
+export const validateDateString = (dateString: string) => {
+    return new Date(dateString).toString() !== "Invalid Date";
+}
+
+export const validateVenueId = (venueId: string) => {
+    return parseInt(venueId) % 1 === 0;
+}
+
 // Returns copy of `now` with the date set to 1st of the same month
 // at 00:00 in UTC timezone
 export const getCurrentMonth = (now = new Date()) => {
