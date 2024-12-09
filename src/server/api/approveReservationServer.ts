@@ -12,6 +12,7 @@ export async function approveReservationServer(reservationID: number, statusChan
     const reservation = await prisma.reservation.findUnique({
         where: {
             id: reservationID,
+            status: Status.PENDING,
         },
     });
 
