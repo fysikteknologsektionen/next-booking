@@ -153,7 +153,7 @@ function CalendarDaysHeader() {
         >
             {DAY_NAMES.map((name, index) => {
                 return (
-                    <GridItem key={index} bg="white" paddingLeft="0.25rem">
+                    <GridItem key={name} bg="white" paddingLeft="0.25rem">
                         <Text as="b">{name}</Text>
                     </GridItem>
                 )
@@ -189,6 +189,11 @@ function CalendarBody({
         );
     }
 
+    const [expandedDay, setExpandedDay] = useState(-1);
+    useEffect(() => {
+        setExpandedDay(-1);
+    }, [ month ]);
+
     return (
         <Grid
             templateColumns={"repeat(7, minmax(0, 1fr))"}
@@ -200,30 +205,54 @@ function CalendarBody({
             borderTop="none"
         >
             {days.map((day, index) => {
+                const isExpanded = expandedDay === day;
+
                 return (
                     <GridItem
                         // The calendar header always start on mondays but
                         // most month don't start on a monday. Offset the first day
                         // in the grid to account for this
                         gridColumnStart={index === 0 ? firstDayOffset : undefined}
-                        key={index}
+                        key={month.toISOString() + "@" + day}
                         bg="white"
                         padding="0.25rem"
                         paddingTop="calc(0.25rem + 35px)"
                         minHeight="136px"
                         position="relative"
                     >
-                        <CalendarNumber isMarked={isToday(day, today)}>
-                            {day}
-                        </CalendarNumber>
+                        <div style={isExpanded ? {
+                            position: "absolute",
+                            top: "0",
+                            left: "-0.5rem",
+                            right: "-0.5rem",
+                            padding: "0.75rem",
+                            paddingTop: "calc(0.25rem + 35px)",
+                            borderRadius: "16px",
+                            zIndex: "1",
+                            background: "inherit",
+                            boxShadow: "0 0 15px 0 rgba(0, 0, 0, 0.25)",
+                        } : undefined}>
+                            <CalendarNumber isMarked={isToday(day, today)}>
+                                {day}
+                            </CalendarNumber>
 
-                        <ReservationsList
-                            reservations={reservations}
-                            day={day}
-                            setActiveReservation={setActiveReservation}
-                            onOpen={onOpen}
-                            month={month}
-                        ></ReservationsList>
+                            <ReservationsList
+                                reservations={reservations}
+                                day={day}
+                                setActiveReservation={setActiveReservation}
+                                onOpen={onOpen}
+                                month={month}
+                                isExpanded={isExpanded}
+                                setExpanded={(newValue) => {
+                                    if (newValue) {
+                                        setExpandedDay(day);
+                                    }
+                                    else {
+                                        setExpandedDay(-1);
+                                    }
+                                }}
+                            ></ReservationsList>
+                        </div>
                     </GridItem>
                 )
             })}
@@ -411,12 +440,19 @@ function CalendarDetailsModal({
                             <Icon fontSize="1.25rem">
                                 <MdAccessTime />
                             </Icon>
-                            <Text>{formatTimeInterval(
-                                activeReservation.startTime,
-                                activeReservation.endTime
-                            )} {activeReservation.recurring !== Recurring.NEVER && (
-                                <Text>Stående bokning: Återkommer {getRecurringLabel(activeReservation.recurring).toLocaleLowerCase()}</Text>
-                            )}</Text>
+                            <div>
+                                <Text>
+                                    {formatTimeInterval(
+                                        activeReservation.startTime,
+                                        activeReservation.endTime
+                                    )}
+                                </Text>
+                                <Text>
+                                    {activeReservation.recurring !== Recurring.NEVER && (
+                                        <>Stående bokning: Återkommer {getRecurringLabel(activeReservation.recurring).toLocaleLowerCase()}</>
+                                    )}
+                                </Text>
+                            </div>
 
                             <Icon fontSize="1.25rem">
                                 <MdNotes />
@@ -476,7 +512,9 @@ interface ReservationsListProps {
     day: number,
     setActiveReservation: Dispatch<SetStateAction<Reservation | undefined>>,
     onOpen: () => void,
-    month: Date
+    month: Date,
+    isExpanded: boolean,
+    setExpanded: Dispatch<SetStateAction<boolean>>,
 }
 
 // Template for the ui chips showing the
@@ -486,10 +524,11 @@ function ReservationsList({
     day,
     setActiveReservation,
     onOpen,
-    month
+    month,
+    isExpanded,
+    setExpanded,
 }: ReservationsListProps) {
     const venues = useVenueStore((state) => state.venues);
-    const [expanded, setExpanded] = useState(false);
 
     const shouldViewToday = (reservation: Reservation) => {
         if (reservation.status === Status.DENIED) {
@@ -520,13 +559,9 @@ function ReservationsList({
         return <></>;
     }
 
-    const viewMax = expanded ? Infinity : 3;
+    const viewMax = isExpanded ? Infinity : 3;
     const todaysReservations = reservations.filter(r => shouldViewToday(r));
     const leftOut = todaysReservations.length - viewMax;
-
-    const expandReservations = () => {
-        setExpanded(e => !e);
-    };
 
     return (
         <>
@@ -556,16 +591,16 @@ function ReservationsList({
                 })}
             </VStack>
 
-            {expanded ? (
+            {isExpanded ? (
                 <Text
                     as="button"
-                    onClick={expandReservations}
+                    onClick={() => setExpanded(false)}
                 >Visa färre</Text>
             ) : (
                 leftOut > 0 && (
                     <Text
                         as="button"
-                        onClick={expandReservations}
+                        onClick={() => setExpanded(true)}
                     >+ {leftOut} till</Text>
                 )    
             )}
@@ -589,6 +624,11 @@ async function getReservations(month: Date) {
             createdAt: new Date(r.createdAt),
             updatedAt: new Date(r.updatedAt)
         };
+    });
+
+    // Sort by startTime and place pending reservations last
+    parsedReservations.sort((a, b) => {
+        return a.startTime.valueOf() - b.startTime.valueOf() + 1e16 * ((b.status === Status.PENDING ? 0 : 1) - (a.status === Status.PENDING ? 0 : 1));
     });
 
     return parsedReservations;
