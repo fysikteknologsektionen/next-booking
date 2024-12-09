@@ -105,7 +105,6 @@ export async function getReservationsServer(queryStartTime: Date, queryEndTime: 
                         d.setUTCDate(d.getUTCDate() + i * 7);
 
                         if (d.valueOf() >= startDate.valueOf()) {
-                            console.log("Diff", d.valueOf() - startDate.valueOf());
                             weekNumber = i;
                             break;
                         }
