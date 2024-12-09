@@ -1,6 +1,6 @@
 import { useVenueStore } from "@/lib/venueStore";
 import { getReservationsClient } from "@/server/api/getreservations";
-import { AlertDialog, AlertDialogBody, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogOverlay, Button, Card, CardBody, CardHeader, Center, Heading, IconButton, Menu, MenuButton, MenuItem, MenuList, Spinner, Stack, Tag, Text, useDisclosure } from "@chakra-ui/react";
+import { AlertDialog, AlertDialogBody, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogOverlay, Button, Card, CardBody, CardHeader, Center, Heading, IconButton, Menu, MenuButton, MenuItem, MenuList, Spinner, Stack, Tab, TabList, TabPanel, TabPanels, Tabs, Tag, Text, useDisclosure } from "@chakra-ui/react";
 import { Recurring, Reservation, Status, Venue } from "@prisma/client";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 
@@ -48,76 +48,81 @@ export default function AdminReservationsList() {
     return (
         <div>
             <Heading>Hantera bokningar</Heading>
+            <br />
 
-            <details open={true}>
-                <summary style={{ marginTop: "4rem", marginBottom: "1rem" }}>Väntar på godkännande</summary>
-                <div className={styles.reservations}>
-                    <div className={[
-                        styles.item,
-                        styles.header
-                    ].join(" ")}>
-                        <span>Lokal</span>
-                        <span>Bokningsinfo</span>
-                        <span>Datum</span>
+            <Tabs variant='enclosed'>
+                <TabList>
+                    <Tab>Väntar</Tab>
+                    <Tab>Redan hanterade</Tab>
+                </TabList>
+                <TabPanels>
+                    <TabPanel>
+                        <div className={styles.reservations}>
+                            <div className={[
+                                styles.item,
+                                styles.header
+                            ].join(" ")}>
+                                <span>Lokal</span>
+                                <span>Bokningsinfo</span>
+                                <span>Datum</span>
 
-                        <span></span>
-                        <span style={{ textAlign: "right" }}>
-                            {isLoading && (
-                                <Spinner></Spinner>
+                                <span></span>
+                                <span style={{ textAlign: "right" }}>
+                                    {isLoading && (
+                                        <Spinner></Spinner>
+                                    )}
+                                </span>
+                            </div>
+
+                            {pendingReservations.map((reservation, index) => {
+                                return (
+                                    <ReservationItem
+                                        reservation={reservation}
+                                        setReservations={setReservations}
+                                        key={reservation.id}
+                                        isPending={true}
+                                    />
+                                );
+                            })}
+
+                            {pendingReservations.length === 0 && (
+                                <Text color="gray.500">Inga nya bokningar</Text>
                             )}
-                        </span>
-                    </div>
-
-                    {pendingReservations.map((reservation, index) => {
-                        return (
-                            <ReservationItem
-                                reservation={reservation}
-                                setReservations={setReservations}
-                                key={reservation.id}
-                                isPending={true}
-                            />
-                        );
-                    })}
-
-                    {pendingReservations.length === 0 && (
-                        <Text color="gray.500">Inga nya bokningar</Text>
-                    )}
-                </div>
-            </details>
-
-            {handledReservations.length > 0 && (
-                <details>
-                    <summary style={{ marginTop: "4rem", marginBottom: "1rem" }}>Redan hanterade bokningar</summary>
-                    <div className={styles.reservations}>
-                        <div className={[
-                            styles.item,
-                            styles.header
-                        ].join(" ")}>
-                            <span>Lokal</span>
-                            <span>Bokningsinfo</span>
-                            <span>Datum</span>
-
-                            <span></span>
-                            <span style={{ textAlign: "right" }}>
-                                {isLoading && (
-                                    <Spinner></Spinner>
-                                )}
-                            </span>
                         </div>
+                    </TabPanel>
 
-                        {handledReservations.map((reservation, index) => {
-                            return (
-                                <ReservationItem
-                                    reservation={reservation}
-                                    setReservations={setReservations}
-                                    key={reservation.id}
-                                    isPending={false}
-                                />
-                            );
-                        })}
-                    </div>
-                </details>
-            )}
+                    <TabPanel>
+                        <div className={styles.reservations}>
+                            <div className={[
+                                styles.item,
+                                styles.header
+                            ].join(" ")}>
+                                <span>Lokal</span>
+                                <span>Bokningsinfo</span>
+                                <span>Datum</span>
+
+                                <span></span>
+                                <span style={{ textAlign: "right" }}>
+                                    {isLoading && (
+                                        <Spinner></Spinner>
+                                    )}
+                                </span>
+                            </div>
+
+                            {handledReservations.map((reservation, index) => {
+                                return (
+                                    <ReservationItem
+                                        reservation={reservation}
+                                        setReservations={setReservations}
+                                        key={reservation.id}
+                                        isPending={false}
+                                    />
+                                );
+                            })}
+                        </div>
+                    </TabPanel>
+                </TabPanels>
+            </Tabs>
         </div>
     )
 }
@@ -131,7 +136,6 @@ function ReservationItem({
     setReservations: Dispatch<SetStateAction<Reservation[]>>,
     isPending: boolean,
 }) {
-    const router = useRouter();
     const venues = useVenueStore((state) => state.venues);
     const getVenue = (venueId: number | null) => {
         return venues.find(v => v.id === venueId);
