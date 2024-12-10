@@ -1,6 +1,6 @@
 import { Status } from "@prisma/client";
 import prisma from "../lib/prisma";
-import { acceptMail, denyMail, sendEmail } from "../lib/mailing";
+import { acceptMail, denyMail } from "../lib/mailing";
 
 /*  This function needs to be in a file only accessed from server components
     since nodemailer will try to load things not accessible in the browser
@@ -51,8 +51,18 @@ export async function approveReservationServer(reservationID: number, statusChan
     });
 
     // Send email to the accepted booker
-    const message = acceptMail(reservation.date);
-    const emailrespons = await sendEmail(reservation?.clientEmail,"Bokning godkänd", message);
+    if (result && result.venueId) {
+        const venue = await prisma.venue.findUnique({
+            where: {
+                id: result.venueId,
+            },
+        });
+
+        if (!venue) return { reservation: true };
+
+        const emailResponse = acceptMail(reservation, venue.name);
+    }
+
 
     // Deny all other bookings that would be conflicting
     const toBeDenied = await prisma.reservation.findMany({
@@ -87,9 +97,15 @@ export async function approveReservationServer(reservationID: number, statusChan
 
     
     // Send email to all denied bookings
+    const venues = await prisma.venue.findMany();
+
     await Promise.all(toBeDenied.map(async (deniedReservation) => {
-        const message = denyMail(deniedReservation.date);
-        const emailresponse = await sendEmail(deniedReservation.clientEmail, "Bokning nekad", message);
+        const venue = venues.find(r => {
+            return r.id === deniedReservation.id
+        });
+        if (venue) {
+            const emailResponse = denyMail(deniedReservation, venue.name, false);
+        }
     }));
 
     return {

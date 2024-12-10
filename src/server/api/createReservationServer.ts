@@ -1,7 +1,7 @@
 import { Recurring, ReservationType, Status } from "@prisma/client";
 import prisma from "@/server/lib/prisma";
 import { CHARACTER_LIMIT, validateDateString, validateVenueId } from "@/lib/helper";
-import { denyMail, confirmationMail, sendEmail } from "../lib/mailing";
+import { denyMail, confirmationMail } from "../lib/mailing";
 
 // Create a reservation, used on the server
 export async function createReservationServer( {
@@ -72,8 +72,9 @@ export async function createReservationServer( {
 
     const status = collisions.length > 0 ? Status.DENIED : Status.PENDING;
 
+    let result;
     try {
-        const result = await prisma.reservation.create({
+        result = await prisma.reservation.create({
             data: {
                 clientName,
                 clientCommittee,
@@ -95,19 +96,18 @@ export async function createReservationServer( {
         return false;
     }
 
-    // Confirmation mail
-    // if (result && result.venueId) {
-    //     const venue = await prisma.venue.findUnique({
-    //         where: {
-    //             id: result.venueId,
-    //         },
-    //     });
+    //Confirmation mail
+    if (result && result.venueId) {
+        const venue = await prisma.venue.findUnique({
+            where: {
+                id: result.venueId,
+            },
+        });
 
-    //     if (!venue) return false;
+        if (!venue) return false;
 
-    //     const message = result.status === Status.PENDING ? confirmationMail(result, venue.name) : denyMail(result.date);
-    //     const emailresponse = await sendEmail(result.clientEmail, "Bokning", message);
-    // }
+        const emailResponse = result.status === Status.PENDING ? confirmationMail(result, venue.name) : denyMail(result, venue.name, true);
+    }
 
     return true;
 }

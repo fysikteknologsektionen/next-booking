@@ -1,8 +1,6 @@
-import { formatDate, isManager } from "@/lib/helper";
-import { denyReservationServer } from "@/server/api/denyReservation";
-import { getReservationByIDServer } from "@/server/api/getreservations";
+import { isManager } from "@/lib/helper";
+import { denyReservationServer } from "@/server/api/denyReservationServer";
 import authOptions from "@/server/lib/authOptions";
-import { denyMail, sendEmail } from "@/server/lib/mailing";
 import { Reservation } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
@@ -29,12 +27,6 @@ export async function POST(request: Request) {
             statusText: "Could not deny reservation"
         });
     }
-
-    const message = denyMail(updatedReservation.date);
-    const emailResponse = await sendEmail(updatedReservation.clientEmail, "Bokning nekad", message);
-    
-    // emailResponse should be checked so the mail actually
-    // did get sent
 
     return NextResponse.json(updatedReservation);
 }
