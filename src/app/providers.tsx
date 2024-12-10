@@ -1,8 +1,7 @@
 // app/providers.tsx
 'use client'
 
-import { CacheProvider } from '@chakra-ui/next-js'
-import { ChakraProvider } from '@chakra-ui/react'
+import { Provider } from '@/components/ui/provider'
 import { SessionProvider } from 'next-auth/react'
 
 export function Providers({ 
@@ -14,11 +13,11 @@ export function Providers({
 }) {
   return (
     <SessionProvider session={session}>
-      <CacheProvider>
-        <ChakraProvider>
+      {/* <CacheProvider> */}
+        <Provider>
           {children}
-        </ChakraProvider>
-      </CacheProvider>
+        </Provider>
+      {/* </CacheProvider> */}
     </SessionProvider>
   )
 }

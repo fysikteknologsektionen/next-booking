@@ -1,16 +1,29 @@
 "use client";
 
 import styles from "./bookingPage.module.css";
-import { closest10min, dateToInput, dateToTimeInput, formatDateShort, formatDuration, getRecurringLabel, isMailSpelledCorrectly } from "@/lib/helper";
+import { dateToInput, dateToTimeInput, formatDateShort, formatDuration, getRecurringLabel, getStatusLabel, isMailSpelledCorrectly } from "@/lib/helper";
 import { createReservationClient } from "@/server/api/createReservation";
 import { getReservationsClient } from "@/server/api/getreservations";
 import { updateReservationClient } from "@/server/api/updateReservation";
 import { CHARACTER_LIMIT } from "@/lib/helper";
-import { WarningIcon } from "@chakra-ui/icons";
-import { Button, Checkbox, FormControl, FormErrorIcon, FormErrorMessage, FormHelperText, FormLabel, Heading, HStack, Input, Link, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Radio, RadioGroup, Select, Spinner, Stack, Text, Textarea, useDisclosure } from "@chakra-ui/react";
+import { Button, createListCollection, Heading, HStack, Input, Link, Spinner, Stack, Text, Textarea } from "@chakra-ui/react";
 import { Recurring, Reservation, ReservationType, Status, Venue } from "@prisma/client";
 import { useRouter } from "next/navigation";
-import { FormEvent, FormEventHandler, useEffect, useMemo, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
+import { Field } from "./ui/field";
+import { SelectContent, SelectItem, SelectRoot, SelectTrigger, SelectValueText } from "./ui/select";
+import { Radio, RadioGroup } from "./ui/radio";
+import {
+    DialogActionTrigger,
+    DialogBody,
+    DialogCloseTrigger,
+    DialogContent,
+    DialogFooter,
+    DialogHeader,
+    DialogRoot,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog"
 
 const fromDefault = new Date();
 fromDefault.setSeconds(0, 0);
@@ -78,7 +91,7 @@ export default function BookingPage({
     const [showErrors, setShowErrors] = useState(false);
     const [isLoading, setLoading] = useState(false);
 
-    const { isOpen, onOpen, onClose } = useDisclosure();
+    const [isOpen, setOpen] = useState(false);
 
     const submit = (forceCreate = false) => {
         const f = async (e?: FormEvent<HTMLFormElement>) => {
@@ -104,7 +117,6 @@ export default function BookingPage({
 
             if (!forceCreate && !reservation) {
                 const reservations = await getReservationsClient(from, to, [parseInt(venue)]);
-                //console.log(reservations)
                 if (reservations && reservations.filter((val: any) => (
                     val.status === Status.ACCEPTED &&
                     // Remove edge cases where startTime of one = endTime of other
@@ -113,7 +125,7 @@ export default function BookingPage({
                 )).length > 0) {
                     console.error('Overlapping reservation');
                     setLoading(false);
-                    onOpen();
+                    setOpen(true);
 
                     return;
                 }
@@ -157,10 +169,22 @@ export default function BookingPage({
         return f;
     }
 
+    const venueList = createListCollection({
+        items: venues.map(v => (
+            { label: v.name, value: v.id }
+        ))
+    });
+
+    const statusList = createListCollection({
+        items: Object.keys(Status).map(s => (
+            { label: getStatusLabel(s as Status), value: s as Status }
+        ))
+    });
+
     return (
         <>
             <Heading marginBottom="0.5em">Boka lokal</Heading>
-            <Text marginBottom="1em">Läs noga igenom <Text as="b"><Link href="/information" color="teal" isExternal>Informationen</Link></Text> innan du bokar!</Text>
+            <Text marginBottom="1em">Läs noga igenom <Text as="b"><Link href="/information" color="teal" target="_blank" rel="noopener noreferrer">Informationen</Link></Text> innan du bokar!</Text>
             
             <form onSubmit={submit(false)} style={{
                 display: "flex",
@@ -168,24 +192,26 @@ export default function BookingPage({
                 gap: "1.25rem",
                 maxWidth: "600px"
             }}>
-                <FormControl isRequired>
-                    <FormLabel>Lokal</FormLabel>
-                    <Select
-                        placeholder='Välj lokal'
-                        value={venue}
-                        onChange={e => setVenue(e.target.value)}
+                <Field label="Lokal" required>
+                    <SelectRoot
+                        collection={venueList}
+                        value={[venue]}
+                        onValueChange={(e: any) => setVenue(e.value[0])}
                     >
-                        {venues.map(venue => {
-                            return (
-                                <option key={venue.id} value={venue.id}>{venue.name}</option>
-                            )
-                        })}
-                    </Select>
-                    <FormErrorMessage>Error</FormErrorMessage>
-                </FormControl>
+                        <SelectTrigger>
+                            <SelectValueText placeholder="Välj lokal" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {venueList.items.map((venue: any) => (
+                                <SelectItem item={venue} key={venue.value}>
+                                    {venue.label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </SelectRoot>
+                </Field>
 
-                <FormControl isRequired>
-                    <FormLabel>Namn på bokningsansvarig</FormLabel>
+                <Field label="Namn på bokningsansvarig" required>
                     <Input
                         placeholder="Ditt namn"
                         maxLength={CHARACTER_LIMIT.name}
@@ -193,35 +219,37 @@ export default function BookingPage({
                         onChange={e => setName(e.target.value)}
                         required
                     ></Input>
-                    <FormErrorMessage>Error</FormErrorMessage>
-                </FormControl>
+                </Field>
 
-                <FormControl>
-                    <FormLabel>Kommitté/förening</FormLabel>
+                <Field label="Kommitté/förening">
                     <Input
                         placeholder="Namn på kommitté/förening"
                         maxLength={CHARACTER_LIMIT.comittee}
                         value={committee ?? ""}
                         onChange={e => setCommittee(e.target.value)}
                     ></Input>
-                    <FormErrorMessage>Error</FormErrorMessage>
-                </FormControl>
+                </Field>
 
-                <FormControl isRequired isInvalid={!isMailSpelledCorrectly(email)}>
-                    <FormLabel>E-post</FormLabel>
+                <Field
+                    label="E-post"
+                    required
+                    invalid={!isMailSpelledCorrectly(email)}
+                    errorText="Din e-post kan vara felstavad!"
+                >
                     <Input
                         type="email"
                         placeholder="namn@stavaintefel.se"
                         value={email}
                         onChange={e => setEmail(e.target.value)}
                     ></Input>
-                    <FormErrorMessage color="orange.400">Din e-post kan vara felstavad!</FormErrorMessage>
-                </FormControl>
+                </Field>
 
-                <FormControl isRequired>
-                    <FormLabel>Typ av arrangemang</FormLabel>
-                    <RadioGroup onChange={(value) => {
-                        setReservationType(value as ReservationType);
+                <Field
+                    label="Typ av arrangemang"
+                    required
+                >
+                    <RadioGroup onValueChange={(e: any) => {
+                        setReservationType(e.value as ReservationType);
                     }} value={reservationType}>
                         <div className={styles.radioStack}>
                             <Radio value={ReservationType.PREPARATION}>Förberedelser</Radio>
@@ -231,23 +259,27 @@ export default function BookingPage({
                             <Radio value={ReservationType.OTHER}>Övrigt</Radio>
                         </div>
                     </RadioGroup>
-                </FormControl>
+                </Field>
 
-                <FormControl isRequired>
-                    <FormLabel>Beskrivning</FormLabel>
+                <Field
+                    label="Beskrivning"
+                    helperText={`${description.length}/${CHARACTER_LIMIT.description} tecken`}
+                    required
+                >
                     <Textarea
                         placeholder="Beskriv varför du bokar lokalen och annat som kan vara bra att veta"
                         maxLength={500}
                         value={description}
                         onChange={e => setDescription(e.target.value)}
                     ></Textarea>
-                    <FormHelperText>{description.length}/{CHARACTER_LIMIT.description} tecken</FormHelperText>
-                </FormControl>
+                </Field>
 
                 <div className={styles.timeStack}>
                     <div>
-                        <FormControl isRequired>
-                            <FormLabel>Från</FormLabel>
+                        <Field
+                            label="Från"
+                            required
+                        >
                             <Stack>
                                 <Input
                                     type="date"
@@ -260,12 +292,17 @@ export default function BookingPage({
                                     onChange={e => setFromTimeString(e.target.value)}
                                 ></Input>
                             </Stack>
-                        </FormControl>
+                        </Field>
                     </div>
 
                     <div>
-                        <FormControl isRequired isInvalid={showErrors && duration.valueOf() <= 0}>
-                            <FormLabel>Till</FormLabel>
+                        <Field
+                            label="Till"
+                            helperText="Obs! Vid denna tiden ska ni vara klara för avsyning"
+                            required
+                            invalid={showErrors && duration.valueOf() <= 0}
+                            errorText="Sluttid måste vara efter starttid"
+                        >
                             <Stack>
                                 <Input
                                     type="date"
@@ -283,17 +320,17 @@ export default function BookingPage({
                                     onChange={e => setTo(new Date(e.target.value))}
                                 ></Input> */}
                             </Stack>
-                            <FormHelperText>Obs! Vid denna tiden ska ni vara klara för avsyning</FormHelperText>
-                            <FormErrorMessage>Sluttid måste vara efter starttid</FormErrorMessage>
-                        </FormControl>
+                        </Field>
                     </div>
                 </div>
 
-                <FormControl isRequired>
-                    <FormLabel>Stående bokning</FormLabel>
-                    <FormHelperText>Denna bokning återkommer:</FormHelperText>
-                    <RadioGroup onChange={(value) => {
-                        setRecurring(value as Recurring);
+                <Field
+                    label="Stående bokning"
+                    required
+                >
+                    <Text>Denna bokning återkommer:</Text>
+                    <RadioGroup onValueChange={(e: any) => {
+                        setRecurring(e.value as Recurring);
                     }} value={recurring}>
                         <div className={styles.radioStack}>
                             {Object.keys(Recurring).map((key) => {
@@ -305,11 +342,16 @@ export default function BookingPage({
                             })}
                         </div>
                     </RadioGroup>
-                </FormControl>
+                </Field>
 
                 {recurring !== Recurring.NEVER && (
-                    <FormControl isRequired isInvalid={showErrors && recurringUntil.valueOf() <= to.valueOf()}>
-                        <FormLabel>Stående till</FormLabel>
+                    <Field
+                        label="Stående till"
+                        helperText="Bokningen återkommer till och med denna dag"
+                        required
+                        invalid={showErrors && recurringUntil.valueOf() <= to.valueOf()}
+                        errorText="Tiden måste vara efter sluttid på bokningen"
+                    >
                         <Stack>
                             <Input
                                 type="date"
@@ -317,9 +359,7 @@ export default function BookingPage({
                                 onChange={e => setRecurringUntilDateString(e.target.value)}
                             ></Input>
                         </Stack>
-                        <FormHelperText>Bokningen återkommer till och med denna dag</FormHelperText>
-                        <FormErrorMessage>Tiden måste vara efter sluttid på bokningen</FormErrorMessage>
-                    </FormControl>
+                    </Field>
                 )}
 
                 {/* <FormControl>
@@ -328,21 +368,27 @@ export default function BookingPage({
                 </FormControl> */}
 
                 {isUpdating && (
-                    <FormControl isRequired>
-                        <FormLabel>Status</FormLabel>
-                        <Select
-                            placeholder=''
-                            value={status}
-                            onChange={e => setStatus(e.target.value as Status)}
+                    <Field
+                        label="Status"
+                        required
+                    >
+                        <SelectRoot
+                            collection={statusList}
+                            value={[status]}
+                            onValueChange={(e: any) => setStatus(e.value[0])}
                         >
-                            {Object.keys(Status).map(statusKey => {
-                                return (
-                                    <option key={statusKey} value={statusKey}>{statusKey}</option>
-                                )
-                            })}
-                        </Select>
-                        <FormErrorMessage>Error</FormErrorMessage>
-                    </FormControl>
+                            <SelectTrigger>
+                                <SelectValueText placeholder="Välj status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {statusList.items.map((s: any) => (
+                                    <SelectItem item={s} key={s.value}>
+                                        {s.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </SelectRoot>
+                    </Field>
                 )}
 
                 <Heading marginTop="1em" size="lg">Granska bokning</Heading>
@@ -352,14 +398,14 @@ export default function BookingPage({
                 ) : duration.valueOf() <= 0 ? (
                     <Text>Sluttid måste vara efter starttid!</Text>
                 ) : (
-                    <Text>Jag vill boka {venues.find(v => v.id.toString() === venue)?.name} i {formatDuration(duration)}.{recurring !== Recurring.NEVER && (" Bokningen återkommer " + getRecurringLabel(recurring).toLowerCase() + " fram till " + formatDateShort(recurringUntil) + ".")}</Text>
+                    <Text>Jag vill boka {venues.find(v => v.id.toString() == venue)?.name} i {formatDuration(duration)}.{recurring !== Recurring.NEVER && (" Bokningen återkommer " + getRecurringLabel(recurring).toLowerCase() + " fram till " + formatDateShort(recurringUntil) + ".")}</Text>
                 )}
 
                 <HStack>
                     <Button
+                        colorPalette="blue"
                         type="submit"
-                        isDisabled={isLoading || venue == "" || duration.valueOf() <= 0}
-                        colorScheme="blue"
+                        disabled={isLoading || venue == "" || duration.valueOf() <= 0}
                     >
                         {isUpdating ? "Uppdatera bokning" : "Skapa bokning"}
                     </Button>
@@ -370,30 +416,29 @@ export default function BookingPage({
                 </HStack>
             </form>
 
-            <Modal isOpen={isOpen} onClose={onClose}>
-                <ModalOverlay />
-                <ModalContent>
-                <ModalHeader>Överlappande bokning</ModalHeader>
-                <ModalCloseButton />
-                <ModalBody>
-                    <Text>
+            <DialogRoot lazyMount open={isOpen} onOpenChange={(e: any) => setOpen(e.open)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Överlappande bokning</DialogTitle>
+                    </DialogHeader>
+                    <DialogBody>
                         Denna bokningen överlappar befintliga bokningar och kommer automatiskt att nekas. Vill du boka ändå? (bokningen kommer då inte visas i kalendern)
-                    </Text>
-                </ModalBody>
+                    </DialogBody>
+                    <DialogFooter>
+                        <DialogActionTrigger asChild>
+                            <Button variant="outline">Avbryt</Button>
+                        </DialogActionTrigger>
 
-                <ModalFooter>
-                    <Button colorScheme='blue' mr={3} onClick={onClose}>
-                        Avbryt
-                    </Button>
-                    <Button variant='ghost' colorScheme='red' mr={3} onClick={() => {
-                        submit(true)();
-                        onClose();
-                    }}>
-                        Boka ändå
-                    </Button>
-                </ModalFooter>
-                </ModalContent>
-            </Modal>
+                        <Button variant='ghost' colorPalette='red' mr={3} onClick={() => {
+                            submit(true)();
+                            setOpen(false);
+                        }}>
+                            Boka ändå
+                        </Button>
+                    </DialogFooter>
+                    <DialogCloseTrigger />
+                </DialogContent>
+            </DialogRoot>
         </>
     )
 }

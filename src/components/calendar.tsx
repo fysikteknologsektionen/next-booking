@@ -1,22 +1,8 @@
 "use client";
 
-import {
-    Modal,
-    ModalOverlay,
-    ModalContent,
-    ModalHeader,
-    ModalFooter,
-    ModalBody,
-    ModalCloseButton,
-    Menu,
-    MenuButton,
-    MenuList,
-    MenuItem,
-    Heading,
-    Icon,
-} from '@chakra-ui/react'
-import { Text, Grid, GridItem, Center, Button, Circle, HStack, VStack, Tag, Spinner, IconButton, useDisclosure } from "@chakra-ui/react";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Heading, Icon } from '@chakra-ui/react'
+import { Text, Grid, GridItem, Center, Button, Circle, HStack, VStack, Spinner, IconButton } from "@chakra-ui/react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { Recurring, Reservation, Status } from "@prisma/client";
 import { getReservationsClient } from "@/server/api/getreservations";
 import { ArrowBackIcon, ArrowForwardIcon, CheckIcon, ChevronDownIcon, CloseIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
@@ -28,6 +14,18 @@ import { getSession } from "next-auth/react";
 import { deleteReservationClient } from "@/server/api/deleteReservation";
 import { Session } from "next-auth";
 import { MdAccessTime, MdInsertInvitation, MdNotes, MdOutlinePeople } from "react-icons/md";
+import { Tag } from './ui/tag';
+import {
+    DialogActionTrigger,
+    DialogBody,
+    DialogCloseTrigger,
+    DialogContent,
+    DialogFooter,
+    DialogHeader,
+    DialogRoot,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import { MenuContent, MenuRoot, MenuTrigger, MenuItem } from './ui/menu';
 
 export default function Calendar() {
     const [month, setMonth] = useState(getCurrentMonth())
@@ -45,11 +43,11 @@ export default function Calendar() {
         })();
     }, [ month ]);
 
-    const { isOpen, onOpen, onClose } = useDisclosure()
+    const [isOpen, setOpen] = useState(false);
     const [activeReservation, setActiveReservation] = useState<Reservation>()
 
     const closeAndRefresh = () => {
-        onClose();
+        setOpen(false);
         setActiveReservation(undefined);
 
         // Force a refresh of the calendar
@@ -73,13 +71,13 @@ export default function Calendar() {
                     month={month}
                     reservations={reservations}
                     setActiveReservation={setActiveReservation}
-                    onOpen={onOpen}
+                    onOpen={() => setOpen(true)}
                 />
             </div>
 
             <CalendarDetailsModal
                 isOpen={isOpen}
-                onClose={onClose}
+                setOpen={setOpen}
                 reservation={activeReservation}
                 closeAndRefresh={closeAndRefresh}
             />
@@ -118,12 +116,17 @@ function CalendarActionHeader(props: CalendarActionHeaderProps) {
             paddingBottom="0.5rem"
         >
             <HStack gap="1rem">
-                <IconButton aria-label='Previous month' icon={<ArrowBackIcon />} onClick={prevMonth} />
+                <IconButton variant="subtle" aria-label='Previous month' onClick={prevMonth}>
+                    <ArrowBackIcon />
+                </IconButton>
                 <Text>{getNameOfMonth(props.month)} {props.month.getFullYear()}</Text>
-                <IconButton aria-label='Next month' icon={<ArrowForwardIcon />} onClick={nextMonth} />
+                <IconButton variant="subtle" aria-label='Next month' onClick={nextMonth}>
+                    <ArrowForwardIcon />
+                </IconButton>
             </HStack>
 
             <Button
+                variant="subtle"
                 onClick={viewCurrentMonth}
                 position="absolute"
                 left="0"
@@ -292,14 +295,14 @@ function CalendarNumber(props: CalendarNumberProps) {
 
 interface CalendarDetailsModalProps {
     isOpen: boolean;
-    onClose: () => void;
+    setOpen: Dispatch<SetStateAction<boolean>>;
     reservation: Reservation | undefined;
     closeAndRefresh: () => void;
 }
 
 function CalendarDetailsModal({
     isOpen,
-    onClose,
+    setOpen,
     reservation: activeReservation,
     closeAndRefresh,
 }: CalendarDetailsModalProps) {
@@ -404,106 +407,108 @@ function CalendarDetailsModal({
         window.location.href = `/update?reservationID=${activeReservation.id}`;
     }
 
+    const menuRef = useRef<HTMLDivElement>(null);
+
     return (
-        <Modal isOpen={isOpen} onClose={onClose}>
-            <ModalOverlay />
-            <ModalContent>
-            <ModalHeader>Bokning</ModalHeader>
-            <ModalCloseButton />
-            <ModalBody>
-                {activeReservation && (
-                    <>
-                        <Heading size="xl">{getVenueLabel(venues, activeReservation.venueId)}</Heading>
+        <DialogRoot lazyMount open={isOpen} onOpenChange={(e: any) => setOpen(e.open)}>
+            <DialogContent ref={menuRef}>
+                <DialogHeader>
+                    <DialogTitle>Bokning</DialogTitle>
+                </DialogHeader>
+                <DialogBody>
+                    {activeReservation && (
+                        <>
+                            <Heading size="xl">{getVenueLabel(venues, activeReservation.venueId)}</Heading>
 
-                        <div style={{
-                            marginTop: "2rem",
-                            display: "grid",
-                            gridTemplateColumns: "min-content auto",
-                            gap: "1rem",
-                        }}>
-                            <Icon fontSize="1.25rem">
-                                <MdOutlinePeople />
-                            </Icon>
-                            {activeReservation.clientCommittee == null ? (
-                                <Text>{activeReservation.clientName} ({activeReservation.clientEmail})</Text>
-                            ) : (
-                                <Text>
-                                    <Text as="span">{activeReservation.clientName} ({activeReservation.clientEmail})</Text> åt <Text as="span" fontStyle="italic">{activeReservation.clientCommittee}</Text>
-                                </Text>
-                            )}
-                            
-                            <Icon fontSize="1.25rem">
-                                <MdInsertInvitation />
-                            </Icon>
-                            <Text>{getReservationTypeLabel(activeReservation.type)}</Text>
+                            <div style={{
+                                marginTop: "2rem",
+                                display: "grid",
+                                gridTemplateColumns: "min-content auto",
+                                gap: "1rem",
+                            }}>
+                                <Icon fontSize="1.25rem">
+                                    <MdOutlinePeople />
+                                </Icon>
+                                {activeReservation.clientCommittee == null ? (
+                                    <Text>{activeReservation.clientName} ({activeReservation.clientEmail})</Text>
+                                ) : (
+                                    <Text>
+                                        <Text as="span">{activeReservation.clientName} ({activeReservation.clientEmail})</Text> åt <Text as="span" fontStyle="italic">{activeReservation.clientCommittee}</Text>
+                                    </Text>
+                                )}
+                                
+                                <Icon fontSize="1.25rem">
+                                    <MdInsertInvitation />
+                                </Icon>
+                                <Text>{getReservationTypeLabel(activeReservation.type)}</Text>
 
-                            <Icon fontSize="1.25rem">
-                                <MdAccessTime />
-                            </Icon>
-                            <div>
-                                <Text>
-                                    {formatTimeInterval(
-                                        activeReservation.startTime,
-                                        activeReservation.endTime
-                                    )}
-                                </Text>
-                                <Text>
-                                    {activeReservation.recurring !== Recurring.NEVER && (
-                                        <>Stående bokning: Återkommer {getRecurringLabel(activeReservation.recurring).toLocaleLowerCase()}</>
-                                    )}
-                                </Text>
+                                <Icon fontSize="1.25rem">
+                                    <MdAccessTime />
+                                </Icon>
+                                <div>
+                                    <Text>
+                                        {formatTimeInterval(
+                                            activeReservation.startTime,
+                                            activeReservation.endTime
+                                        )}
+                                    </Text>
+                                    <Text>
+                                        {activeReservation.recurring !== Recurring.NEVER && (
+                                            <>Stående bokning: Återkommer {getRecurringLabel(activeReservation.recurring).toLocaleLowerCase()}</>
+                                        )}
+                                    </Text>
+                                </div>
+
+                                <Icon fontSize="1.25rem">
+                                    <MdNotes />
+                                </Icon>
+                                <Text>{activeReservation.clientDescription}</Text>
                             </div>
 
-                            <Icon fontSize="1.25rem">
-                                <MdNotes />
-                            </Icon>
-                            <Text>{activeReservation.clientDescription}</Text>
-                        </div>
+                            {activeReservation.status === Status.PENDING && (
+                                <>
+                                    <br />
+                                    <Text color="yellow.500">Denna bokningen väntar på godkännande</Text>
+                                </>
+                            )}
 
-                        {activeReservation.status === Status.PENDING && (
-                            <>
-                                <br />
-                                <Text color="yellow.500">Denna bokningen väntar på godkännande</Text>
-                            </>
-                        )}
-
-                        {activeReservation.status === Status.DENIED && (
-                            <>
-                                <br />
-                                <Text color="red.500">Denna bokningen blev nekad</Text>
-                            </>
-                        )}
-                    </>
-                )}
-            </ModalBody>
-
-            <ModalFooter>
-                <HStack>
+                            {activeReservation.status === Status.DENIED && (
+                                <>
+                                    <br />
+                                    <Text color="red.500">Denna bokningen blev nekad</Text>
+                                </>
+                            )}
+                        </>
+                    )}
+                </DialogBody>
+                <DialogFooter>
                     {activeReservation && _isManager && (
-                        <Menu>
-                            <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
-                                Adminåtgärder
-                            </MenuButton>
-                            <MenuList>
+                        <MenuRoot>
+                            <MenuTrigger asChild>
+                                <Button variant="outline" size="sm">
+                                    <ChevronDownIcon /> Adminåtgärder
+                                </Button>
+                            </MenuTrigger>
+                            <MenuContent portalRef={menuRef}>
                                 {activeReservation.status === Status.PENDING && (
-                                    <MenuItem closeOnSelect={false} isDisabled={disabledMenuButtons.accept} onClick={acceptActiveReservation} icon={disabledMenuButtons.accept ? <Spinner /> : <CheckIcon />}>Godkänn</MenuItem>
+                                    <MenuItem value="approve" closeOnSelect={false} disabled={disabledMenuButtons.accept} onClick={acceptActiveReservation} icon={disabledMenuButtons.accept ? <Spinner /> : <CheckIcon />}>Godkänn</MenuItem>
                                 )}
                                 {activeReservation.status === Status.PENDING && (
-                                    <MenuItem closeOnSelect={false} isDisabled={disabledMenuButtons.deny} onClick={denyActiveReservation} icon={disabledMenuButtons.deny ? <Spinner /> : <CloseIcon />}>Neka</MenuItem>
+                                    <MenuItem value="deny" closeOnSelect={false} disabled={disabledMenuButtons.deny} onClick={denyActiveReservation} icon={disabledMenuButtons.deny ? <Spinner /> : <CloseIcon />}>Neka</MenuItem>
                                 )}
-                                <MenuItem closeOnSelect={false} isDisabled={disabledMenuButtons.delete} onClick={deleteActiveReservation} icon={disabledMenuButtons.delete ? <Spinner /> : <DeleteIcon />}>Ta bort</MenuItem>
-                                <MenuItem isDisabled={disabledMenuButtons.edit} onClick={editActiveReservation} icon={<EditIcon />}>Redigera</MenuItem>
-                            </MenuList>
-                        </Menu>
+                                <MenuItem value="delete" closeOnSelect={false} disabled={disabledMenuButtons.delete} onClick={deleteActiveReservation} icon={disabledMenuButtons.delete ? <Spinner /> : <DeleteIcon />}>Ta bort</MenuItem>
+                                <MenuItem value="edit" disabled={disabledMenuButtons.edit} onClick={editActiveReservation} icon={<EditIcon />}>Redigera</MenuItem>
+                            </MenuContent>
+                        </MenuRoot>
                     )}
 
-                    <Button colorScheme='blue' mr={3} onClick={onClose}>
-                        Stäng
-                    </Button>
-                </HStack>
-            </ModalFooter>
-            </ModalContent>
-        </Modal>
+                    <DialogActionTrigger asChild>
+                        <Button>Stäng</Button>
+                    </DialogActionTrigger>
+                </DialogFooter>
+                <DialogCloseTrigger />
+            </DialogContent>
+        </DialogRoot>
     )
 }
 
@@ -578,12 +583,15 @@ function ReservationsList({
                         <Tag
                             onClick={onclick}
                             width="100%"
+                            size="lg"
+                            fontWeight="bold"
                             bg={venueColor}
+                            boxShadow="none"
                             color="white"
                             opacity={reservation.status === Status.PENDING ? 0.5 : 1}
                             key={index}
                         >
-                            <Text isTruncated>
+                            <Text truncate>
                                 {getVenueLabel(venues, reservation.venueId)}
                             </Text>
                         </Tag>

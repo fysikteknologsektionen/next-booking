@@ -1,17 +1,20 @@
 import { useVenueStore } from "@/lib/venueStore";
 import { getReservationsClient } from "@/server/api/getreservations";
-import { AlertDialog, AlertDialogBody, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogOverlay, Button, Card, CardBody, CardHeader, Center, Heading, IconButton, Menu, MenuButton, MenuItem, MenuList, Spinner, Stack, Tab, TabList, TabPanel, TabPanels, Tabs, Tag, Text, useDisclosure } from "@chakra-ui/react";
-import { Recurring, Reservation, Status, Venue } from "@prisma/client";
+import { Card, Heading, IconButton, Spinner, Stack, Tabs, Text, useDisclosure } from "@chakra-ui/react";
+import { Recurring, Reservation, Status } from "@prisma/client";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 
 import styles from "@/components/adminReservationsList.module.css";
-import { CheckIcon, CloseIcon, DeleteIcon, DragHandleIcon, EditIcon, HamburgerIcon } from "@chakra-ui/icons";
+import { CheckIcon, CloseIcon, DeleteIcon, EditIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { approveReservationClient } from "@/server/api/approveReservation";
-import { formatDate, formatTimeInterval, getNameOfMonth, getRecurringLabel, getReservationTypeLabel, getStatusLabel, getVenueColor } from "@/lib/helper";
-import { useRouter } from "next/navigation";
+import { formatDate, formatTimeInterval, getRecurringLabel, getReservationTypeLabel, getStatusLabel, getVenueColor } from "@/lib/helper";
 import { denyReservationClient } from "@/server/api/denyReservation";
 import { getUsersClient } from "@/server/api/getUsers";
 import { deleteReservationClient } from "@/server/api/deleteReservation";
+import { Button } from "./ui/button";
+import { MenuContent, MenuRoot, MenuTrigger, MenuItem } from "./ui/menu";
+import { Tag } from "./ui/tag";
+import { DialogActionTrigger, DialogBody, DialogCloseTrigger, DialogContent, DialogFooter, DialogHeader, DialogRoot, DialogTitle } from "./ui/dialog";
 
 export default function AdminReservationsList() {
     const [isLoading, setLoading] = useState(false);
@@ -42,87 +45,88 @@ export default function AdminReservationsList() {
         })();
     }, []);
 
-    const pendingReservations = reservations.filter(r => r.status === Status.PENDING);
-    const handledReservations = reservations.filter(r => r.status !== Status.PENDING);
+    const pendingReservations = reservations.filter(r => r.status === Status.PENDING).slice(0, 3);
+    const handledReservations = reservations.filter(r => r.status !== Status.PENDING).slice(0, 3);
 
     return (
         <div>
-            <Heading>Hantera bokningar</Heading>
+            <Heading as="h2" size="3xl" fontWeight="bold">Hantera bokningar</Heading>
             <br />
 
-            <Tabs variant='enclosed'>
-                <TabList>
-                    <Tab>Väntar</Tab>
-                    <Tab>Redan hanterade</Tab>
-                </TabList>
-                <TabPanels>
-                    <TabPanel>
-                        <div className={styles.reservations}>
-                            <div className={[
-                                styles.item,
-                                styles.header
-                            ].join(" ")}>
-                                <span>Lokal</span>
-                                <span>Bokningsinfo</span>
-                                <span>Datum</span>
+            <Tabs.Root defaultValue="waiting" variant={"enclosed"}>
+                <Tabs.List>
+                    <Tabs.Trigger value="waiting">
+                        Väntar
+                    </Tabs.Trigger>
+                    <Tabs.Trigger value="done">
+                        Redan hanterade
+                    </Tabs.Trigger>
+                </Tabs.List>
+                <Tabs.Content value="waiting">
+                    <div className={styles.reservations}>
+                        <div className={[
+                            styles.item,
+                            styles.header
+                        ].join(" ")}>
+                            <span>Lokal</span>
+                            <span>Bokningsinfo</span>
+                            <span>Datum</span>
 
-                                <span></span>
-                                <span style={{ textAlign: "right" }}>
-                                    {isLoading && (
-                                        <Spinner></Spinner>
-                                    )}
-                                </span>
-                            </div>
-
-                            {pendingReservations.map((reservation, index) => {
-                                return (
-                                    <ReservationItem
-                                        reservation={reservation}
-                                        setReservations={setReservations}
-                                        key={reservation.id}
-                                        isPending={true}
-                                    />
-                                );
-                            })}
-
-                            {pendingReservations.length === 0 && (
-                                <Text color="gray.500">Inga nya bokningar</Text>
-                            )}
+                            <span></span>
+                            <span style={{ textAlign: "right" }}>
+                                {isLoading && (
+                                    <Spinner></Spinner>
+                                )}
+                            </span>
                         </div>
-                    </TabPanel>
 
-                    <TabPanel>
-                        <div className={styles.reservations}>
-                            <div className={[
-                                styles.item,
-                                styles.header
-                            ].join(" ")}>
-                                <span>Lokal</span>
-                                <span>Bokningsinfo</span>
-                                <span>Datum</span>
+                        {pendingReservations.map((reservation, index) => {
+                            return (
+                                <ReservationItem
+                                    reservation={reservation}
+                                    setReservations={setReservations}
+                                    key={reservation.id}
+                                    isPending={true}
+                                />
+                            );
+                        })}
 
-                                <span></span>
-                                <span style={{ textAlign: "right" }}>
-                                    {isLoading && (
-                                        <Spinner></Spinner>
-                                    )}
-                                </span>
-                            </div>
+                        {pendingReservations.length === 0 && (
+                            <Text color="gray.500">Inga nya bokningar</Text>
+                        )}
+                    </div>
+                </Tabs.Content>
+                <Tabs.Content value="done">
+                    <div className={styles.reservations}>
+                        <div className={[
+                            styles.item,
+                            styles.header
+                        ].join(" ")}>
+                            <span>Lokal</span>
+                            <span>Bokningsinfo</span>
+                            <span>Datum</span>
 
-                            {handledReservations.map((reservation, index) => {
-                                return (
-                                    <ReservationItem
-                                        reservation={reservation}
-                                        setReservations={setReservations}
-                                        key={reservation.id}
-                                        isPending={false}
-                                    />
-                                );
-                            })}
+                            <span></span>
+                            <span style={{ textAlign: "right" }}>
+                                {isLoading && (
+                                    <Spinner></Spinner>
+                                )}
+                            </span>
                         </div>
-                    </TabPanel>
-                </TabPanels>
-            </Tabs>
+
+                        {handledReservations.map((reservation, index) => {
+                            return (
+                                <ReservationItem
+                                    reservation={reservation}
+                                    setReservations={setReservations}
+                                    key={reservation.id}
+                                    isPending={false}
+                                />
+                            );
+                        })}
+                    </div>
+                </Tabs.Content>
+            </Tabs.Root>
         </div>
     )
 }
@@ -235,34 +239,32 @@ function ReservationItem({
     const status = overrideStatus === Status.PENDING ? reservation.status : overrideStatus;
 
     const [editor, setEditor] = useState<string>("");
-    useEffect(() => {
-        (async () => {
-            if (!reservation.editorId) {
-                setEditor(reservation.clientName);
-                return;
-            }
+    // useEffect(() => {
+    //     (async () => {
+    //         if (!reservation.editorId) {
+    //             setEditor(reservation.clientName);
+    //             return;
+    //         }
 
-            const users = await getUsersClient(undefined, undefined) as any[];
-            const editor = users.find(a => a.id == reservation.editorId);
-            const editorName = editor?.name ?? "???";
-            setEditor(editorName);
-        })()
-    }, [reservation]);
+    //         const users = await getUsersClient(undefined, undefined) as any[];
+    //         const editor = users.find(a => a.id == reservation.editorId);
+    //         const editorName = editor?.name ?? "???";
+    //         setEditor(editorName);
+    //     })()
+    // }, [reservation]);
 
-    const {
-        isOpen: isConfirmDeleteOpen,
-        onOpen: openConfirmDelete,
-        onClose: closeConfirmDelete
-    } = useDisclosure()
-    const cancelRef = useRef<HTMLButtonElement>(null);
+    const [isConfirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
     return (
-        <Card>
+        <Card.Root>
             <div className={styles.item}>
                 <Tag
                     width="100%"
                     height="fit-content"
+                    size="lg"
+                    fontWeight="bold"
                     bg={getVenueColor(reservation.venueId)}
+                    boxShadow="none"
                     color="white"
                 >
                     <Text>{getVenueName(reservation.venueId)}</Text>
@@ -291,15 +293,17 @@ function ReservationItem({
 
                 {status === Status.PENDING ? (
                     <>
-                        <Button isLoading={disabled} isDisabled={disabled} colorScheme="green" onClick={() => approve()} className={styles.approveButton}>
+                        <Button loading={disabled} disabled={disabled} colorPalette="green" onClick={() => approve()} className={styles.approveButton}>
                             <span className={styles.long}>Godkänn</span>
                             <CheckIcon className={styles.short} />
                         </Button>
-                        <IconButton isLoading={disabled} isDisabled={disabled} aria-label="Neka bokning" title="Neka bokning" icon={<CloseIcon />} onClick={() => deny()} colorScheme="red"></IconButton>
+                        <Button as={IconButton} loading={disabled} disabled={disabled} aria-label="Neka bokning" title="Neka bokning" onClick={() => deny()} colorPalette="red">
+                            <CloseIcon />
+                        </Button>
                     </>
                 ) : (
                     <>
-                        <Button isDisabled={true} colorScheme={status === Status.ACCEPTED ? "green" : "red"} gridColumn="span 2">
+                        <Button disabled={true} colorPalette={status === Status.ACCEPTED ? "green" : "red"} gridColumn="span 2">
                             {getStatusLabel(status)}
                         </Button>
                         {/* Add empty element to make sure everything is aligned as an element is missing here */}
@@ -307,46 +311,41 @@ function ReservationItem({
                     </>
                 )}
 
-                <Menu>
-                    <MenuButton as={IconButton}>
-                        <HamburgerIcon />
-                    </MenuButton>
-                    <MenuList>
-                        <MenuItem isDisabled={disabled} onClick={edit} icon={<EditIcon />}>Ändra bokning</MenuItem>
-                        <MenuItem isDisabled={disabled} onClick={openConfirmDelete} icon={<DeleteIcon />}>Ta bort bokning</MenuItem>
-                    </MenuList>
-                </Menu>
+                <MenuRoot>
+                    <MenuTrigger asChild>
+                        <Button variant="outline" size="sm">
+                            <HamburgerIcon />
+                        </Button>
+                    </MenuTrigger>
+                    <MenuContent>
+                        <MenuItem value="edit" disabled={disabled} onClick={edit} icon={<EditIcon />}>Ändra bokning</MenuItem>
+                        <MenuItem value="delete" disabled={disabled} onClick={() => setConfirmDeleteOpen(true)} icon={<DeleteIcon />}>Ta bort bokning</MenuItem>
+                    </MenuContent>
+                </MenuRoot>
             </div>
 
-            <AlertDialog
-                isOpen={isConfirmDeleteOpen}
-                leastDestructiveRef={cancelRef}
-                onClose={closeConfirmDelete}
-            >
-                <AlertDialogOverlay>
-                    <AlertDialogContent>
-                        <AlertDialogHeader fontSize='lg' fontWeight='bold'>
-                            Ta bort bokning
-                        </AlertDialogHeader>
-
-                        <AlertDialogBody>
-                            Är du säker? Inget mejl skickas till bokaren.
-                        </AlertDialogBody>
-
-                        <AlertDialogFooter>
-                        <Button isDisabled={disabled} ref={cancelRef} onClick={closeConfirmDelete}>
-                            Avbryt
-                        </Button>
-                        <Button isDisabled={disabled} colorScheme='red' onClick={async () => {
+            <DialogRoot role="alertdialog" open={isConfirmDeleteOpen} onOpenChange={(e: any) => setConfirmDeleteOpen(e.open)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Ta bort bokning</DialogTitle>
+                    </DialogHeader>
+                    <DialogBody>
+                        Är du säker? Inget mejl skickas till bokaren.
+                    </DialogBody>
+                    <DialogFooter>
+                        <DialogActionTrigger asChild>
+                            <Button>Avbryt</Button>
+                        </DialogActionTrigger>
+                        <Button disabled={disabled} variant="ghost" colorPalette='red' onClick={async () => {
                             await remove();
-                            closeConfirmDelete();
+                            setConfirmDeleteOpen(false);
                         }} ml={3}>
                             Ta bort
                         </Button>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialogOverlay>
-            </AlertDialog>
-        </Card>
+                    </DialogFooter>
+                    <DialogCloseTrigger />
+                </DialogContent>
+            </DialogRoot>
+        </Card.Root>
     )
 }

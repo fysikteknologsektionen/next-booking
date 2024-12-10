@@ -3,38 +3,28 @@
 import {
   Box,
   Flex,
-  Avatar,
   HStack,
   Text,
   IconButton,
   Button,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
-  MenuDivider,
   useDisclosure,
-  useColorModeValue,
   Stack,
+  Link,
 } from '@chakra-ui/react'
 import { HamburgerIcon, CloseIcon } from '@chakra-ui/icons'
 import { useSession } from 'next-auth/react'
-import { signIn, signOut } from "next-auth/react";
+import { signOut } from "next-auth/react";
 
-import { useVenueStore } from '@/lib/venueStore'
-import { getVenuesClient } from '@/server/api/getvenues';
 import { getSession } from 'next-auth/react';
 import { Session } from 'next-auth';
 import { useState, useEffect } from 'react';
+import { Avatar } from './ui/avatar';
+import { MenuContent, MenuItem, MenuRoot, MenuTrigger } from './ui/menu';
 
 
 interface NavLink {
-    label: string,
-    href: string
-}
-
-interface Props {
-  navlink: React.ReactNode,
+  label: string,
+  href: string
 }
 
 const Links: NavLink[] = [
@@ -59,23 +49,24 @@ const NavLink = ({
 }) => {
   return (
     <Box
-      as="a"
       px={2}
       py={1}
       rounded={'md'}
       _hover={{
         textDecoration: 'none',
-        bg: useColorModeValue('gray.200', 'gray.700'),
+        bg: "gray.200"
       }}
-      href={navlink.href}>
-      {navlink.label}
+      asChild
+    >
+      <Link href={navlink.href}>
+        {navlink.label}
+      </Link>
     </Box>
   )
 }
 
 export default function Navbar() {
-  const colorMode = useColorModeValue('gray.200', 'gray.700');
-  const { isOpen, onOpen, onClose } = useDisclosure()
+  const { open, onOpen, onClose } = useDisclosure()
   const session_use = useSession();
   const isSignedIn = session_use.data !== null;
 
@@ -94,33 +85,35 @@ export default function Navbar() {
 
   return (
     <>
-      <Box bg={useColorModeValue('gray.100', 'gray.900')} px={4}>
+      <Box px={4} bg="gray.100">
         <Flex h={16} alignItems={'center'} justifyContent={'space-between'}>
           <IconButton
+            variant="subtle"
             size={'md'}
-            icon={isOpen ? <CloseIcon /> : <HamburgerIcon />}
             aria-label={'Open Menu'}
             display={{ md: 'none' }}
-            onClick={isOpen ? onClose : onOpen}
-          />
-          <HStack spacing={8} alignItems={'center'}>
+            onClick={open ? onClose : onOpen}
+          >
+            {open ? <CloseIcon /> : <HamburgerIcon />}
+          </IconButton>
+          <HStack gap={8} alignItems={'center'}>
             <Box>
               <Box
-                as="a"
+                asChild
                 px={2}
                 py={1}
                 rounded={'md'}
                 _hover={{
                   textDecoration: 'none',
-                  bg: useColorModeValue('gray.200', 'gray.700'),
+                  bg: "gray.200"
                 }}
-                href="/">
-                  <Text as="b">
-                    Lokalbokning
-                  </Text>
+              >
+                <Link href="/" fontWeight="bold">
+                  Lokalbokning
+                </Link>
               </Box>
             </Box>
-            <HStack as={'nav'} spacing={4} display={{ base: 'none', md: 'flex' }}>
+            <HStack as={'nav'} gap={4} display={{ base: 'none', md: 'flex' }}>
               {Links.map((link) => (
                 <NavLink
                     key={link.label}
@@ -132,31 +125,36 @@ export default function Navbar() {
 
           {isSignedIn ? (
             <Flex alignItems={'center'}>
-              <Menu>
-                <MenuButton
-                  as={Button}
-                  rounded={'full'}
-                  variant={'link'}
-                  cursor={'pointer'}
-                  minW={0}>
-                  <Avatar
-                    size={'sm'}
-                    src={session_get?.user.image} 
-                  />
-                </MenuButton>
-                <MenuList>
-                  <MenuItem as="a" href="/profile">Profil</MenuItem>
-                  <MenuDivider />
-                  <MenuItem onClick={() => signOut()} color="red.500">Logga ut</MenuItem>
-                </MenuList>
-              </Menu>
+              <MenuRoot>
+                <MenuTrigger
+                  asChild
+                  rounded="full"
+                  focusRing="outside"
+                >
+                  <Button
+                    variant={'plain'}
+                    cursor={'pointer'}
+                    padding="0"
+                  >
+                    <Avatar
+                      size={'sm'}
+                      src={session_get?.user.image} 
+                    />
+                  </Button>
+                </MenuTrigger>
+                <MenuContent>
+                  <MenuItem as="a" href="/profile" value="profile">Profil</MenuItem>
+                  {/* <MenuDivider /> */}
+                  <MenuItem onClick={() => signOut()} color="red.500" value="signout">Logga ut</MenuItem>
+                </MenuContent>
+              </MenuRoot>
             </Flex>
           ) : <></>}
         </Flex>
 
-        {isOpen ? (
+        {open ? (
           <Box pb={4} display={{ md: 'none' }}>
-            <Stack as={'nav'} spacing={4}>
+            <Stack as={'nav'} gap={4}>
               {Links.map((link) => (
                 <NavLink
                     key={link.label}
