@@ -86,25 +86,25 @@ function makeEmail(reservation: Reservation, venue: string, header: string, mess
         '<div style=" border: 2px dotted grey;' +
         'background:white;margin-right:auto; margin-left:auto; padding:10px; text-align:left;"><h2 style="text-align:center;">' +
         header +
-        '</h2><h3>' +
+        '</h2>' +
         message +
-        '<br /><br/>Bokningsinformation:<br />Lokal: ' +
+        '<br /><br/><h3 style="margin-bottom:auto;">Bokningsinformation:</h3><br/>Lokal: ' +
         venue +
         '<br />Namn: ' +
         reservation.clientName +
         '<br />';
-  
+
     if (reservation.clientCommittee != null) {
         mail += 'Kommitté: ' + reservation.clientCommittee + '<br />';
     }
-  
+
     mail += 'Typ av bokning: ' +
         getReservationTypeLabel(reservation.type) +
         '<br />Beskrivning: ' +
         reservation.clientDescription +
         '<br />Tid: ' + 
         date +
-        '<br /></h3><br />' +
+        '<br /><br /><br />' +
         '<div style="text-align:center;"><a href="' +
         'https://boka.ftek.se/#calendar' +
         '" class="btn" style="-webkit-border-radius: 28;' +
@@ -112,6 +112,6 @@ function makeEmail(reservation: Reservation, venue: string, header: string, mess
         'background: #8D0000;padding:8px 20px 8px 20px;text-decoration: none;">' +
         'Visa kalender' +
         '</a></div><br /><br /><p style=" text-align:right;">/ Fysikteknologsektionens lokalbokning</p></div></div></body></html>';
-  
+
     return mail;
 }
