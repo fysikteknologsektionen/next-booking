@@ -115,8 +115,10 @@ interface ReservationListProps {
 }
 
 enum OrderBy {
-    START_TIME,
-    CREATED_TIME
+    START_TIME_NEW,
+    START_TIME_OLD,
+    CREATED_TIME_NEW,
+    CREATED_TIME_OLD
 }
 
 enum ShowFilter {
@@ -127,8 +129,10 @@ enum ShowFilter {
 function ReservationList(props: ReservationListProps) {
     const orderByList = createListCollection({
         items: [
-            { label: "Starttid", value: OrderBy.START_TIME },
-            { label: "Skapad", value: OrderBy.CREATED_TIME }
+            { label: "Starttid - Främst", value: OrderBy.START_TIME_NEW },
+            { label: "Starttid - Sist", value: OrderBy.START_TIME_OLD },
+            { label: "Skapad - Äldst", value: OrderBy.CREATED_TIME_NEW },
+            { label: "Skapad - Nyast", value: OrderBy.CREATED_TIME_OLD }
         ],
     });
 
@@ -140,7 +144,7 @@ function ReservationList(props: ReservationListProps) {
     });
 
     const [show, setShow] = useState(ShowFilter.ALL);
-    const [orderBy, setOrderBy] = useState<OrderBy>(OrderBy.CREATED_TIME);
+    const [orderBy, setOrderBy] = useState<OrderBy>(OrderBy.CREATED_TIME_NEW);
 
     const filteredReservations = props.reservations
         .filter(reservation => {
@@ -173,14 +177,18 @@ function ReservationList(props: ReservationListProps) {
             return false;
         })
         .sort((a, b) => {
-            if (orderBy === OrderBy.START_TIME) {
+            if (orderBy === OrderBy.START_TIME_NEW || orderBy === OrderBy.START_TIME_OLD) {
                 return a.startTime.valueOf() - b.startTime.valueOf();
             }
-            else if (orderBy === OrderBy.CREATED_TIME) {
+            else if (orderBy === OrderBy.CREATED_TIME_NEW || orderBy === OrderBy.CREATED_TIME_OLD) {
                 return a.createdAt.valueOf() - b.createdAt.valueOf();
             }
             return 0;
         });
+
+    if (orderBy === OrderBy.START_TIME_OLD || orderBy === OrderBy.CREATED_TIME_OLD) {
+        filteredReservations.reverse();
+    }
 
     const reservationsPerPage = 10;
     const totalReservations = filteredReservations.length;
