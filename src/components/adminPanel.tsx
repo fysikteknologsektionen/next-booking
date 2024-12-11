@@ -1,6 +1,6 @@
 import { useVenueStore } from "@/lib/venueStore";
 import { getReservationsClient } from "@/server/api/getreservations";
-import { Box, Card, Center, Heading, HStack, IconButton, Spinner, Stack, Tabs, Text } from "@chakra-ui/react";
+import { Box, Card, Center, createListCollection, Heading, HStack, IconButton, Spinner, Stack, Tabs, Text } from "@chakra-ui/react";
 import { Recurring, Reservation, Status, User } from "@prisma/client";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
@@ -22,6 +22,15 @@ import {
     PaginationPrevTrigger,
     PaginationRoot,
 } from "@/components/ui/pagination";
+import { Checkbox } from "./ui/checkbox";
+import {
+    SelectContent,
+    SelectItem,
+    SelectLabel,
+    SelectRoot,
+    SelectTrigger,
+    SelectValueText,
+} from "@/components/ui/select";
 
 export default function AdminPanel() {
     const [isLoading, setLoading] = useState(false);
@@ -105,16 +114,136 @@ interface ReservationListProps {
     users: User[]
 }
 
+enum OrderBy {
+    START_TIME,
+    CREATED_TIME
+}
+
+enum ShowFilter {
+    ALL,
+    ONLY_OVERLAPPING,
+}
+
 function ReservationList(props: ReservationListProps) {
+    const orderByList = createListCollection({
+        items: [
+            { label: "Starttid", value: OrderBy.START_TIME },
+            { label: "Skapad", value: OrderBy.CREATED_TIME }
+        ],
+    });
+
+    const showList = createListCollection({
+        items: [
+            { label: "Visa alla", value: ShowFilter.ALL },
+            { label: "Endast överlappande", value: ShowFilter.ONLY_OVERLAPPING }
+        ],
+    });
+
+    const [show, setShow] = useState(ShowFilter.ALL);
+    const [orderBy, setOrderBy] = useState<OrderBy>(OrderBy.CREATED_TIME);
+
+    const filteredReservations = props.reservations
+        .filter(reservation => {
+            if (show === ShowFilter.ALL) {
+                return true;
+            }
+
+            if (reservation.status === Status.DENIED) {
+                return false;
+            }
+
+            for (const otherReservation of props.reservations) {
+                if (otherReservation === reservation) {
+                    continue;
+                }
+
+                if (otherReservation.status === Status.DENIED) {
+                    continue;
+                }
+
+                if (reservation.venueId !== otherReservation.venueId) {
+                    continue;
+                }
+
+                if (otherReservation.startTime.valueOf() < reservation.endTime.valueOf() && otherReservation.endTime.valueOf() > reservation.startTime.valueOf()) {
+                    return true;
+                }
+            }
+
+            return false;
+        })
+        .sort((a, b) => {
+            if (orderBy === OrderBy.START_TIME) {
+                return a.startTime.valueOf() - b.startTime.valueOf();
+            }
+            else if (orderBy === OrderBy.CREATED_TIME) {
+                return a.createdAt.valueOf() - b.createdAt.valueOf();
+            }
+            return 0;
+        });
+
     const reservationsPerPage = 10;
-    const totalReservations = props.reservations.length;
+    const totalReservations = filteredReservations.length;
     const [page, setPage] = useState(1);
     const startRange = (page - 1) * reservationsPerPage;
     const endRange = startRange + reservationsPerPage;
-    const visibleReservations = props.reservations.slice(startRange, endRange);
+    const visibleReservations = filteredReservations.slice(startRange, endRange);
+
+    const isFiltering = show !== ShowFilter.ALL;
 
     return (
         <>
+            <Card.Root>
+                <Card.Body>
+                    <HStack justifyContent="space-between">
+                        <HStack>
+                            <SelectRoot
+                                collection={showList}
+                                value={[show]}
+                                width="250px"
+                                onValueChange={(e: any) => setShow(e.value[0])}
+                            >
+                                <SelectLabel>Visa</SelectLabel>
+                                <SelectTrigger>
+                                    <SelectValueText placeholder="Välj vad som ska visas" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {showList.items.map((item: any) => (
+                                        <SelectItem item={item} key={item.value}>
+                                            {item.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </SelectRoot>
+
+                            <SelectRoot
+                                collection={orderByList}
+                                value={[orderBy]}
+                                width="175px"
+                                onValueChange={(e: any) => setOrderBy(e.value[0])}
+                            >
+                                <SelectLabel>Sortera efter</SelectLabel>
+                                <SelectTrigger>
+                                    <SelectValueText placeholder="Sortera efter" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {orderByList.items.map((item: any) => (
+                                        <SelectItem item={item} key={item.value}>
+                                            {item.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </SelectRoot>
+                        </HStack>
+
+                        {isFiltering && (
+                            <Text fontSize="sm" color="gray.500">Visar {filteredReservations.length}/{props.reservations.length} bokningar</Text>
+                        )}
+                    </HStack>
+                </Card.Body>
+            </Card.Root>
+            <br />
+
             <div className={styles.reservations}>
                 <div className={[
                     styles.item,
@@ -132,7 +261,7 @@ function ReservationList(props: ReservationListProps) {
                     </span>
                 </div>
 
-                {visibleReservations.map((reservation, index) => {
+                {visibleReservations.map((reservation) => {
                     return (
                         <ReservationItem
                             reservation={reservation}
