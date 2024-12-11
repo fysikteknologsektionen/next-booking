@@ -127,7 +127,6 @@ with open(SEED_FILE, "w", encoding='utf-8') as file:
             startTime: new Date("{booking[1]}T{start:02d}:00"),
             endTime: new Date("{booking_end}T{end:02d}:00"),
             type: "{typ}",
-            status: "{status}",
             venue: {{
                 id: {venue},
             }}
