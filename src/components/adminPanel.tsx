@@ -1,10 +1,10 @@
 import { useVenueStore } from "@/lib/venueStore";
 import { getReservationsClient } from "@/server/api/getreservations";
-import { Card, Heading, IconButton, Spinner, Stack, Tabs, Text, useDisclosure } from "@chakra-ui/react";
-import { Recurring, Reservation, Status } from "@prisma/client";
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+import { Box, Card, Center, Heading, HStack, IconButton, Spinner, Stack, Tabs, Text } from "@chakra-ui/react";
+import { Recurring, Reservation, Status, User } from "@prisma/client";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
-import styles from "@/components/adminReservationsList.module.css";
+import styles from "@/components/adminPanel.module.css";
 import { CheckIcon, CloseIcon, DeleteIcon, EditIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { approveReservationClient } from "@/server/api/approveReservation";
 import { formatDate, formatTimeInterval, getRecurringLabel, getReservationTypeLabel, getStatusLabel, getVenueColor } from "@/lib/helper";
@@ -15,8 +15,15 @@ import { Button } from "./ui/button";
 import { MenuContent, MenuRoot, MenuTrigger, MenuItem } from "./ui/menu";
 import { Tag } from "./ui/tag";
 import { DialogActionTrigger, DialogBody, DialogCloseTrigger, DialogContent, DialogFooter, DialogHeader, DialogRoot, DialogTitle } from "./ui/dialog";
+import {
+    PaginationItems,
+    PaginationNextTrigger,
+    PaginationPageText,
+    PaginationPrevTrigger,
+    PaginationRoot,
+} from "@/components/ui/pagination";
 
-export default function AdminReservationsList() {
+export default function AdminPanel() {
     const [isLoading, setLoading] = useState(false);
     const [reservations, setReservations] = useState<Reservation[]>([]);
     useEffect(() => {
@@ -45,8 +52,16 @@ export default function AdminReservationsList() {
         })();
     }, []);
 
-    const pendingReservations = reservations.filter(r => r.status === Status.PENDING).slice(0, 3);
-    const handledReservations = reservations.filter(r => r.status !== Status.PENDING).slice(0, 3);
+    const pendingReservations = reservations.filter(r => r.status === Status.PENDING);
+    const handledReservations = reservations.filter(r => r.status !== Status.PENDING);
+
+    const [users, setUsers] = useState<User[]>([]);
+    useEffect(() => {
+        (async () => {
+            const users = await getUsersClient(undefined, undefined) as User[];
+            setUsers(users);
+        })();
+    }, []);
 
     return (
         <div>
@@ -56,89 +71,111 @@ export default function AdminReservationsList() {
             <Tabs.Root defaultValue="waiting" variant={"enclosed"}>
                 <Tabs.List>
                     <Tabs.Trigger value="waiting">
-                        Väntar
+                        Väntar {pendingReservations.length > 0 && <Box bg="red.500" color="white" fontWeight="bold" borderRadius="100px" padding="0.1em 0.5em">{pendingReservations.length}</Box>}
                     </Tabs.Trigger>
                     <Tabs.Trigger value="done">
                         Redan hanterade
                     </Tabs.Trigger>
                 </Tabs.List>
                 <Tabs.Content value="waiting">
-                    <div className={styles.reservations}>
-                        <div className={[
-                            styles.item,
-                            styles.header
-                        ].join(" ")}>
-                            <span>Lokal</span>
-                            <span>Bokningsinfo</span>
-                            <span>Datum</span>
-
-                            <span></span>
-                            <span style={{ textAlign: "right" }}>
-                                {isLoading && (
-                                    <Spinner></Spinner>
-                                )}
-                            </span>
-                        </div>
-
-                        {pendingReservations.map((reservation, index) => {
-                            return (
-                                <ReservationItem
-                                    reservation={reservation}
-                                    setReservations={setReservations}
-                                    key={reservation.id}
-                                    isPending={true}
-                                />
-                            );
-                        })}
-
-                        {pendingReservations.length === 0 && (
-                            <Text color="gray.500">Inga nya bokningar</Text>
-                        )}
-                    </div>
+                    <ReservationList
+                        reservations={pendingReservations}
+                        setReservations={setReservations}
+                        users={users}
+                        isLoading={isLoading}
+                    />
                 </Tabs.Content>
                 <Tabs.Content value="done">
-                    <div className={styles.reservations}>
-                        <div className={[
-                            styles.item,
-                            styles.header
-                        ].join(" ")}>
-                            <span>Lokal</span>
-                            <span>Bokningsinfo</span>
-                            <span>Datum</span>
-
-                            <span></span>
-                            <span style={{ textAlign: "right" }}>
-                                {isLoading && (
-                                    <Spinner></Spinner>
-                                )}
-                            </span>
-                        </div>
-
-                        {handledReservations.map((reservation, index) => {
-                            return (
-                                <ReservationItem
-                                    reservation={reservation}
-                                    setReservations={setReservations}
-                                    key={reservation.id}
-                                    isPending={false}
-                                />
-                            );
-                        })}
-                    </div>
+                    <ReservationList
+                        reservations={handledReservations}
+                        setReservations={setReservations}
+                        users={users}
+                        isLoading={isLoading}
+                    />
                 </Tabs.Content>
             </Tabs.Root>
         </div>
     )
 }
 
+interface ReservationListProps {
+    reservations: Reservation[];
+    setReservations: Dispatch<SetStateAction<Reservation[]>>;
+    isLoading: boolean;
+    users: User[]
+}
+
+function ReservationList(props: ReservationListProps) {
+    const reservationsPerPage = 10;
+    const totalReservations = props.reservations.length;
+    const [page, setPage] = useState(1);
+    const startRange = (page - 1) * reservationsPerPage;
+    const endRange = startRange + reservationsPerPage;
+    const visibleReservations = props.reservations.slice(startRange, endRange);
+
+    return (
+        <>
+            <div className={styles.reservations}>
+                <div className={[
+                    styles.item,
+                    styles.header
+                ].join(" ")}>
+                    <span>Lokal</span>
+                    <span>Bokningsinfo</span>
+                    <span>Datum</span>
+
+                    <span></span>
+                    <span style={{ textAlign: "right" }}>
+                        {props.isLoading && (
+                            <Spinner></Spinner>
+                        )}
+                    </span>
+                </div>
+
+                {visibleReservations.map((reservation, index) => {
+                    return (
+                        <ReservationItem
+                            reservation={reservation}
+                            setReservations={props.setReservations}
+                            users={props.users}
+                            key={reservation.id}
+                        />
+                    );
+                })}
+
+                {props.reservations.length === 0 && (
+                    <Center padding="2rem">
+                        <Text color="gray.500">Inga nya bokningar</Text>
+                    </Center>
+                )}
+            </div>
+
+            {props.reservations.length > 0 && (
+                <PaginationRoot
+                    count={totalReservations}
+                    pageSize={reservationsPerPage}
+                    page={page}
+                    onPageChange={(e: any) => setPage(e.page)}
+                >
+                    <HStack padding="1rem" justifyContent="center">
+                        <PaginationPrevTrigger />
+                        <PaginationItems />
+                        <PaginationNextTrigger />
+                    </HStack>
+                </PaginationRoot>
+            )}
+        </>
+    )
+}
+
 function ReservationItem({
     reservation,
     setReservations,
-    isPending,
+    users
 }: {
     reservation: Reservation,
     setReservations: Dispatch<SetStateAction<Reservation[]>>,
-    isPending: boolean,
+    users: User[]
 }) {
     const venues = useVenueStore((state) => state.venues);
     const getVenue = (venueId: number | null) => {
@@ -239,19 +276,18 @@ function ReservationItem({
     const status = overrideStatus === Status.PENDING ? reservation.status : overrideStatus;
 
     const [editor, setEditor] = useState<string>("");
-    // useEffect(() => {
-    //     (async () => {
-    //         if (!reservation.editorId) {
-    //             setEditor(reservation.clientName);
-    //             return;
-    //         }
+    useEffect(() => {
+        (async () => {
+            if (!reservation.editorId) {
+                setEditor(reservation.clientName);
+                return;
+            }
 
-    //         const users = await getUsersClient(undefined, undefined) as any[];
-    //         const editor = users.find(a => a.id == reservation.editorId);
-    //         const editorName = editor?.name ?? "???";
-    //         setEditor(editorName);
-    //     })()
-    // }, [reservation]);
+            const editor = users.find(u => u.id == reservation.editorId);
+            const editorName = editor?.name ?? "???";
+            setEditor(editorName);
+        })()
+    }, [reservation]);
 
     const [isConfirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
@@ -318,8 +354,8 @@ function ReservationItem({
                         </Button>
                     </MenuTrigger>
                     <MenuContent>
-                        <MenuItem value="edit" disabled={disabled} onClick={edit} icon={<EditIcon />}>Ändra bokning</MenuItem>
-                        <MenuItem value="delete" disabled={disabled} onClick={() => setConfirmDeleteOpen(true)} icon={<DeleteIcon />}>Ta bort bokning</MenuItem>
+                        <MenuItem value="edit" disabled={disabled} onClick={edit} icon={<EditIcon />}>Redigera</MenuItem>
+                        <MenuItem value="delete" disabled={disabled} onClick={() => setConfirmDeleteOpen(true)} icon={<DeleteIcon />}>Ta bort</MenuItem>
                     </MenuContent>
                 </MenuRoot>
             </div>
