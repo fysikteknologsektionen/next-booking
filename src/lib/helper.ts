@@ -217,6 +217,9 @@ export function isMailSpelledCorrectly(mail: string): boolean {
         "f-spexet.se",
         "gu.se",
         "gmail.com",
+        "hotmail.com",
+        "hotmail.se",
+        "outlook.com",
     ]
 
     const parts = mail.split("@");
@@ -226,6 +229,10 @@ export function isMailSpelledCorrectly(mail: string): boolean {
     }
 
     const ending = parts[1];
+
+    if (mailEndings.includes(ending)) {
+        return true;
+    }
     
     for (const checkEnding of mailEndings) {
         const s = similarity(ending, checkEnding);
