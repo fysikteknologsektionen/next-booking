@@ -43,9 +43,11 @@ export default function Home() {
         </div>
 
         <div>
-          <Link href="/create">
-            <Button colorPalette="blue">Boka lokal</Button>
-          </Link>
+          <Button asChild colorPalette="blue">
+            <Link href="/create">
+              Boka lokal
+            </Link>
+          </Button>
         </div>
 
         <HowToCreateReservationSection />

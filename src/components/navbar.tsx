@@ -4,14 +4,14 @@ import {
   Box,
   Flex,
   HStack,
-  Text,
   IconButton,
   Button,
   useDisclosure,
   Stack,
   Link,
 } from '@chakra-ui/react'
-import { HamburgerIcon, CloseIcon } from '@chakra-ui/icons'
+import { GiHamburgerMenu } from 'react-icons/gi';
+import { MdClose } from 'react-icons/md';
 import { useSession } from 'next-auth/react'
 import { signOut } from "next-auth/react";
 
@@ -94,7 +94,7 @@ export default function Navbar() {
             display={{ md: 'none' }}
             onClick={open ? onClose : onOpen}
           >
-            {open ? <CloseIcon /> : <HamburgerIcon />}
+            {open ? <MdClose /> : <GiHamburgerMenu />}
           </IconButton>
           <HStack gap={8} alignItems={'center'}>
             <Box>
@@ -143,7 +143,9 @@ export default function Navbar() {
                   </Button>
                 </MenuTrigger>
                 <MenuContent>
-                  <MenuItem as="a" href="/profile" value="profile">Profil</MenuItem>
+                  <MenuItem asChild value="profile">
+                    <Link href="/profile" >Profil</Link>
+                  </MenuItem>
                   {/* <MenuDivider /> */}
                   <MenuItem onClick={() => signOut()} color="red.500" value="signout">Logga ut</MenuItem>
                 </MenuContent>

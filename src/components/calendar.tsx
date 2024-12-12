@@ -5,7 +5,10 @@ import { Text, Grid, GridItem, Center, Button, Circle, HStack, VStack, Spinner, 
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { Recurring, Reservation, Status } from "@prisma/client";
 import { getReservationsClient } from "@/server/api/getreservations";
-import { ArrowBackIcon, ArrowForwardIcon, CheckIcon, ChevronDownIcon, CloseIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
+import { MdClose, MdCheck } from 'react-icons/md';
+import { RiDeleteBin5Fill } from 'react-icons/ri';
+import { FiEdit } from 'react-icons/fi';
+import { FaArrowLeft, FaArrowRight, FaChevronDown } from 'react-icons/fa';
 import { useVenueStore } from "@/lib/venueStore";
 import { daysInMonth, DAY_NAMES, formatTimeInterval, getCurrentMonth, getNameOfMonth, getRecurringLabel, getReservationTypeLabel, getVenueColor, getVenueLabel, isManager } from "@/lib/helper";
 import { approveReservationClient } from "@/server/api/approveReservation";
@@ -117,11 +120,11 @@ function CalendarActionHeader(props: CalendarActionHeaderProps) {
         >
             <HStack gap="1rem">
                 <IconButton variant="subtle" aria-label='Previous month' onClick={prevMonth}>
-                    <ArrowBackIcon />
+                    <FaArrowLeft />
                 </IconButton>
                 <Text>{getNameOfMonth(props.month)} {props.month.getFullYear()}</Text>
                 <IconButton variant="subtle" aria-label='Next month' onClick={nextMonth}>
-                    <ArrowForwardIcon />
+                    <FaArrowRight />
                 </IconButton>
             </HStack>
 
@@ -486,18 +489,18 @@ function CalendarDetailsModal({
                         <MenuRoot>
                             <MenuTrigger asChild>
                                 <Button variant="outline" size="sm">
-                                    <ChevronDownIcon /> Adminåtgärder
+                                    Adminåtgärder<FaChevronDown /> 
                                 </Button>
                             </MenuTrigger>
                             <MenuContent portalRef={menuRef}>
                                 {activeReservation.status === Status.PENDING && (
-                                    <MenuItem value="approve" closeOnSelect={false} disabled={disabledMenuButtons.accept} onClick={acceptActiveReservation} icon={disabledMenuButtons.accept ? <Spinner /> : <CheckIcon />}>Godkänn</MenuItem>
+                                    <MenuItem value="approve" closeOnSelect={false} disabled={disabledMenuButtons.accept} onClick={acceptActiveReservation}>{disabledMenuButtons.accept ? <Spinner /> : <MdCheck />}Godkänn</MenuItem>
                                 )}
                                 {activeReservation.status === Status.PENDING && (
-                                    <MenuItem value="deny" closeOnSelect={false} disabled={disabledMenuButtons.deny} onClick={denyActiveReservation} icon={disabledMenuButtons.deny ? <Spinner /> : <CloseIcon />}>Neka</MenuItem>
+                                    <MenuItem value="deny" closeOnSelect={false} disabled={disabledMenuButtons.deny} onClick={denyActiveReservation}>{disabledMenuButtons.deny ? <Spinner /> : <MdClose />}Neka</MenuItem>
                                 )}
-                                <MenuItem value="delete" closeOnSelect={false} disabled={disabledMenuButtons.delete} onClick={deleteActiveReservation} icon={disabledMenuButtons.delete ? <Spinner /> : <DeleteIcon />}>Ta bort</MenuItem>
-                                <MenuItem value="edit" disabled={disabledMenuButtons.edit} onClick={editActiveReservation} icon={<EditIcon />}>Redigera</MenuItem>
+                                <MenuItem value="delete" closeOnSelect={false} disabled={disabledMenuButtons.delete} onClick={deleteActiveReservation}>{disabledMenuButtons.delete ? <Spinner /> : <RiDeleteBin5Fill />}Ta bort</MenuItem>
+                                <MenuItem value="edit" disabled={disabledMenuButtons.edit} onClick={editActiveReservation}><FiEdit />Redigera</MenuItem>
                             </MenuContent>
                         </MenuRoot>
                     )}

@@ -5,7 +5,10 @@ import { Recurring, Reservation, Status, User } from "@prisma/client";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
 import styles from "@/components/adminPanel.module.css";
-import { CheckIcon, CloseIcon, DeleteIcon, EditIcon, HamburgerIcon } from "@chakra-ui/icons";
+import { GiHamburgerMenu } from 'react-icons/gi';
+import { MdClose, MdCheck } from 'react-icons/md';
+import { RiDeleteBin5Fill } from 'react-icons/ri';
+import { FiEdit } from 'react-icons/fi';
 import { approveReservationClient } from "@/server/api/approveReservation";
 import { formatDate, formatTimeInterval, getRecurringLabel, getReservationTypeLabel, getStatusLabel, getVenueColor } from "@/lib/helper";
 import { denyReservationClient } from "@/server/api/denyReservation";
@@ -207,7 +210,7 @@ function ReservationList(props: ReservationListProps) {
                         <HStack>
                             <SelectRoot
                                 collection={showList}
-                                value={[show]}
+                                value={[ShowFilter[show]]}
                                 width="250px"
                                 onValueChange={(e: any) => setShow(e.value[0])}
                             >
@@ -226,7 +229,7 @@ function ReservationList(props: ReservationListProps) {
 
                             <SelectRoot
                                 collection={orderByList}
-                                value={[orderBy]}
+                                value={[OrderBy[orderBy]]}
                                 width="175px"
                                 onValueChange={(e: any) => setOrderBy(e.value[0])}
                             >
@@ -424,7 +427,7 @@ function ReservationItem({
             const editorName = editor?.name ?? "???";
             setEditor(editorName);
         })()
-    }, [reservation]);
+    }, [reservation, users]);
 
     const [isConfirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
@@ -468,10 +471,10 @@ function ReservationItem({
                     <>
                         <Button loading={disabled} disabled={disabled} colorPalette="green" onClick={() => approve()} className={styles.approveButton}>
                             <span className={styles.long}>Godkänn</span>
-                            <CheckIcon className={styles.short} />
+                            <MdCheck className={styles.short} />
                         </Button>
                         <Button as={IconButton} loading={disabled} disabled={disabled} aria-label="Neka bokning" title="Neka bokning" onClick={() => deny()} colorPalette="red">
-                            <CloseIcon />
+                            <MdClose />
                         </Button>
                     </>
                 ) : (
@@ -487,12 +490,12 @@ function ReservationItem({
                 <MenuRoot>
                     <MenuTrigger asChild>
                         <Button variant="outline" size="sm">
-                            <HamburgerIcon />
+                            <GiHamburgerMenu />
                         </Button>
                     </MenuTrigger>
                     <MenuContent>
-                        <MenuItem value="edit" disabled={disabled} onClick={edit} icon={<EditIcon />}>Redigera</MenuItem>
-                        <MenuItem value="delete" disabled={disabled} onClick={() => setConfirmDeleteOpen(true)} icon={<DeleteIcon />}>Ta bort</MenuItem>
+                        <MenuItem value="edit" disabled={disabled} onClick={edit}><FiEdit />Redigera</MenuItem>
+                        <MenuItem value="delete" disabled={disabled} onClick={() => setConfirmDeleteOpen(true)}><RiDeleteBin5Fill />Ta bort</MenuItem>
                     </MenuContent>
                 </MenuRoot>
             </div>
