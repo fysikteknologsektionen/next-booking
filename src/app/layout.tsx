@@ -6,6 +6,7 @@ import { Providers } from "./providers";
 import Navbar from '@/components/navbar';
 import { getServerSession } from 'next-auth';
 import Footer from '@/components/footer';
+import { Toaster } from '@/components/ui/toaster';
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -33,6 +34,7 @@ export default async function RootLayout({
           </div>
           
           <Footer></Footer>
+          <Toaster />
         </Providers>
       </body>
     </html>

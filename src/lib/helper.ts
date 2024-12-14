@@ -2,6 +2,7 @@
 // are nice to have access to from time to time
 
 import { Recurring, ReservationType, Role, Status, Venue } from "@prisma/client";
+import { DateTime } from "luxon";
 import { Session } from "next-auth";
 
 export const MONTH_NAMES = [
@@ -35,6 +36,17 @@ export const validateDateString = (dateString: string) => {
     return new Date(dateString).toString() !== "Invalid Date";
 }
 
+export const validateLocalDateString = (dateString: string) => {
+    const regex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(.0{1,3})?)?Z?$/;
+    return regex.test(dateString);
+}
+
+export const localDateStringToUTCDate = (dateString: string) => {
+    const dt = DateTime.fromISO(dateString, { zone: "Europe/Stockholm" });
+    const d = dt.toJSDate();
+    return d;
+}
+
 export const validateVenueId = (venueId: string) => {
     return parseInt(venueId) % 1 === 0;
 }
@@ -57,7 +69,11 @@ export const daysInMonth = (date: Date) => {
 
 // Extract shortened swedish month name from date object
 export const getNameOfMonth = (date: Date) => {
-    return MONTH_NAMES[date.getMonth()];
+    const month = date.getMonth();
+    if (isNaN(month)) {
+        return "[Month name of invalid date]";
+    }
+    return MONTH_NAMES[month];
 }
 
 // Converts a date object to a valid string for use
@@ -85,7 +101,11 @@ export function formatDate(date: Date) {
 }
 
 // Get hours and minutes from date object and display as hh:mm
-export const formatTime = (date: Date) => {
+export const formatTime = (date: Date, displaySwedishTime = true) => {
+    if (displaySwedishTime) {
+        date = offsetLocalTimezoneToSweden(date);
+    }
+
     const hours = date.getHours().toString().padStart(2, "0");
     const minutes = date.getMinutes().toString().padStart(2, "0");
 
@@ -134,16 +154,12 @@ export function formatDuration(duration: Date) {
     return (sign < 0 ? "-" : "") + output.join(" ");
 }
 
-// Checks if two dates have the same year, month and day
-const isSameDay = (a: Date, b: Date) => {
-    return (
-        a.getFullYear() === b.getFullYear() &&
-        a.getMonth() === b.getMonth() &&
-        a.getDate() === b.getDate()
-    )
-}
-
-export const formatDateShort = (date: Date, today = new Date()) => {
+export const formatDateShort = (date: Date, today = new Date(), displaySwedishTime = true) => {
+    if (displaySwedishTime) {
+        date = offsetLocalTimezoneToSweden(date);
+        today = offsetLocalTimezoneToSweden(today);
+    }
+    
     const day = date.getDate();
     const month = getNameOfMonth(date).toLocaleLowerCase();
     const year = date.getFullYear();
@@ -155,13 +171,47 @@ export const formatDateShort = (date: Date, today = new Date()) => {
     return `${day} ${month} ${year}`;
 }
 
-// Get, as short as possible, a string representation of a time interval
-export const formatTimeInterval = (from: Date, to: Date) => {
+// Checks if two dates have the same year, month and day
+const isSameDay = (a: Date, b: Date) => {
+    return (
+        a.getFullYear() === b.getFullYear() &&
+        a.getMonth() === b.getMonth() &&
+        a.getDate() === b.getDate()
+    )
+}
+
+// All local methods (getDate, getMonth, etc) of the returned date
+// object will be in swedish time. The UTC methods
+// (valueOf, getUTCDate, getUTCMonth, etc) will be incorrect
+const offsetLocalTimezoneToSweden = (date: Date) => {
+    date = new Date(date);
+
+    const userTimezoneOffset = date.getTimezoneOffset();
+    const swedenDate = DateTime.local(
+        date.getUTCFullYear(),
+        date.getUTCMonth() + 1, // Month is 1-indexed in luxon but not in JS Date
+        date.getUTCDate(),
+        date.getUTCHours(),
+        date.getUTCMinutes(),
+        date.getUTCSeconds(),
+        date.getUTCMilliseconds(),
+        { zone: "Europe/Stockholm" }
+    );
+    const swedenTimezoneOffset = swedenDate.offset;
+    date.setMinutes(date.getMinutes() + userTimezoneOffset + swedenTimezoneOffset);
+
+    return date;
+}
+
+// Get as a short as possible string representation of a time interval
+export const formatTimeInterval = (from: Date, to: Date, displaySwedishTime = true): string => {
+    const today = new Date();
+
     if (isSameDay(from, to)) {
-        return `${formatDateShort(from)} ${formatTime(from)} - ${formatTime(to)}`;
+        return `${formatDateShort(from, today, displaySwedishTime)} ${formatTime(from, displaySwedishTime)} - ${formatTime(to, displaySwedishTime)}`;
     }
 
-    return `${formatDateShort(from)} ${formatTime(from)} - ${formatDateShort(to)} ${formatTime(to)}`;
+    return `${formatDateShort(from, today, displaySwedishTime)} ${formatTime(from, displaySwedishTime)} - ${formatDateShort(to, today, displaySwedishTime)} ${formatTime(to, displaySwedishTime)}`;
 };
 
 /**
@@ -181,7 +231,7 @@ export const closest10min = (timeString: string) => {
     const roundedHours = rounded.getUTCHours();
     const roundedMinutes = rounded.getUTCMinutes();
 
-    return `${hours}:${minutes}`;
+    return `${roundedHours}:${roundedMinutes}`;
 };
 
 const venueColors = [

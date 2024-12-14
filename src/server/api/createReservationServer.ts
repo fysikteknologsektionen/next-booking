@@ -1,6 +1,6 @@
 import { Recurring, ReservationType, Status } from "@prisma/client";
 import prisma from "@/server/lib/prisma";
-import { CHARACTER_LIMIT, validateDateString, validateVenueId } from "@/lib/helper";
+import { CHARACTER_LIMIT, localDateStringToUTCDate, validateDateString, validateLocalDateString, validateVenueId } from "@/lib/helper";
 import { denyMail, confirmationMail } from "../lib/mailing";
 
 // Create a reservation, used on the server
@@ -16,7 +16,7 @@ export async function createReservationServer( {
     endTime,
     recurring,
     recurringUntil,
-}:{
+}: {
     clientName: string,
     clientCommittee: string | null,
     clientEmail: string,
@@ -39,18 +39,19 @@ export async function createReservationServer( {
     }
 
     if (
-        !validateDateString(startTime) ||
-        !validateDateString(endTime) ||
-        !validateDateString(date) ||
+        !validateLocalDateString(startTime) ||
+        !validateLocalDateString(endTime) ||
+        !validateLocalDateString(date) ||
         (recurringUntil !== null && !validateDateString(recurringUntil)) ||
         !validateVenueId(venueId)
     ) {
+        console.error(startTime, endTime, date, venueId);
         return false;
     }
 
-    startTime = new Date(startTime).toISOString();
-    endTime = new Date(endTime).toISOString();
-    date = new Date(date).toISOString();
+    startTime = localDateStringToUTCDate(startTime).toISOString();
+    endTime = localDateStringToUTCDate(endTime).toISOString();
+    date = localDateStringToUTCDate(date).toISOString();
     recurringUntil = recurringUntil == null ? null : new Date(recurringUntil).toISOString();
     const venueIdNumber = parseInt(venueId);
 

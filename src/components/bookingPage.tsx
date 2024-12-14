@@ -24,6 +24,8 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
+import { checkOverlapClient } from "@/server/api/checkReservationOverlap";
+import { toaster } from "./ui/toaster";
 
 const fromDefault = new Date();
 fromDefault.setSeconds(0, 0);
@@ -70,11 +72,11 @@ export default function BookingPage({
     const [toDateString, setToDateString] = useState(dateToInput(new Date(defaultReservationData.endTime), false));
     const [toTimeString, setToTimeString] = useState(dateToTimeInput(new Date(defaultReservationData.endTime)));
     
-    const from = useMemo(() => new Date(fromDateString + "T" + fromTimeString), [ fromDateString, fromTimeString ]);
-    const to = useMemo(() => new Date(toDateString + "T" + toTimeString), [ toDateString, toTimeString ]);
+    const swedishFrom = fromDateString + "T" + fromTimeString;
+    const swedishTo = toDateString + "T" + toTimeString;
 
-    // const [from, setFrom] = useState(new Date(defaultReservationData.startTime))
-    // const [to, setTo] = useState(new Date(defaultReservationData.endTime))
+    const from = useMemo(() => new Date(swedishFrom), [ fromDateString, fromTimeString ]);
+    const to = useMemo(() => new Date(swedishTo), [ toDateString, toTimeString ]);
 
     const duration = useMemo(() => new Date(
         to.valueOf() -
@@ -116,13 +118,8 @@ export default function BookingPage({
             setLoading(true);
 
             if (!forceCreate && !reservation) {
-                const reservations = await getReservationsClient(from, to, [parseInt(venue)]);
-                if (reservations && reservations.filter((val: any) => (
-                    val.status === Status.ACCEPTED &&
-                    // Remove edge cases where startTime of one = endTime of other
-                    new Date(val.startTime).valueOf() < to.valueOf() &&
-                    new Date(val.endTime).valueOf() > from.valueOf()
-                )).length > 0) {
+                const isOverlapping = await checkOverlapClient(swedishFrom, swedishTo, venue);
+                if (isOverlapping) {
                     console.error('Overlapping reservation');
                     setLoading(false);
                     setOpen(true);
@@ -139,9 +136,9 @@ export default function BookingPage({
                 clientDescription: description,
                 type: reservationType,
                 venueId: parseInt(venue),
-                date: from,
-                startTime: from,
-                endTime: to,
+                date: swedishFrom,
+                startTime: swedishFrom,
+                endTime: swedishTo,
                 recurring: recurring,
                 recurringUntil: recurringUntil
             }
@@ -162,6 +159,13 @@ export default function BookingPage({
             if (result) {
                 router.push("/");
             } else {
+                const errorMessage = reservation ?
+                    "Kunde inte uppdatera bokningen. Försök igen senare eller kontakta spidera@ftek.se" :
+                    "Kunde inte skapa bokningen. Försök igen senare eller kontakta spidera@ftek.se";
+                toaster.create({
+                    title: errorMessage,
+                    type: "error",
+                });
                 setLoading(false);
             }
         }

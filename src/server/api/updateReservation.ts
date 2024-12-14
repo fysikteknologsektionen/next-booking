@@ -1,5 +1,6 @@
 import { Recurring, ReservationType, Status } from "@prisma/client";
 import prisma from "../lib/prisma";
+import { localDateStringToUTCDate, validateDateString, validateLocalDateString, validateVenueId } from "@/lib/helper";
 
 
 // Create a reservation, used on the server
@@ -24,15 +25,37 @@ export async function updateReservationServer( {
     clientEmail: string,
     clientDescription: string,
     type: ReservationType,
-    venueId: number | null,
-    date: Date,
-    startTime: Date,
-    endTime: Date,
+    venueId: string,
+    date: string,
+    startTime: string,
+    endTime: string,
     recurring: Recurring,
-    recurringUntil: Date | null,
+    recurringUntil: string | null,
     status: Status
 },
 statusChangerId?: number) {
+    // No field length limit since only admins
+    // update reservations
+
+    if (
+        !validateLocalDateString(startTime) ||
+        !validateLocalDateString(endTime) ||
+        !validateLocalDateString(date) ||
+        (recurringUntil !== null && !validateDateString(recurringUntil)) ||
+        !validateVenueId(venueId)
+    ) {
+        return false;
+    }
+
+    startTime = localDateStringToUTCDate(startTime).toISOString();
+    endTime = localDateStringToUTCDate(endTime).toISOString();
+    date = localDateStringToUTCDate(date).toISOString();
+    recurringUntil = recurringUntil == null ? null : new Date(recurringUntil).toISOString();
+    const venueIdNumber = parseInt(venueId);
+
+    clientName = clientName.toString();
+    clientDescription = clientDescription.toString();
+
     const result = await prisma.reservation.update({
         where: {id: reservationID},
         data: {
@@ -46,7 +69,7 @@ statusChangerId?: number) {
             endTime,
             recurring,
             recurringUntil,
-            venueId,
+            venueId: venueIdNumber,
             status,
             editorId: statusChangerId,
         },
