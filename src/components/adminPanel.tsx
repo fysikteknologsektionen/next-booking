@@ -132,22 +132,25 @@ enum ShowFilter {
 function ReservationList(props: ReservationListProps) {
     const orderByList = createListCollection({
         items: [
-            { label: "Starttid - Främst", value: OrderBy.START_TIME_NEW },
-            { label: "Starttid - Sist", value: OrderBy.START_TIME_OLD },
-            { label: "Skapad - Äldst", value: OrderBy.CREATED_TIME_NEW },
-            { label: "Skapad - Nyast", value: OrderBy.CREATED_TIME_OLD }
+            { label: "Starttid - Främst", value: OrderBy[OrderBy.START_TIME_NEW] },
+            { label: "Starttid - Sist", value: OrderBy[OrderBy.START_TIME_OLD] },
+            { label: "Skapad - Äldst", value: OrderBy[OrderBy.CREATED_TIME_NEW] },
+            { label: "Skapad - Nyast", value: OrderBy[OrderBy.CREATED_TIME_OLD] }
         ],
     });
 
     const showList = createListCollection({
         items: [
-            { label: "Visa alla", value: ShowFilter.ALL },
-            { label: "Endast överlappande", value: ShowFilter.ONLY_OVERLAPPING }
+            { label: "Visa alla", value: ShowFilter[ShowFilter.ALL] },
+            { label: "Endast överlappande", value: ShowFilter[ShowFilter.ONLY_OVERLAPPING] }
         ],
     });
 
-    const [show, setShow] = useState(ShowFilter.ALL);
-    const [orderBy, setOrderBy] = useState<OrderBy>(OrderBy.CREATED_TIME_NEW);
+    const [inputShow, setInputShow] = useState([ showList.items[0].value ]);
+    const [inputOrderBy, setInputOrderBy] = useState([ orderByList.items[0].value ]);
+
+    const show = ShowFilter[inputShow[0] as keyof typeof ShowFilter];
+    const orderBy = OrderBy[inputOrderBy[3] as keyof typeof OrderBy];
 
     const filteredReservations = props.reservations
         .filter(reservation => {
@@ -210,9 +213,9 @@ function ReservationList(props: ReservationListProps) {
                         <HStack>
                             <SelectRoot
                                 collection={showList}
-                                value={[ShowFilter[show]]}
+                                value={inputShow}
                                 width="250px"
-                                onValueChange={(e: any) => setShow(e.value[0])}
+                                onValueChange={(e) => setInputShow(e.value)}
                             >
                                 <SelectLabel>Visa</SelectLabel>
                                 <SelectTrigger>
@@ -229,9 +232,9 @@ function ReservationList(props: ReservationListProps) {
 
                             <SelectRoot
                                 collection={orderByList}
-                                value={[OrderBy[orderBy]]}
+                                value={inputOrderBy}
                                 width="175px"
-                                onValueChange={(e: any) => setOrderBy(e.value[0])}
+                                onValueChange={(e) => setInputOrderBy(e.value)}
                             >
                                 <SelectLabel>Sortera efter</SelectLabel>
                                 <SelectTrigger>

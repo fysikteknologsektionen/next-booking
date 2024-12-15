@@ -175,13 +175,13 @@ export default function BookingPage({
 
     const venueList = createListCollection({
         items: venues.map(v => (
-            { label: v.name, value: v.id }
+            { label: v.name, value: v.id.toString() }
         ))
     });
 
     const statusList = createListCollection({
         items: Object.keys(Status).map(s => (
-            { label: getStatusLabel(s as Status), value: s as Status }
+            { label: getStatusLabel(s as Status), value: s }
         ))
     });
 
@@ -199,14 +199,14 @@ export default function BookingPage({
                 <Field label="Lokal" required>
                     <SelectRoot
                         collection={venueList}
-                        value={[venue]}
-                        onValueChange={(e: any) => setVenue(e.value[0])}
+                        value={venue == "" ? [] : [ venue ]}
+                        onValueChange={(e) => setVenue(e.value[0])}
                     >
                         <SelectTrigger>
                             <SelectValueText placeholder="Välj lokal" />
                         </SelectTrigger>
                         <SelectContent>
-                            {venueList.items.map((venue: any) => (
+                            {venueList.items.map((venue) => (
                                 <SelectItem item={venue} key={venue.value}>
                                     {venue.label}
                                 </SelectItem>
@@ -252,7 +252,7 @@ export default function BookingPage({
                     label="Typ av arrangemang"
                     required
                 >
-                    <RadioGroup onValueChange={(e: any) => {
+                    <RadioGroup onValueChange={(e) => {
                         setReservationType(e.value as ReservationType);
                     }} value={reservationType}>
                         <div className={styles.radioStack}>
@@ -333,7 +333,7 @@ export default function BookingPage({
                     required
                 >
                     <Text>Denna bokning återkommer:</Text>
-                    <RadioGroup onValueChange={(e: any) => {
+                    <RadioGroup onValueChange={(e) => {
                         setRecurring(e.value as Recurring);
                     }} value={recurring}>
                         <div className={styles.radioStack}>
@@ -379,13 +379,13 @@ export default function BookingPage({
                         <SelectRoot
                             collection={statusList}
                             value={[status]}
-                            onValueChange={(e: any) => setStatus(e.value[0])}
+                            onValueChange={(e) => setStatus(e.value[0] as keyof typeof Status)}
                         >
                             <SelectTrigger>
                                 <SelectValueText placeholder="Välj status" />
                             </SelectTrigger>
                             <SelectContent>
-                                {statusList.items.map((s: any) => (
+                                {statusList.items.map((s) => (
                                     <SelectItem item={s} key={s.value}>
                                         {s.label}
                                     </SelectItem>
@@ -420,7 +420,7 @@ export default function BookingPage({
                 </HStack>
             </form>
 
-            <DialogRoot lazyMount open={isOpen} onOpenChange={(e: any) => setOpen(e.open)}>
+            <DialogRoot lazyMount open={isOpen} onOpenChange={(e) => setOpen(e.open)}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Överlappande bokning</DialogTitle>
