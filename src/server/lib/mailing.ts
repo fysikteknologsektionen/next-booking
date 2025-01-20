@@ -44,7 +44,7 @@ export async function sendEmail(recipient:string|undefined, subject:string, mess
         from: config.NODEMAILER_EMAIL,
         to: recipient,
         subject: subject,
-        text:message,
+        html: message,
     };
 
     const sendMailPromise = () =>
