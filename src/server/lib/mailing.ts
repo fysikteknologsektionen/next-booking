@@ -80,11 +80,11 @@ function makeEmail(reservation: Reservation, venue: string, header: string, mess
     }
   
     let mail = '<!DOCTYPE html><html><head><base target="_top"></head><body><div style="text-align: center;' +
-        'font-family: Arial;"><div id="center" style="width:400px;border: 2px dotted grey;background:' +
-        '#ececec; margin:25px;margin-left:auto; margin-right:auto;padding:15px;">' +
-        '<img src="https://ftek.se/wp-content/uploads/ftek-documents/logotyper/sektionslogo-noring.png" width="120px"></img>' +
-        '<div style=" border: 2px dotted grey;' +
-        'background:white;margin-right:auto; margin-left:auto; padding:10px; text-align:left;"><h2 style="text-align:center;">' +
+        'font-family: Arial;"><div id="center" style="width:500px; margin:25px;margin-left:auto; margin-right:auto;' +
+        'padding:15px; box-shadow: 0 10px 25px -4px rgba(0,0,0,0.25);border-radius:16px;overflow-wrap:break-word;">' +
+        '<img src="https://ftek.se/wp-content/uploads/2020/02/sektionslogo-noring.png" width="120px"></img>' +
+        '<div style="' +
+        'margin-right:auto; margin-left:auto; padding:10px; text-align:left;"><h2 style="text-align:center;">' +
         header +
         '</h2>' +
         message +
@@ -109,7 +109,7 @@ function makeEmail(reservation: Reservation, venue: string, header: string, mess
         'https://boka.ftek.se/#calendar' +
         '" class="btn" style="-webkit-border-radius: 28;' +
         '-moz-border-radius: 5;border-radius: 5px;font-family: Arial; color: #ffffff;font-size: 15px;' +
-        'background: #8D0000;padding:8px 20px 8px 20px;text-decoration: none;">' +
+        'background: rgb(37,99,235);padding:8px 20px 8px 20px;text-decoration: none;font-weight: bold;">' +
         'Visa kalender' +
         '</a></div><br /><br /><p style=" text-align:right;">/ Fysikteknologsektionens lokalbokning</p></div></div></body></html>';
 
