@@ -1,6 +1,7 @@
 "use client";
 
 import { Button, Heading, Text, VStack } from "@chakra-ui/react";
+import { Role } from "@prisma/client";
 import { signIn, signOut, useSession } from "next-auth/react";
 
 export default function ProfilePage() {
@@ -18,7 +19,7 @@ export default function ProfilePage() {
                     <VStack gap="1rem" align="start">
                         <div>
                             <Text>Inloggad som {session.user.name}</Text>
-                            <Text>Roll: {session.user.role}</Text>
+                            <Text>Roll: {Role[session.user.role]}</Text>
                         </div>
 
                         <Button onClick={() => signOut()}>Logga ut</Button>

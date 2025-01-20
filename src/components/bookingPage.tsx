@@ -75,8 +75,8 @@ export default function BookingPage({
     const swedishFrom = fromDateString + "T" + fromTimeString;
     const swedishTo = toDateString + "T" + toTimeString;
 
-    const from = useMemo(() => new Date(swedishFrom), [ fromDateString, fromTimeString ]);
-    const to = useMemo(() => new Date(swedishTo), [ toDateString, toTimeString ]);
+    const from = useMemo(() => new Date(swedishFrom), [ swedishFrom]);
+    const to = useMemo(() => new Date(swedishTo), [swedishTo]);
 
     const duration = useMemo(() => new Date(
         to.valueOf() -

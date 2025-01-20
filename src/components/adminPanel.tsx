@@ -147,10 +147,10 @@ function ReservationList(props: ReservationListProps) {
     });
 
     const [inputShow, setInputShow] = useState([ showList.items[0].value ]);
-    const [inputOrderBy, setInputOrderBy] = useState([ orderByList.items[0].value ]);
+    const [inputOrderBy, setInputOrderBy] = useState([ orderByList.items[3].value ]);
 
     const show = ShowFilter[inputShow[0] as keyof typeof ShowFilter];
-    const orderBy = OrderBy[inputOrderBy[3] as keyof typeof OrderBy];
+    const orderBy = OrderBy[inputOrderBy[0] as keyof typeof OrderBy];
 
     const filteredReservations = props.reservations
         .filter(reservation => {
