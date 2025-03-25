@@ -74,8 +74,8 @@ export default function Home() {
             </div>
 
             <div>
-                <Heading as="h2" size="3xl" fontWeight="bold" marginBottom="0.5em">Inte sektionsmedlem?</Heading>
-                <Text>Kontakta Rustmästaren på <Link href="mailto:dp.rust@ftek.se" fontWeight="bold" textDecoration="underline">dp.rust@ftek.se</Link> innan du bokar.</Text>
+                <Heading as="h2" size="3xl" fontWeight="bold" marginBottom="0.5em">Frågor?</Heading>
+                <Text>Vid frågor kontakta Rustmästaren på <Link href="mailto:dp.rust@ftek.se" fontWeight="bold" textDecoration="underline">dp.rust@ftek.se</Link>.</Text>
             </div>
 
             <FeedbackSection />
