@@ -556,25 +556,31 @@ function ReservationsList({
         if (reservation.status === Status.DENIED) {
             return false;
         }
+        
+        // // Only show reservation on the first booked day
+        // const calendarDayFrom = new Date(month);
+        // calendarDayFrom.setDate(day);
+        // calendarDayFrom.setHours(0, 0, 0, 0);
+        // const calendarDayTo = new Date(month);
+        // calendarDayTo.setDate(day + 1);
+        // calendarDayTo.setHours(0, 0, 0, 0);
+        // return (
+        //     reservation.startTime.valueOf() >= calendarDayFrom.valueOf() &&
+        //     reservation.startTime.valueOf() < calendarDayTo.valueOf()
+        // );
 
+        // Show reservation for all booked days
         const calendarDayFrom = new Date(month);
         calendarDayFrom.setDate(day);
-        calendarDayFrom.setHours(0, 0, 0, 0);
+        // Events that close at 03:00 should not be visible on next days slot
+        calendarDayFrom.setHours(4, 0, 0, 0);
         const calendarDayTo = new Date(month);
         calendarDayTo.setDate(day + 1);
         calendarDayTo.setHours(0, 0, 0, 0);
-
-        // Only show reservation on the first booked day
         return (
-            reservation.startTime.valueOf() >= calendarDayFrom.valueOf() &&
-            reservation.startTime.valueOf() < calendarDayTo.valueOf()
+            reservation.startTime.valueOf() <= calendarDayTo.valueOf() &&
+            reservation.endTime.valueOf() >= calendarDayFrom.valueOf()
         );
-
-        // Show reservation for all booked days
-        // return (
-        //     reservation.startTime.valueOf() <= calendarDayTo.valueOf() &&
-        //     reservation.endTime.valueOf() >= calendarDayFrom.valueOf()
-        // );
     }
 
     if (!reservations) {
