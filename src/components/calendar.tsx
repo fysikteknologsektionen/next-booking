@@ -29,6 +29,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { MenuContent, MenuRoot, MenuTrigger, MenuItem } from './ui/menu';
+import { IoReload } from 'react-icons/io5';
 
 export default function Calendar() {
     const [month, setMonth] = useState(getCurrentMonth())
@@ -49,12 +50,16 @@ export default function Calendar() {
     const [isOpen, setOpen] = useState(false);
     const [activeReservation, setActiveReservation] = useState<Reservation>()
 
+    const refresh = () => {
+        // Force a refresh of the calendar
+        setMonth(getCurrentMonth(month));
+    }
+
     const closeAndRefresh = () => {
         setOpen(false);
         setActiveReservation(undefined);
 
-        // Force a refresh of the calendar
-        setMonth(getCurrentMonth(month));
+        refresh();
     }
 
     return (
@@ -66,6 +71,7 @@ export default function Calendar() {
                     month={month}
                     setMonth={setMonth}
                     isLoading={isLoading}
+                    refresh={refresh}
                 />
 
                 <CalendarDaysHeader />
@@ -92,6 +98,7 @@ interface CalendarActionHeaderProps {
     month: Date;
     setMonth: Dispatch<SetStateAction<Date>>;
     isLoading: boolean;
+    refresh: () => void;
 }
 
 function CalendarActionHeader(props: CalendarActionHeaderProps) {
@@ -136,12 +143,19 @@ function CalendarActionHeader(props: CalendarActionHeaderProps) {
                 top="0"
             >Idag</Button>
 
-            {props.isLoading && (
-                <Spinner
-                    position="absolute"
-                    right="1rem"
-                ></Spinner>
-            )}
+            <HStack position="absolute" right="0" gap="1rem">
+                {props.isLoading && (
+                    <Spinner></Spinner>
+                )}
+
+                <IconButton
+                    variant="subtle"
+                    onClick={props.refresh}
+                    title="Refresh calendar"
+                >
+                    <IoReload />
+                </IconButton>
+            </HStack>
         </Center>
     )
 }
