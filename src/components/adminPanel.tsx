@@ -1,7 +1,7 @@
 import { useVenueStore } from "@/lib/venueStore";
 import { getReservationsClient } from "@/server/api/getreservations";
-import { Box, Card, Center, createListCollection, Heading, HStack, IconButton, Spinner, Stack, Tabs, Text } from "@chakra-ui/react";
-import { Recurring, Reservation, Status, User } from "@prisma/client";
+import { Box, Card, Center, createListCollection, Heading, HStack, IconButton, Input, Spinner, Stack, Tabs, Text, Field } from "@chakra-ui/react";
+import { Recurring, Reservation, Status, User, Venue } from "@prisma/client";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
 import styles from "@/components/adminPanel.module.css";
@@ -10,7 +10,7 @@ import { MdClose, MdCheck } from 'react-icons/md';
 import { RiDeleteBin5Fill } from 'react-icons/ri';
 import { FiEdit } from 'react-icons/fi';
 import { approveReservationClient } from "@/server/api/approveReservation";
-import { formatDate, formatTimeInterval, getRecurringLabel, getReservationTypeLabel, getStatusLabel, getVenueColor } from "@/lib/helper";
+import { formatDate, formatTimeInterval, getRecurringLabel, getReservationTypeLabel, getStatusLabel, getVenueColor, getVenueLabel } from "@/lib/helper";
 import { denyReservationClient } from "@/server/api/denyReservation";
 import { getUsersClient } from "@/server/api/getUsers";
 import { deleteReservationClient } from "@/server/api/deleteReservation";
@@ -34,6 +34,8 @@ import {
     SelectTrigger,
     SelectValueText,
 } from "@/components/ui/select";
+import { InputGroup } from "./ui/input-group";
+import { LuSearch } from "react-icons/lu";
 
 export default function AdminPanel() {
     const [isLoading, setLoading] = useState(false);
@@ -130,6 +132,8 @@ enum ShowFilter {
 }
 
 function ReservationList(props: ReservationListProps) {
+    const venues = useVenueStore((state) => state.venues);
+    
     const orderByList = createListCollection({
         items: [
             { label: "Starttid - Främst", value: OrderBy[OrderBy.START_TIME_NEW] },
@@ -148,6 +152,7 @@ function ReservationList(props: ReservationListProps) {
 
     const [inputShow, setInputShow] = useState([ showList.items[0].value ]);
     const [inputOrderBy, setInputOrderBy] = useState([ orderByList.items[3].value ]);
+    const [inputSearch, setInputSearch] = useState("");
 
     const show = ShowFilter[inputShow[0] as keyof typeof ShowFilter];
     const orderBy = OrderBy[inputOrderBy[0] as keyof typeof OrderBy];
@@ -182,6 +187,7 @@ function ReservationList(props: ReservationListProps) {
 
             return false;
         })
+        .filter(searchFilter(venues, inputSearch))
         .sort((a, b) => {
             if (orderBy === OrderBy.START_TIME_NEW || orderBy === OrderBy.START_TIME_OLD) {
                 return a.startTime.valueOf() - b.startTime.valueOf();
@@ -203,7 +209,10 @@ function ReservationList(props: ReservationListProps) {
     const endRange = startRange + reservationsPerPage;
     const visibleReservations = filteredReservations.slice(startRange, endRange);
 
-    const isFiltering = show !== ShowFilter.ALL;
+    const isFiltering = (
+        show !== ShowFilter.ALL ||
+        inputSearch !== ""
+    );
 
     return (
         <>
@@ -248,6 +257,19 @@ function ReservationList(props: ReservationListProps) {
                                     ))}
                                 </SelectContent>
                             </SelectRoot>
+
+                            <Field.Root>
+                                <Field.Label>Sök</Field.Label>
+                                <InputGroup startElement={<LuSearch />}>
+                                    <Input
+                                        value={inputSearch}
+                                        onChange={(e) => {
+                                            setInputSearch(e.currentTarget.value)
+                                        }}
+                                        placeholder="Sök efter namn, lokal, datum, m.m"
+                                    />
+                                </InputGroup>
+                            </Field.Root>
                         </HStack>
 
                         {isFiltering && (
@@ -527,4 +549,59 @@ function ReservationItem({
             </DialogRoot>
         </Card.Root>
     )
+}
+
+function searchFilter(venues: Venue[], search: string) {
+    search = search.trim().toLocaleLowerCase();
+
+    const matchesSearch = (t: string) => t.toLocaleLowerCase().indexOf(search) !== -1;
+
+    const dateMatches = (date: Date) => {
+        // Fix date sometimes being a string
+        date = new Date(date);
+
+        return (
+            matchesSearch(date.toISOString()) ||
+            matchesSearch(date.toLocaleDateString()) ||
+            matchesSearch(date.toString())
+        );
+    }
+    
+    return function (reservation: Reservation) {
+        if (search === "") {
+            return true;
+        }
+
+        const recurringUntilMatches = reservation.recurringUntil ?
+            dateMatches(reservation.recurringUntil) :
+            false;
+        
+        const committeeMatches = reservation.clientCommittee ?
+            matchesSearch(reservation.clientCommittee) :
+            false;
+        
+        const recurringMatches = matchesSearch(getRecurringLabel(reservation.recurring));
+        const statusMatches = matchesSearch(getStatusLabel(reservation.status));
+        const venueMatches = matchesSearch(getVenueLabel(venues, reservation.venueId));
+        const typeMatches = matchesSearch(getReservationTypeLabel(reservation.type));
+        const intervalMatches = matchesSearch(formatTimeInterval(reservation.startTime, reservation.endTime));
+        
+        return (
+            committeeMatches ||
+            matchesSearch(reservation.clientDescription) ||
+            matchesSearch(reservation.clientEmail) ||
+            matchesSearch(reservation.clientName) ||
+            dateMatches(reservation.createdAt) ||
+            dateMatches(reservation.updatedAt) ||
+            dateMatches(reservation.date) ||
+            dateMatches(reservation.startTime) ||
+            dateMatches(reservation.endTime) ||
+            intervalMatches ||
+            recurringMatches ||
+            recurringUntilMatches ||
+            statusMatches ||
+            venueMatches ||
+            typeMatches
+        );
+    }
 }
