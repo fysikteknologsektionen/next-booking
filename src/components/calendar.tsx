@@ -207,6 +207,7 @@ function CalendarBody({
             setSession(currentSession);
         })()
     }, []);
+    const _isManager = isManager(session);
 
     const today = new Date();
 
@@ -282,6 +283,7 @@ function CalendarBody({
                             </CalendarNumber>
 
                             <ReservationsList
+                                showDesc={_isManager}
                                 reservations={reservations}
                                 day={day}
                                 setActiveReservation={setActiveReservation}
@@ -583,6 +585,7 @@ interface ReservationsListProps {
     month: Date,
     isExpanded: boolean,
     setExpanded: Dispatch<SetStateAction<boolean>>,
+    showDesc: boolean
 }
 
 // Template for the ui chips showing the
@@ -595,6 +598,7 @@ function ReservationsList({
     month,
     isExpanded,
     setExpanded,
+    showDesc
 }: ReservationsListProps) {
     const venues = useVenueStore((state) => state.venues);
 
@@ -647,12 +651,15 @@ function ReservationsList({
                     }
 
                     const venueColor = getVenueColor(reservation.venueId);
+                    const text = showDesc ?
+                        reservation.clientDescription :
+                        getVenueLabel(venues, reservation.venueId)
 
                     return (
                         <Tag
                             onClick={onclick}
                             width="100%"
-                            size="lg"
+                            size="md"
                             fontWeight="bold"
                             bg={venueColor}
                             boxShadow="none"
@@ -661,7 +668,7 @@ function ReservationsList({
                             key={index}
                         >
                             <Text truncate>
-                                {getVenueLabel(venues, reservation.venueId)}
+                                {text}
                             </Text>
                         </Tag>
                     )
