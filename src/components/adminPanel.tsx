@@ -129,6 +129,7 @@ enum OrderBy {
 enum ShowFilter {
     ALL,
     ONLY_OVERLAPPING,
+    AFTER_TODAY
 }
 
 function ReservationList(props: ReservationListProps) {
@@ -146,12 +147,14 @@ function ReservationList(props: ReservationListProps) {
     const showList = createListCollection({
         items: [
             { label: "Visa alla", value: ShowFilter[ShowFilter.ALL] },
-            { label: "Endast överlappande", value: ShowFilter[ShowFilter.ONLY_OVERLAPPING] }
+            { label: "Göm försenade", value: ShowFilter[ShowFilter.AFTER_TODAY] },
+            { label: "Endast överlappande", value: ShowFilter[ShowFilter.ONLY_OVERLAPPING] },
         ],
     });
 
     const [inputShow, setInputShow] = useState([ showList.items[0].value ]);
-    const [inputOrderBy, setInputOrderBy] = useState([ orderByList.items[3].value ]);
+    const [inputOrderBy, setInputOrderBy] = useState([ orderByList.items[0].value ]);
+    // const [inputOrderBy, setInputOrderBy] = useState([ orderByList.items[3].value ]);
     const [inputSearch, setInputSearch] = useState("");
 
     const show = ShowFilter[inputShow[0] as keyof typeof ShowFilter];
@@ -161,6 +164,10 @@ function ReservationList(props: ReservationListProps) {
         .filter(reservation => {
             if (show === ShowFilter.ALL) {
                 return true;
+            }
+
+            if (show === ShowFilter.AFTER_TODAY && reservation.startTime.valueOf() < new Date().valueOf()) {
+                return false;
             }
 
             if (reservation.status === Status.DENIED) {
@@ -223,7 +230,7 @@ function ReservationList(props: ReservationListProps) {
                             <SelectRoot
                                 collection={showList}
                                 value={inputShow}
-                                width="250px"
+                                width="300px"
                                 onValueChange={(e) => setInputShow(e.value)}
                             >
                                 <SelectLabel>Visa</SelectLabel>
@@ -242,7 +249,7 @@ function ReservationList(props: ReservationListProps) {
                             <SelectRoot
                                 collection={orderByList}
                                 value={inputOrderBy}
-                                width="175px"
+                                width="300px"
                                 onValueChange={(e) => setInputOrderBy(e.value)}
                             >
                                 <SelectLabel>Sortera efter</SelectLabel>
