@@ -1,6 +1,7 @@
 "use client";
 
-import { Heading, Icon } from '@chakra-ui/react'
+import styles from "./calendar.module.css";
+import { Heading, Icon, Link } from '@chakra-ui/react'
 import { Text, Grid, GridItem, Center, Button, Circle, HStack, VStack, Spinner, IconButton } from "@chakra-ui/react";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { Recurring, Reservation, Status } from "@prisma/client";
@@ -10,7 +11,7 @@ import { RiDeleteBin5Fill } from 'react-icons/ri';
 import { FiEdit } from 'react-icons/fi';
 import { FaArrowLeft, FaArrowRight, FaChevronDown } from 'react-icons/fa';
 import { useVenueStore } from "@/lib/venueStore";
-import { daysInMonth, DAY_NAMES, formatTimeInterval, getCurrentMonth, getNameOfMonth, getRecurringLabel, getReservationTypeLabel, getVenueColor, getVenueLabel, isManager } from "@/lib/helper";
+import { daysInMonth, DAY_NAMES, formatTimeInterval, getCurrentMonth, getNameOfMonth, getRecurringLabel, getReservationTypeLabel, getVenueColor, getVenueLabel, isManager, getUserEmail, getUserName } from "@/lib/helper";
 import { approveReservationClient } from "@/server/api/approveReservation";
 import { denyReservationClient } from "@/server/api/denyReservation";
 import { getSession } from "next-auth/react";
@@ -29,7 +30,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { MenuContent, MenuRoot, MenuTrigger, MenuItem } from './ui/menu';
-import { IoReload } from 'react-icons/io5';
+import { IoAddCircleSharp, IoReload } from 'react-icons/io5';
 
 export default function Calendar() {
     const [month, setMonth] = useState(getCurrentMonth())
@@ -195,6 +196,18 @@ function CalendarBody({
     setActiveReservation,
     onOpen
 }: CalendarBodyProps) {
+    const [session, setSession] = useState<Session>();
+    useEffect(() => {
+        (async () => {
+            const currentSession = await getSession();
+            if (!currentSession) {
+                return;
+            }
+
+            setSession(currentSession);
+        })()
+    }, []);
+
     const today = new Date();
 
     const firstDayOffset = (month.getDay() - 1 + 7) % 7 + 1;
@@ -227,6 +240,14 @@ function CalendarBody({
             {days.map((day, index) => {
                 const isExpanded = expandedDay === day;
 
+                const startTime = new Date(month);
+                startTime.setDate(day);
+                startTime.setHours(17, 0, 0, 0);
+                const createUrl = new URL("/create", window.location.origin);
+                createUrl.searchParams.append("startTime", startTime.toISOString());
+                createUrl.searchParams.append("clientEmail", getUserEmail(session) ?? "");
+                createUrl.searchParams.append("clientName", getUserName(session) ?? "");
+
                 return (
                     <GridItem
                         // The calendar header always start on mondays but
@@ -239,6 +260,7 @@ function CalendarBody({
                         paddingTop="calc(0.25rem + 35px)"
                         minHeight="136px"
                         position="relative"
+                        className={styles.calendarSquare}
                     >
                         <div style={isExpanded ? {
                             position: "absolute",
@@ -252,7 +274,10 @@ function CalendarBody({
                             background: "inherit",
                             boxShadow: "0 0 15px 0 rgba(0, 0, 0, 0.25)",
                         } : undefined}>
-                            <CalendarNumber isMarked={isToday(day, today)}>
+                            <CalendarNumber
+                                isMarked={isToday(day, today)}
+                                createUrl={createUrl.toString()}
+                            >
                                 {day}
                             </CalendarNumber>
 
@@ -283,6 +308,7 @@ function CalendarBody({
 interface CalendarNumberProps {
     children: React.ReactNode;
     isMarked: boolean;
+    createUrl: string;
 }
 
 function CalendarNumber(props: CalendarNumberProps) {
@@ -291,21 +317,41 @@ function CalendarNumber(props: CalendarNumberProps) {
             position="absolute"
             top="5px"
             left="5px"
-            width="30px"
-            height="30px"
         >
-            {props.isMarked ? (
-                <Circle
-                    bg="blue.500"
-                    size="30px"
-                    fontWeight="bold"
-                    color="white"
+            <HStack>
+                {props.isMarked ? (
+                    <Circle
+                        bg="blue.500"
+                        size="30px"
+                        fontWeight="bold"
+                        color="white"
+                    >
+                        {props.children}
+                    </Circle>
+                ) : (
+                    <Center
+                        width="30px"
+                        height="30px"
+                    >
+                        <Text>{props.children}</Text>
+                    </Center>
+                )}
+
+                <Button
+                    asChild
+                    className={styles.bookOnCurrentDay}
+                    height="unset"
+                    padding="0.25em"
+                    size="xs"
+                    rounded="full"
+                    variant="subtle"
+                    title="Boka lokal denna dagen"
                 >
-                    {props.children}
-                </Circle>
-            ) : (
-                <Text>{props.children}</Text>
-            )}
+                    <Link href={props.createUrl}>
+                        <IoAddCircleSharp /> Boka
+                    </Link>
+                </Button>
+            </HStack>
         </Center>
     )
 }

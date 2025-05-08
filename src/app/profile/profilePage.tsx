@@ -18,7 +18,8 @@ export default function ProfilePage() {
                 {session ? (
                     <VStack gap="1rem" align="start">
                         <div>
-                            <Text>Inloggad som {session.user.name}</Text>
+                            <Text>Namn: {session.user.name}</Text>
+                            <Text>Mejl: {session.user.email}</Text>
                             <Text>Roll: {Role[session.user.role]}</Text>
                         </div>
 

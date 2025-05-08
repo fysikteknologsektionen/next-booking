@@ -345,6 +345,22 @@ export const isAdmin = (session: Session | undefined | null): boolean => {
     return !!session && session.user.role === Role.ADMIN;
 }
 
+export const getUserEmail = (session: Session | undefined | null): string | undefined => {
+    if (!session) {
+        return undefined;
+    }
+
+    return session.user.email;
+}
+
+export const getUserName = (session: Session | undefined | null): string | undefined => {
+    if (!session) {
+        return undefined;
+    }
+
+    return session.user.name;
+}
+
 export const CHARACTER_LIMIT = {
     name: 80,
     description: 500,

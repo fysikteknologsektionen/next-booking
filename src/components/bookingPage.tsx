@@ -1,7 +1,7 @@
 "use client";
 
 import styles from "./bookingPage.module.css";
-import { dateToInput, dateToTimeInput, formatDateShort, formatDuration, getRecurringLabel, getStatusLabel, isMailSpelledCorrectly } from "@/lib/helper";
+import { dateToInput, dateToTimeInput, formatDateShort, formatDuration, getRecurringLabel, getStatusLabel, getUserEmail, isMailSpelledCorrectly } from "@/lib/helper";
 import { createReservationClient } from "@/server/api/createReservation";
 import { getReservationsClient } from "@/server/api/getreservations";
 import { updateReservationClient } from "@/server/api/updateReservation";
@@ -9,7 +9,7 @@ import { CHARACTER_LIMIT } from "@/lib/helper";
 import { Button, createListCollection, Heading, HStack, Input, Link, Spinner, Stack, Text, Textarea } from "@chakra-ui/react";
 import { Recurring, Reservation, ReservationType, Status, Venue } from "@prisma/client";
 import { useRouter } from "next/navigation";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Field } from "./ui/field";
 import { SelectContent, SelectItem, SelectRoot, SelectTrigger, SelectValueText } from "./ui/select";
 import { Radio, RadioGroup } from "./ui/radio";
@@ -26,12 +26,17 @@ import {
 } from "@/components/ui/dialog"
 import { checkOverlapClient } from "@/server/api/checkReservationOverlap";
 import { toaster } from "./ui/toaster";
+import { Session } from "next-auth";
+import { getSession } from "next-auth/react";
 
 const fromDefault = new Date();
 fromDefault.setSeconds(0, 0);
 
-const toDefault = new Date(fromDefault);
-toDefault.setHours(toDefault.getHours() + 1);
+const toDefault = (fromDefault: Date) => {
+    const d = new Date(fromDefault);
+    d.setHours(d.getHours() + 1);
+    return d;
+}
 
 const recurringUntilDefault = new Date(fromDefault);
 recurringUntilDefault.setFullYear(recurringUntilDefault.getFullYear() + 1);
@@ -42,22 +47,36 @@ export default function BookingPage({
     venues: Venue[],
     reservation?: Reservation
 }) {
-    const isUpdating = !!reservation;
-
     const router = useRouter();
-    const defaultReservationData = reservation ? reservation : {
-        clientName: "",
-        clientCommittee: null,
-        clientEmail: "",
-        clientDescription: "",
-        type: ReservationType.PREPARATION,
-        startTime: fromDefault,
-        endTime: toDefault,
-        venueId: "",
-        status: Status.PENDING,
-        recurring: Recurring.NEVER,
-        recurringUntil: recurringUntilDefault
-    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const query = {
+        startTime: urlParams.get("startTime"),
+        endTime: urlParams.get("endTime"),
+        clientEmail: urlParams.get("clientEmail"),
+        clientName: urlParams.get("clientName"),
+    };
+    const defaultStartTime = query.startTime ? new Date(query.startTime) : fromDefault;
+    const defaultEndTime = query.endTime ? new Date(query.endTime) : toDefault(defaultStartTime);
+    const defaultClientEmail = query.clientEmail ?? "";
+    const defaultClientName = query.clientName ?? "";
+
+    const isUpdating = !!reservation;
+    const defaultReservationData = reservation ?
+        reservation :
+        {
+            clientName: defaultClientName,
+            clientCommittee: null,
+            clientEmail: defaultClientEmail,
+            clientDescription: "",
+            type: ReservationType.PREPARATION,
+            startTime: defaultStartTime,
+            endTime: defaultEndTime,
+            venueId: "",
+            status: Status.PENDING,
+            recurring: Recurring.NEVER,
+            recurringUntil: recurringUntilDefault
+        }
 
     const [venue, setVenue] = useState<string>(defaultReservationData.venueId?.toString()??"")
     const [name, setName] = useState(defaultReservationData.clientName)

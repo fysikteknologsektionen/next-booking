@@ -57,6 +57,7 @@ const authOptions: NextAuthOptions = {
         ...session,
         user: {
           name: session.user.name,
+          email: localUser?.email ?? "",
           image: localUser?.image,
           id: token.sub,
           role: token.role,

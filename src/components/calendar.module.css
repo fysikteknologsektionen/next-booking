@@ -1,0 +1,7 @@
+.bookOnCurrentDay {
+    visibility: hidden;
+}
+
+.calendarSquare:hover .bookOnCurrentDay {
+    visibility: visible;
+}
