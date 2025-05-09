@@ -1,7 +1,7 @@
 "use client";
 
 import styles from "./bookingPage.module.css";
-import { dateToInput, dateToTimeInput, formatDateShort, formatDuration, getRecurringLabel, getStatusLabel, getUserEmail, isMailSpelledCorrectly } from "@/lib/helper";
+import { dateToInputUTC, dateToTimeInputUTC, dateToInput, dateToTimeInput, formatDateShort, formatDuration, getRecurringLabel, getStatusLabel, getUserEmail, isMailSpelledCorrectly } from "@/lib/helper";
 import { createReservationClient } from "@/server/api/createReservation";
 import { getReservationsClient } from "@/server/api/getreservations";
 import { updateReservationClient } from "@/server/api/updateReservation";
@@ -86,11 +86,11 @@ export default function BookingPage({
     const [reservationType, setReservationType] = useState(defaultReservationData.type)
     const [description, setDescription] = useState(defaultReservationData.clientDescription)
     
-    const [fromDateString, setFromDateString] = useState(dateToInput(new Date(defaultReservationData.startTime), false));
-    const [fromTimeString, setFromTimeString] = useState(dateToTimeInput(new Date(defaultReservationData.startTime)));
+    const [fromDateString, setFromDateString] = useState(dateToInputUTC(new Date(defaultReservationData.startTime), false));
+    const [fromTimeString, setFromTimeString] = useState(dateToTimeInputUTC(new Date(defaultReservationData.startTime)));
 
-    const [toDateString, setToDateString] = useState(dateToInput(new Date(defaultReservationData.endTime), false));
-    const [toTimeString, setToTimeString] = useState(dateToTimeInput(new Date(defaultReservationData.endTime)));
+    const [toDateString, setToDateString] = useState(dateToInputUTC(new Date(defaultReservationData.endTime), false));
+    const [toTimeString, setToTimeString] = useState(dateToTimeInputUTC(new Date(defaultReservationData.endTime)));
     
     const swedishFrom = fromDateString + "T" + fromTimeString;
     const swedishTo = toDateString + "T" + toTimeString;
