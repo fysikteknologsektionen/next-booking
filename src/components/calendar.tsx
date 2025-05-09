@@ -31,9 +31,24 @@ import {
 } from "@/components/ui/dialog";
 import { MenuContent, MenuRoot, MenuTrigger, MenuItem } from './ui/menu';
 import { IoAddCircleSharp, IoReload } from 'react-icons/io5';
+import { useSearchParams } from "next/navigation";
 
 export default function Calendar() {
+    const searchParams = useSearchParams()
+    const searchMonth = searchParams.get("month");
+
     const [month, setMonth] = useState(getCurrentMonth())
+
+    useEffect(() => {
+        if (!searchMonth) {
+            return;
+        }
+
+        const d = new Date(searchMonth);
+        d.setUTCDate(1);
+        d.setUTCHours(0, 0, 0, 0);
+        setMonth(d);
+    }, [searchMonth])
 
     const [isLoading, setLoading] = useState(false);
     const [reservations, setReservations] = useState<Reservation[]>([]);

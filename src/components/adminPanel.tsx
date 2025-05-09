@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/select";
 import { InputGroup } from "./ui/input-group";
 import { LuSearch } from "react-icons/lu";
+import { useRouter } from "next/navigation";
 
 export default function AdminPanel() {
     const [isLoading, setLoading] = useState(false);
@@ -349,6 +350,7 @@ function ReservationItem({
     setReservations: Dispatch<SetStateAction<Reservation[]>>,
     users: User[]
 }) {
+    const router = useRouter();
     const venues = useVenueStore((state) => state.venues);
     const getVenue = (venueId: number | null) => {
         return venues.find(v => v.id === venueId);
@@ -445,6 +447,11 @@ function ReservationItem({
         setDisabled(false);
     };
 
+    const viewInCalendar = () => {
+        const month = new Date(reservation.startTime);
+        router.push("/?month=" + month.toISOString() + "#calendar");
+    }
+
     const status = overrideStatus === Status.PENDING ? reservation.status : overrideStatus;
 
     const [editor, setEditor] = useState<string>("");
@@ -526,8 +533,9 @@ function ReservationItem({
                         </Button>
                     </MenuTrigger>
                     <MenuContent>
-                        <MenuItem value="edit" disabled={disabled} onClick={edit}><FiEdit />Redigera</MenuItem>
-                        <MenuItem value="delete" disabled={disabled} onClick={() => setConfirmDeleteOpen(true)}><RiDeleteBin5Fill />Ta bort</MenuItem>
+                        <MenuItem value="edit" disabled={disabled} onClick={edit}><FiEdit /> Redigera</MenuItem>
+                        <MenuItem value="delete" disabled={disabled} onClick={() => setConfirmDeleteOpen(true)}><RiDeleteBin5Fill /> Ta bort</MenuItem>
+                        <MenuItem value="showInCalendar" disabled={disabled} onClick={viewInCalendar}><LuSearch /> Visa i kalendern</MenuItem>
                     </MenuContent>
                 </MenuRoot>
             </div>
