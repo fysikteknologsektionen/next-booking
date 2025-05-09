@@ -28,6 +28,7 @@ import { checkOverlapClient } from "@/server/api/checkReservationOverlap";
 import { toaster } from "./ui/toaster";
 import { Session } from "next-auth";
 import { getSession } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 
 const fromDefault = new Date();
 fromDefault.setSeconds(0, 0);
@@ -48,13 +49,13 @@ export default function BookingPage({
     reservation?: Reservation
 }) {
     const router = useRouter();
+    const searchParams = useSearchParams();
 
-    const urlParams = new URLSearchParams(window.location.search);
     const query = {
-        startTime: urlParams.get("startTime"),
-        endTime: urlParams.get("endTime"),
-        clientEmail: urlParams.get("clientEmail"),
-        clientName: urlParams.get("clientName"),
+        startTime: searchParams.get("startTime"),
+        endTime: searchParams.get("endTime"),
+        clientEmail: searchParams.get("clientEmail"),
+        clientName: searchParams.get("clientName"),
     };
     const defaultStartTime = query.startTime ? new Date(query.startTime) : fromDefault;
     const defaultEndTime = query.endTime ? new Date(query.endTime) : toDefault(defaultStartTime);

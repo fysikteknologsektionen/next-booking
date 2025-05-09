@@ -257,12 +257,13 @@ function CalendarBody({
                 const isExpanded = expandedDay === day;
 
                 const startTime = new Date(month);
-                startTime.setDate(day);
-                startTime.setHours(17, 0, 0, 0);
-                const createUrl = new URL("/create", window.location.origin);
-                createUrl.searchParams.append("startTime", startTime.toISOString());
-                createUrl.searchParams.append("clientEmail", getUserEmail(session) ?? "");
-                createUrl.searchParams.append("clientName", getUserName(session) ?? "");
+                startTime.setUTCDate(day);
+                startTime.setUTCHours(17, 0, 0, 0);
+                const searchParams = new URLSearchParams();
+                searchParams.append("startTime", startTime.toISOString());
+                searchParams.append("clientEmail", getUserEmail(session) ?? "");
+                searchParams.append("clientName", getUserName(session) ?? "");
+                const createUrlString = "/create?" + searchParams.toString();
 
                 return (
                     <GridItem
@@ -292,7 +293,7 @@ function CalendarBody({
                         } : undefined}>
                             <CalendarNumber
                                 isMarked={isToday(day, today)}
-                                createUrl={createUrl.toString()}
+                                createUrl={createUrlString}
                             >
                                 {day}
                             </CalendarNumber>
