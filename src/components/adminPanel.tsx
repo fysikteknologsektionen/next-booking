@@ -25,7 +25,6 @@ import {
     PaginationPrevTrigger,
     PaginationRoot,
 } from "@/components/ui/pagination";
-import { Checkbox } from "./ui/checkbox";
 import {
     SelectContent,
     SelectItem,
@@ -37,6 +36,7 @@ import {
 import { InputGroup } from "./ui/input-group";
 import { LuSearch } from "react-icons/lu";
 import { useRouter } from "next/navigation";
+import { Checkbox } from "./ui/checkbox";
 
 export default function AdminPanel() {
     const [isLoading, setLoading] = useState(false);
@@ -158,6 +158,7 @@ function ReservationList(props: ReservationListProps) {
         ],
     });
 
+    const [inputSmall, setInputSmall] = useState(false);
     const [inputShow, setInputShow] = useState([ showList.items[0].value ]);
     const [inputOrderBy, setInputOrderBy] = useState([ orderByList.items[0].value ]);
     // const [inputOrderBy, setInputOrderBy] = useState([ orderByList.items[3].value ]);
@@ -236,7 +237,7 @@ function ReservationList(props: ReservationListProps) {
                             <SelectRoot
                                 collection={showList}
                                 value={inputShow}
-                                width="300px"
+                                width="150px"
                                 onValueChange={(e) => setInputShow(e.value)}
                             >
                                 <SelectLabel>Visa</SelectLabel>
@@ -255,7 +256,7 @@ function ReservationList(props: ReservationListProps) {
                             <SelectRoot
                                 collection={orderByList}
                                 value={inputOrderBy}
-                                width="300px"
+                                width="150px"
                                 onValueChange={(e) => setInputOrderBy(e.value)}
                             >
                                 <SelectLabel>Sortera efter</SelectLabel>
@@ -271,24 +272,38 @@ function ReservationList(props: ReservationListProps) {
                                 </SelectContent>
                             </SelectRoot>
 
-                            <Field.Root>
-                                <Field.Label>Sök</Field.Label>
-                                <InputGroup startElement={<LuSearch />}>
-                                    <Input
-                                        value={inputSearch}
-                                        onChange={(e) => {
-                                            setInputSearch(e.currentTarget.value)
-                                        }}
-                                        placeholder="Sök efter namn, lokal, datum, m.m"
-                                    />
-                                </InputGroup>
+                            <Field.Root
+                                width="150px"
+                            >
+                                <Field.Label>Kompakt</Field.Label>
+                                <Checkbox
+                                    height="35px"
+                                    checked={inputSmall}
+                                    onCheckedChange={(e: any) => setInputSmall(!!e.checked)}
+                                />
                             </Field.Root>
                         </HStack>
 
-                        {isFiltering && (
-                            <Text fontSize="sm" color="gray.500">Visar {filteredReservations.length}/{props.reservations.length} bokningar</Text>
-                        )}
+                        <Field.Root
+                            width="100%"
+                            maxWidth="300px"
+                        >
+                            <Field.Label>Sök</Field.Label>
+                            <InputGroup width="100%" startElement={<LuSearch />}>
+                                <Input
+                                    value={inputSearch}
+                                    onChange={(e) => {
+                                        setInputSearch(e.currentTarget.value)
+                                    }}
+                                    placeholder="Sök efter namn, lokal, datum, m.m"
+                                />
+                            </InputGroup>
+                        </Field.Root>
                     </HStack>
+
+                    {isFiltering && (
+                        <Text fontSize="sm" color="gray.500">Visar {filteredReservations.length}/{props.reservations.length} bokningar</Text>
+                    )}
                 </Card.Body>
             </Card.Root>
             <br />
@@ -317,6 +332,7 @@ function ReservationList(props: ReservationListProps) {
                             setReservations={props.setReservations}
                             users={props.users}
                             key={reservation.id}
+                            small={inputSmall}
                         />
                     );
                 })}
@@ -349,11 +365,13 @@ function ReservationList(props: ReservationListProps) {
 function ReservationItem({
     reservation,
     setReservations,
-    users
+    users,
+    small
 }: {
     reservation: Reservation,
     setReservations: Dispatch<SetStateAction<Reservation[]>>,
-    users: User[]
+    users: User[],
+    small: boolean
 }) {
     const router = useRouter();
     const venues = useVenueStore((state) => state.venues);
@@ -475,41 +493,95 @@ function ReservationItem({
 
     const [isConfirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
-    return (
-        <Card.Root>
-            <div className={styles.item}>
-                <Tag
-                    width="100%"
-                    height="fit-content"
-                    size="lg"
-                    fontWeight="bold"
+    const renderVenue = () => {
+        if (small) {
+            return (
+                <Box
+                    borderRadius="6px"
+                    width="6px"
+                    height="100%"
                     bg={getVenueColor(reservation.venueId)}
-                    boxShadow="none"
-                    color="white"
-                >
-                    <Text>{getVenueName(reservation.venueId)}</Text>
-                </Tag>
-                <Stack>
+                ></Box>
+            )
+        }
+
+        return (
+            <Tag
+                width="100%"
+                height="fit-content"
+                size="lg"
+                fontWeight="bold"
+                bg={getVenueColor(reservation.venueId)}
+                boxShadow="none"
+                color="white"
+            >
+                <Text>{getVenueName(reservation.venueId)}</Text>
+            </Tag>
+        )
+    }
+
+    const renderBookingInfo = () => {
+        if (small) {
+            return (
+                <Stack gap="0">
                     {reservation.clientCommittee == null ? (
-                        <Text fontWeight="bold">{reservation.clientName} ({reservation.clientEmail})</Text>
+                        <Text fontWeight="bold">{reservation.clientName}</Text>
                     ) : (
                         <Text>
-                            <Text as="span" fontWeight="bold">{reservation.clientName} ({reservation.clientEmail})</Text> åt <Text as="span" fontStyle="italic" fontWeight="bold">{reservation.clientCommittee}</Text>
+                            <Text as="span" fontWeight="bold">{reservation.clientName}</Text> (<Text as="span" fontStyle="italic" fontWeight="bold">{reservation.clientCommittee}</Text>)
                         </Text>
                     )}
-                    <Text>{getReservationTypeLabel(reservation.type)}</Text>
                     <span>{reservation.clientDescription}</span>
-
-                    <Text as="i" fontSize="sm" color="gray.500">Ändrad av {editor} ({formatDate(reservation.updatedAt)})</Text>
-                    <Text as="i" fontSize="sm" color="gray.500">Skapad {formatDate(reservation.createdAt)}</Text>
                 </Stack>
+            )
+        }
 
+        return (
+            <Stack>
+                {reservation.clientCommittee == null ? (
+                    <Text fontWeight="bold">{reservation.clientName} ({reservation.clientEmail})</Text>
+                ) : (
+                    <Text>
+                        <Text as="span" fontWeight="bold">{reservation.clientName} ({reservation.clientEmail})</Text> åt <Text as="span" fontStyle="italic" fontWeight="bold">{reservation.clientCommittee}</Text>
+                    </Text>
+                )}
+                <Text>{getReservationTypeLabel(reservation.type)}</Text>
+                <span>{reservation.clientDescription}</span>
+
+                <Text as="i" fontSize="sm" color="gray.500">Ändrad av {editor} ({formatDate(reservation.updatedAt)})</Text>
+                <Text as="i" fontSize="sm" color="gray.500">Skapad {formatDate(reservation.createdAt)}</Text>
+            </Stack>
+        );
+    };
+
+    const renderTimeColumn = () => {
+        if (small) {
+            return (
                 <div>
                     {renderTime(reservation)}
                     {reservation.recurring !== Recurring.NEVER && <Text>
-                        Stående bokning: Återkommer {getRecurringLabel(reservation.recurring).toLocaleLowerCase()}
+                        {getRecurringLabel(reservation.recurring).toLocaleLowerCase()}
                     </Text>}
                 </div>
+            )
+        }
+
+        return (
+            <div>
+                {renderTime(reservation)}
+                {reservation.recurring !== Recurring.NEVER && <Text>
+                    Stående bokning: Återkommer {getRecurringLabel(reservation.recurring).toLocaleLowerCase()}
+                </Text>}
+            </div>
+        )
+    };
+
+    return (
+        <Card.Root>
+            <div className={`${styles.item} ${small ? styles.small : ""}`}>
+                {renderVenue()}
+                {renderBookingInfo()}
+                {renderTimeColumn()}
 
                 {status === Status.PENDING ? (
                     <>
