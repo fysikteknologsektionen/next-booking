@@ -45,17 +45,16 @@ export default function Home() {
             <Heading marginBottom="0.5em" as="h1" size="4xl">Boka flera lokaler</Heading>
             <Text>Detta verktyg gör det enklare att boka flera lokaler samtidigt.</Text>
             <br />
-            <Heading marginBottom="0.5em" as="h2" size="xl">Gör såhär:</Heading>
+            <Heading marginBottom="0.5em" as="h2" size="xl">Gör så här:</Heading>
             <List.Root as="ol">
                 <List.Item>
-                    Ladda ner template-dokumentet.<br />
+                    Ladda ner kalkylarket:<br />
                     <DocumentLink href="/assets/Lokalbokning template.xlsx" name="Lokalbokning template.xlsx"></DocumentLink>
                 </List.Item>
-                <List.Item>Lägg till info för alla bokningar du vill göra.</List.Item>
+                <List.Item>Öppna i excel eller Google kalkylark. Infoga en rad för varje bokninga du vill göra.</List.Item>
                 <List.Item>Exportera till en csv-fil.</List.Item>
-                <List.Item>Ladda upp csv-filen nedan, granska så det ser korrekt ut och klicka till sist på skapa bokningar.</List.Item>
+                <List.Item>Ladda upp csv-filen nedan, granska så det ser korrekt ut och klicka sedan på skapa bokningar.</List.Item>
             </List.Root>
-            <Text></Text>
             <br />
 
             <FileUpload.Root accept={["text/csv"]}>
