@@ -12,12 +12,15 @@ export default withAuth(
       
       authorized: ({ req, token }) => {
         if (req.nextUrl.pathname.startsWith('/api/admin')) {
-            return token ? token.role === "ADMIN" : false;
+          return token ? token.role === "ADMIN" : false;
         } else if (req.nextUrl.pathname.startsWith('/api/manager')) {
-            return token ? (token.role === "MANAGER" || token.role === "ADMIN") : false;
+          return token ? (token.role === "MANAGER" || token.role === "ADMIN") : false;
         } else if (req.nextUrl.pathname.startsWith('/update')) {
-            return token ? (token.role === "MANAGER" || token.role === "ADMIN") : false;
+          return token ? (token.role === "MANAGER" || token.role === "ADMIN") : false;
+        } else if (req.nextUrl.pathname.startsWith('/multi-create')) {
+          return token ? (token.role === "MANAGER" || token.role === "ADMIN") : false;
         }
+
         return true;
       }
     }

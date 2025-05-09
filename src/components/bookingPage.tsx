@@ -279,7 +279,7 @@ export default function BookingPage({
                             <Radio value={ReservationType.SITTING}>Sittning</Radio>
                             <Radio value={ReservationType.PUB}>Pub</Radio>
                             <Radio value={ReservationType.PERFORMANCE}>Föreställning</Radio>
-                            <Radio value={ReservationType.OTHER}>Övrigt</Radio>
+                            <Radio value={ReservationType.OTHER}>Övrig bokning</Radio>
                         </div>
                     </RadioGroup>
                 </Field>

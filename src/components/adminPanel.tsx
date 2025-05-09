@@ -1,6 +1,6 @@
 import { useVenueStore } from "@/lib/venueStore";
 import { getReservationsClient } from "@/server/api/getreservations";
-import { Box, Card, Center, createListCollection, Heading, HStack, IconButton, Input, Spinner, Stack, Tabs, Text, Field } from "@chakra-ui/react";
+import { Box, Card, Center, createListCollection, Heading, HStack, IconButton, Input, Spinner, Stack, Tabs, Text, Field, Link } from "@chakra-ui/react";
 import { Recurring, Reservation, Status, User, Venue } from "@prisma/client";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
@@ -80,9 +80,14 @@ export default function AdminPanel() {
 
     return (
         <div>
-            <Heading as="h2" size="3xl" fontWeight="bold">Hantera bokningar</Heading>
+            <hr />
             <br />
 
+            <Heading as="h2" size="3xl" fontWeight="bold" marginBottom="0.5em">Boka flera lokaler</Heading>
+            <Text>Verktyg för att boka flera lokaler samtidigt finns <Link href="/multi-create">här</Link>.</Text>
+            <br />
+
+            <Heading as="h2" size="3xl" fontWeight="bold" marginBottom="0.5em">Hantera bokningar</Heading>
             <Tabs.Root defaultValue="waiting" variant={"enclosed"}>
                 <Tabs.List>
                     <Tabs.Trigger value="waiting">

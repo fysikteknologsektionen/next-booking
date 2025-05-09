@@ -380,6 +380,16 @@ export const getReservationTypeLabel = (type: ReservationType) => {
     return reservationTypeLabels[type];
 }
 
+export const reservationTypeLabelToEnum = (label: string) => {
+    for (const [key, value] of Object.entries(reservationTypeLabels)) {
+        if (label === value) {
+            return key;
+        }
+    }
+
+    return null;
+}
+
 // Get readable label for `Recurring` enum
 const recurringLabels = {
     [Recurring.NEVER]: "Aldrig",
@@ -393,6 +403,16 @@ export const getRecurringLabel = (recurring: Recurring) => {
     return recurringLabels[recurring];
 }
 
+export const recurringLabelToEnum = (label: string) => {
+    for (const [key, value] of Object.entries(recurringLabels)) {
+        if (label === value) {
+            return key;
+        }
+    }
+
+    return null;
+}
+
 // Get readable label for `Status` enum
 const statusLabels = {
     [Status.ACCEPTED]: "Godkänd",
@@ -402,6 +422,16 @@ const statusLabels = {
 
 export const getStatusLabel = (status: Status) => {
     return statusLabels[status];
+}
+
+export const statusLabelToEnum = (label: string) => {
+    for (const [key, value] of Object.entries(statusLabels)) {
+        if (label === value) {
+            return key;
+        }
+    }
+
+    return null;
 }
 
 // Get venue name from id
@@ -416,6 +446,15 @@ export const getVenueLabel = (venues: Venue[], id: number | null) => {
         `Lokal ID: ${id}`;
 
     return label;
+}
+
+export const venueLabelToId = (venues: Venue[], label: string) => {
+    const venue = venues.find(v => v.name === label);
+    if (!venue) {
+        return null;
+    }
+
+    return venue.id;
 }
 
 // Non-negative modulo
