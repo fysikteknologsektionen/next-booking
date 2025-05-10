@@ -13,6 +13,7 @@ export async function createMultipleReservationsServer(reservations: {
     endTime: string,
     recurring: Recurring,
     recurringUntil: string | null,
+    recurringSkip: string[] | null,
     status: Status,
 }[]) {
     for (const reservation of reservations) {

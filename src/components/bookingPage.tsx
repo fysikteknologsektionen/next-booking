@@ -76,7 +76,8 @@ export default function BookingPage({
             venueId: "",
             status: Status.PENDING,
             recurring: Recurring.NEVER,
-            recurringUntil: recurringUntilDefault
+            recurringUntil: recurringUntilDefault,
+            recurringSkip: []
         }
 
     const [venue, setVenue] = useState<string>(defaultReservationData.venueId?.toString()??"")
@@ -160,7 +161,8 @@ export default function BookingPage({
                 startTime: swedishFrom,
                 endTime: swedishTo,
                 recurring: recurring,
-                recurringUntil: recurringUntil
+                recurringUntil: recurringUntil,
+                recurringSkip: []
             }
 
             // Make POST fetch request using the data

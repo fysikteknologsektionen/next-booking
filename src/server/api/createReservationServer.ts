@@ -16,6 +16,7 @@ export async function createReservationServer( {
     endTime,
     recurring,
     recurringUntil,
+    recurringSkip
 }: {
     clientName: string,
     clientCommittee: string | null,
@@ -27,7 +28,8 @@ export async function createReservationServer( {
     startTime: string,
     endTime: string,
     recurring: Recurring,
-    recurringUntil: string | null
+    recurringUntil: string | null,
+    recurringSkip: string[] | null
 }) {
     // Validate data
     if (
@@ -43,9 +45,10 @@ export async function createReservationServer( {
         !validateLocalDateString(endTime) ||
         !validateLocalDateString(date) ||
         (recurringUntil !== null && !validateDateString(recurringUntil)) ||
+        (recurringSkip !== null && recurringSkip.some(s => !validateDateString(s))) ||
         !validateVenueId(venueId)
     ) {
-        console.error(startTime, endTime, date, venueId);
+        console.error(startTime, endTime, date, venueId, recurringUntil, recurringSkip);
         return false;
     }
 
@@ -53,6 +56,7 @@ export async function createReservationServer( {
     endTime = localDateStringToUTCDate(endTime).toISOString();
     date = localDateStringToUTCDate(date).toISOString();
     recurringUntil = recurringUntil == null ? null : new Date(recurringUntil).toISOString();
+    const recurringSkipArray = recurringSkip == null ? [] : recurringSkip.map(s => new Date(s).toISOString());
     const venueIdNumber = parseInt(venueId);
 
     clientName = clientName.toString();
@@ -87,6 +91,7 @@ export async function createReservationServer( {
                 endTime,
                 recurring,
                 recurringUntil,
+                recurringSkip: recurringSkipArray,
                 venueId: venueIdNumber,
                 status,
             },
@@ -125,6 +130,7 @@ export async function createReservationServerWithStatus({
     endTime,
     recurring,
     recurringUntil,
+    recurringSkip,
     status
 }: {
     clientName: string,
@@ -138,6 +144,7 @@ export async function createReservationServerWithStatus({
     endTime: string,
     recurring: Recurring,
     recurringUntil: string | null,
+    recurringSkip: string[] | null,
     status: Status,
 }) {
     // Validate data
@@ -154,9 +161,10 @@ export async function createReservationServerWithStatus({
         !validateLocalDateString(endTime) ||
         !validateLocalDateString(date) ||
         (recurringUntil !== null && !validateDateString(recurringUntil)) ||
+        (recurringSkip !== null && recurringSkip.some(s => !validateDateString(s))) ||
         !validateVenueId(venueId)
     ) {
-        console.error(startTime, endTime, date, venueId);
+        console.error(startTime, endTime, date, venueId, recurringUntil, recurringSkip);
         return false;
     }
 
@@ -164,6 +172,7 @@ export async function createReservationServerWithStatus({
     endTime = localDateStringToUTCDate(endTime).toISOString();
     date = localDateStringToUTCDate(date).toISOString();
     recurringUntil = recurringUntil == null ? null : new Date(recurringUntil).toISOString();
+    const recurringSkipArray = recurringSkip == null ? [] : recurringSkip.map(s => new Date(s).toISOString());
     const venueIdNumber = parseInt(venueId);
 
     clientName = clientName.toString();
@@ -198,6 +207,7 @@ export async function createReservationServerWithStatus({
                 endTime,
                 recurring,
                 recurringUntil,
+                recurringSkip: recurringSkipArray,
                 venueId: venueIdNumber,
                 status,
             },

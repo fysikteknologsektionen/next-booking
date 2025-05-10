@@ -192,6 +192,7 @@ function CSVReservationToReservation(venues: Venue[], csv: CSVReservation) {
         endTime: endTime,
         recurring: recurring,
         recurringUntil: recurringUntil,
+        recurringSkip: [],
         startTime: startTime,
         type: type,
         venueId: venueId,

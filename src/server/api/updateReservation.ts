@@ -73,7 +73,7 @@ statusChangerId?: number) {
             status,
             editorId: statusChangerId,
         },
-    });;
+    });
     return result;
 }
 

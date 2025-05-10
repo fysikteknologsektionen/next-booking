@@ -73,6 +73,7 @@ model Reservation {
   endTime           DateTime
   recurring         Recurring @default(NEVER)
   recurringUntil    DateTime?
+  recurringSkip     DateTime[] @default([])
   status            Status    @default(PENDING)
   venueId           Int?
   venue             Venue?    @relation(fields: [venueId], references: [id], onDelete: SetNull)

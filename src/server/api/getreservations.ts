@@ -1,5 +1,5 @@
 import { getCurrentMonth, mod } from "@/lib/helper";
-import { Recurring } from "@prisma/client";
+import { Recurring, Reservation } from "@prisma/client";
 import prisma from "../lib/prisma";
 
 // ------ Reservations ------
@@ -142,12 +142,20 @@ export async function getReservationsServer(queryStartTime: Date, queryEndTime: 
                 fakeReservation.startTime = new Date(currentDate);
                 fakeReservation.endTime = new Date(fakeReservation.startTime.valueOf() + duration);
 
-                reservations.push(fakeReservation);
+                if (!shouldSkip(fakeReservation)) {
+                    reservations.push(fakeReservation);
+                }
             }
         }
     }
 
     return reservations;
+}
+
+function shouldSkip(r: Reservation) {
+    const startTimeValue = r.startTime.valueOf();
+    const anyMatch = r.recurringSkip.some(s => s.valueOf() == startTimeValue);
+    return anyMatch;
 }
 
 // Gets a reservation by id. Used on the server

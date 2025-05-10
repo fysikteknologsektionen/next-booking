@@ -33,6 +33,7 @@ import { MenuContent, MenuRoot, MenuTrigger, MenuItem } from './ui/menu';
 import { IoAddCircleSharp, IoReload } from 'react-icons/io5';
 import { useSearchParams } from "next/navigation";
 import { toaster } from "./ui/toaster";
+import { skipReservationClient } from "@/server/api/skipReservation";
 
 export default function Calendar() {
     const searchParams = useSearchParams()
@@ -410,7 +411,8 @@ function CalendarDetailsModal({
         accept: false,
         deny: false,
         delete: false,
-        edit: false
+        edit: false,
+        skip: false,
     });
 
     // Enable all action-buttons again when opening another reservation
@@ -419,7 +421,8 @@ function CalendarDetailsModal({
             accept: false,
             deny: false,
             delete: false,
-            edit: false
+            edit: false,
+            skip: false,
         });
     }, [ activeReservation ])
 
@@ -508,6 +511,32 @@ function CalendarDetailsModal({
         }
 
         window.location.href = `/update?reservationID=${activeReservation.id}`;
+    }
+
+    const skipActiveReservation = async () => {
+        if (!activeReservation) {
+            return;
+        }
+
+        setDisabledMenuButtons(d => ({ ...d, skip: true }));
+
+        const res = await skipReservationClient(activeReservation.id, activeReservation.startTime);
+
+        console.log(res);
+
+        if (res && res.ok) {
+            console.log("Skipped");
+            closeAndRefresh();
+        }
+        else {
+            toaster.create({
+                title: res ? res.statusText : "Okänt fel!",
+                type: "error",
+                duration: 7000
+            });
+        }
+
+        setDisabledMenuButtons(d => ({ ...d, skip: false }));
     }
 
     const menuRef = useRef<HTMLDivElement>(null);
@@ -599,7 +628,14 @@ function CalendarDetailsModal({
                                 {activeReservation.status === Status.PENDING && (
                                     <MenuItem value="deny" closeOnSelect={false} disabled={disabledMenuButtons.deny} onClick={denyActiveReservation}>{disabledMenuButtons.deny ? <Spinner /> : <MdClose />}Neka</MenuItem>
                                 )}
-                                <MenuItem value="delete" closeOnSelect={false} disabled={disabledMenuButtons.delete} onClick={deleteActiveReservation}>{disabledMenuButtons.delete ? <Spinner /> : <RiDeleteBin5Fill />}Ta bort</MenuItem>
+                                {activeReservation.recurring !== Recurring.NEVER ? (
+                                    <>
+                                        <MenuItem value="delete" closeOnSelect={false} disabled={disabledMenuButtons.delete} onClick={deleteActiveReservation}>{disabledMenuButtons.delete ? <Spinner /> : <RiDeleteBin5Fill />}Ta bort (alla)</MenuItem>
+                                        <MenuItem value="skip" closeOnSelect={false} disabled={disabledMenuButtons.skip} onClick={skipActiveReservation}>{disabledMenuButtons.skip ? <Spinner /> : <RiDeleteBin5Fill />}Ta bort (endast idag)</MenuItem>
+                                    </>
+                                ) : (
+                                    <MenuItem value="delete" closeOnSelect={false} disabled={disabledMenuButtons.delete} onClick={deleteActiveReservation}>{disabledMenuButtons.delete ? <Spinner /> : <RiDeleteBin5Fill />}Ta bort (alla)</MenuItem>
+                                )}
                                 <MenuItem value="edit" disabled={disabledMenuButtons.edit} onClick={editActiveReservation}><FiEdit />Redigera</MenuItem>
                             </MenuContent>
                         </MenuRoot>

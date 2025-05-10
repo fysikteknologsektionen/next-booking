@@ -1,6 +1,5 @@
-import { getCurrentMonth, localDateStringToUTCDate, mod } from "@/lib/helper";
-import { Recurring, Status } from "@prisma/client";
-import prisma from "../lib/prisma";
+import { localDateStringToUTCDate } from "@/lib/helper";
+import { Status } from "@prisma/client";
 import { getReservationsServer } from "./getreservations";
 
 export async function checkOverlapServer(
