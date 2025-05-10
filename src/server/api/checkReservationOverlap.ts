@@ -11,15 +11,15 @@ export async function checkOverlapServer(
     const endTimeDate = localDateStringToUTCDate(endTime);
     const venueIdNumber = parseInt(venueId);
 
-    const reservations = (await getReservationsServer(startTimeDate, endTimeDate, false, [ venueIdNumber ]))
-        .filter((r) => (
+    const reservations = await getReservationsServer(startTimeDate, endTimeDate, false, [ venueIdNumber ]);
+    const filtered = reservations.filter((r) => (
             r.status === Status.ACCEPTED &&
             // Remove edge cases where startTime of one = endTime of other
             r.startTime.valueOf() < endTimeDate.valueOf() &&
             r.endTime.valueOf() > startTimeDate.valueOf()
         ));
-    
-    return reservations.length > 0;
+        
+    return filtered.length > 0;
 }
 
 export async function checkOverlapClient(
@@ -33,7 +33,7 @@ export async function checkOverlapClient(
         venueId: venueId.toString(),
     });
 
-    const res = await fetch("/api/reservations/?" + params);
+    const res = await fetch("/api/reservations/overlap?" + params);
     if (!res.ok) {
         throw new Error("Could not check for overlap");
     }
