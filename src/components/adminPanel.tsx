@@ -37,6 +37,7 @@ import { InputGroup } from "./ui/input-group";
 import { LuSearch } from "react-icons/lu";
 import { useRouter } from "next/navigation";
 import { Checkbox } from "./ui/checkbox";
+import { toaster } from "./ui/toaster";
 
 export default function AdminPanel() {
     const [isLoading, setLoading] = useState(false);
@@ -403,6 +404,11 @@ function ReservationItem({
 
         if (!res || !res.ok) {
             setDisabled(false);
+            toaster.create({
+                title: res ? res.statusText : "Okänt fel!",
+                type: "error",
+                duration: 7000
+            });
         }
         else {
             const { updatedReservation, affectedReservations } = await res.json();
@@ -443,6 +449,11 @@ function ReservationItem({
 
         if (!res || !res.ok) {
             setDisabled(false);
+            toaster.create({
+                title: res ? res.statusText : "Okänt fel!",
+                type: "error",
+                duration: 7000
+            });
         }
         else {
             setStatus(Status.DENIED);
@@ -464,6 +475,11 @@ function ReservationItem({
             setReservations(o => o.filter(r => r !== reservation));
         }
         else {
+            toaster.create({
+                title: res ? res.statusText : "Okänt fel!",
+                type: "error",
+                duration: 7000
+            });
             console.error("Error removing!");
         }
 

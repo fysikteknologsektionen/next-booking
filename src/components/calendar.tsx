@@ -32,6 +32,7 @@ import {
 import { MenuContent, MenuRoot, MenuTrigger, MenuItem } from './ui/menu';
 import { IoAddCircleSharp, IoReload } from 'react-icons/io5';
 import { useSearchParams } from "next/navigation";
+import { toaster } from "./ui/toaster";
 
 export default function Calendar() {
     const searchParams = useSearchParams()
@@ -439,6 +440,13 @@ function CalendarDetailsModal({
             console.log("Godkänd");
             closeAndRefresh();
         }
+        else {
+            toaster.create({
+                title: res ? res.statusText : "Okänt fel!",
+                type: "error",
+                duration: 7000
+            });
+        }
 
         setDisabledMenuButtons(d => ({ ...d, accept: false }));
     }
@@ -460,6 +468,13 @@ function CalendarDetailsModal({
             console.log("Nekad");
             closeAndRefresh();
         }
+        else {
+            toaster.create({
+                title: res ? res.statusText : "Okänt fel!",
+                type: "error",
+                duration: 7000
+            });
+        }
 
         setDisabledMenuButtons(d => ({ ...d, deny: false }));
     }
@@ -475,6 +490,13 @@ function CalendarDetailsModal({
         if (res && res.ok) {
             console.log("Borttagen");
             closeAndRefresh();
+        }
+        else {
+            toaster.create({
+                title: res ? res.statusText : "Okänt fel!",
+                type: "error",
+                duration: 7000
+            });
         }
 
         setDisabledMenuButtons(d => ({ ...d, delete: false }));
