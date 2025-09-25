@@ -85,7 +85,7 @@ export default function AdminPanel() {
             <br />
 
             <Heading as="h2" size="3xl" fontWeight="bold" marginBottom="0.5em">Boka flera lokaler</Heading>
-            <Text>Verktyg för att boka flera lokaler samtidigt finns <Link href="/multi-create">här</Link>.</Text>
+            <Text>Verktyg för att boka flera lokaler samtidigt finns <Link href="/multi-create" color="blue">här</Link>.</Text>
             <br />
 
             <Heading as="h2" size="3xl" fontWeight="bold" marginBottom="0.5em">Hantera bokningar</Heading>

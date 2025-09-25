@@ -210,7 +210,7 @@ export default function BookingPage({
     return (
         <>
             <Heading marginBottom="0.5em">Boka lokal</Heading>
-            <Text marginBottom="1em">Läs noga igenom <Text as="b"><Link href="/information" color="teal" target="_blank" rel="noopener noreferrer">Informationen</Link></Text> innan du bokar!</Text>
+            <Text marginBottom="1em">Läs noga igenom <Text as="b"><Link href="/information" color="blue" target="_blank" rel="noopener noreferrer">Informationen</Link></Text> innan du bokar!</Text>
             
             <form onSubmit={submit(false)} style={{
                 display: "flex",

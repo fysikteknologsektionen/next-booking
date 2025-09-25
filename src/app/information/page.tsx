@@ -45,7 +45,7 @@ export default function Home() {
 
             <div>
                 <Heading as="h2" size="3xl" fontWeight="bold" marginBottom="0.5em">Bokningsregler</Heading>
-                <Text>Alla arrangemang måste anmälas minst två dagar i förväg. Information om hur du gör detta finner du på sidan om <Text as="b"><Link href="https://ftek.se/festanmalan/" color="teal" target="_blank" rel="noopener noreferrer">Anmälan av arrangemang</Link></Text>. Vid slutet av bokningen ska ni vara klara för avsyning.</Text>
+                <Text>Alla arrangemang måste anmälas minst två dagar i förväg. Information om hur du gör detta finner du på sidan om <Text as="b"><Link href="https://ftek.se/festanmalan/" color="blue" target="_blank" rel="noopener noreferrer">Anmälan av arrangemang</Link></Text>. Vid slutet av bokningen ska ni vara klara för avsyning.</Text>
             
                 <br/>
 

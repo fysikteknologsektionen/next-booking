@@ -5,10 +5,10 @@ export function HowToCreateReservationSection() {
         <div>
             <Heading as="h2" size="3xl" fontWeight="bold" marginBottom="0.5em">Så här bokar du en lokal:</Heading>
             <List.Root as="ol">
-                <List.Item>Läs under fliken <Text as="b"><Link href="/information" color="teal">Information</Link></Text>.</List.Item>
-                <List.Item>Klicka på <Text as="b"><Link href="/create" color="teal">Boka lokal</Link></Text>.</List.Item>
+                <List.Item>Läs under fliken <Text as="b"><Link href="/information" color="blue">Information</Link></Text>.</List.Item>
+                <List.Item>Klicka på <Text as="b"><Link href="/create" color="blue">Boka lokal</Link></Text>.</List.Item>
                 <List.Item>Fyll i all information och skicka in din bokning.</List.Item>
-                <List.Item><Text as="b">Klart!</Text> Din bokning ska nu synas i <Text as="b"><Link href="/#calendar" color="teal">Kalendern</Link></Text>.</List.Item>
+                <List.Item><Text as="b">Klart!</Text> Din bokning ska nu synas i <Text as="b"><Link href="/#calendar" color="blue">Kalendern</Link></Text>.</List.Item>
             </List.Root>
         </div>
     )
