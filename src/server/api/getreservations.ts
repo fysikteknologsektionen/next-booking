@@ -1,10 +1,26 @@
 import { getCurrentMonth, mod } from "@/lib/helper";
-import { Recurring, Reservation } from "@prisma/client";
+import { Recurring, Reservation, Status } from "@prisma/client";
 import prisma from "../lib/prisma";
 
 // ------ Reservations ------
 // Gets reservations by date. Used on the server
-export async function getReservationsServer(queryStartTime: Date, queryEndTime: Date, recurringAsOne: boolean, venueIDs?: number[]) {
+export async function getReservationsServer(
+    isManager: boolean,
+    queryStartTime: Date,
+    queryEndTime: Date,
+    recurringAsOne: boolean,
+    venueIDs?: number[]
+) {
+    const venueCheck = !venueIDs ? {} : {
+        venueId: {
+            in: venueIDs
+        }
+    };
+
+    const statusCheck = isManager ? {} : {
+        status: Status.ACCEPTED,
+    };
+
     const reservations = await prisma.reservation.findMany({
         where: {
             OR: [{
@@ -25,7 +41,8 @@ export async function getReservationsServer(queryStartTime: Date, queryEndTime: 
                     gte: queryEndTime,
                 },
             }],
-            ...(venueIDs ? {venueId: {in: venueIDs}}:{})
+            ...statusCheck,
+            ...venueCheck,
         }
     });
 
@@ -57,7 +74,8 @@ export async function getReservationsServer(queryStartTime: Date, queryEndTime: 
                 recurring: {
                     not: Recurring.NEVER
                 },
-                ...(venueIDs ? {venueId: {in: venueIDs}}:{})
+                ...statusCheck,
+                ...venueCheck,
             }
         });
 

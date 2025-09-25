@@ -11,7 +11,7 @@ export async function checkOverlapServer(
     const endTimeDate = localDateStringToUTCDate(endTime);
     const venueIdNumber = parseInt(venueId);
 
-    const reservations = await getReservationsServer(startTimeDate, endTimeDate, false, [ venueIdNumber ]);
+    const reservations = await getReservationsServer(false, startTimeDate, endTimeDate, false, [ venueIdNumber ]);
     const filtered = reservations.filter((r) => (
             r.status === Status.ACCEPTED &&
             // Remove edge cases where startTime of one = endTime of other
