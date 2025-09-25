@@ -25,3 +25,9 @@ Open a terminal in the container and do the following
 - Start the server with `npm run dev`
 
 In order to reset the database to the seeded state run `npx prisma migrate reset`
+
+## Database dashboard
+Use prisma studio to edit the database inside the browser
+```bash
+npx prisma studio
+```
