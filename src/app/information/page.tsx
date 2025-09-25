@@ -69,8 +69,8 @@ export default function Home() {
                 <Heading as="h2" size="3xl" fontWeight="bold" marginBottom="0.5em">Kostnader</Heading>
                 <Text>När du bokar Focus tillkommer en kostnad enligt <Text as="b">hyreskontraktet</Text> för att använda möblerna som går till att täcka slitage- och underhållskostnad samt en deposition som återbetalas enligt <Text as="b">städ- och depositionslistan</Text>. Vid otillräcklig städning, missbruk eller skada på lokalen debiteras motsvarande kostnad från depositionen.</Text>
             
-                <DocumentLink href="/assets/Hyreskontrakt för Focus.pdf" name="Hyreskontrakt 2024/2025.pdf"></DocumentLink>
-                <DocumentLink href="/assets/Städ- och depostitionslista för Focus.pdf" name="Städ- och depositionslista 2024/2025.pdf"></DocumentLink>
+                <DocumentLink href="https://ftek.se/wp-content/uploads/ftek-documents/Styrdokument/Boka%20focus/Hyreskontrakt för Focus.pdf" name="Hyreskontrakt.pdf"></DocumentLink>
+                <DocumentLink href="https://ftek.se/wp-content/uploads/ftek-documents/Styrdokument/Boka%20focus/Städ- och depostitionslista för Focus.pdf" name="Städ- och depositionslista.pdf"></DocumentLink>
             </div>
 
             <div>
