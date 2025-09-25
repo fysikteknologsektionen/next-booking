@@ -17,9 +17,19 @@ export async function getReservationsServer(
         }
     };
 
+    // Only show accepted unless the user is a manager
     const statusCheck = isManager ? {} : {
         status: Status.ACCEPTED,
     };
+
+    // Guests should not see reservations older than a week
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setUTCDate(oneWeekAgo.getUTCDate() - 7);
+    const hideOld = isManager ? {} : {
+        endTime: {
+            gte: oneWeekAgo,
+        },
+    }
 
     const reservations = await prisma.reservation.findMany({
         where: {
@@ -41,6 +51,7 @@ export async function getReservationsServer(
                     gte: queryEndTime,
                 },
             }],
+            ...hideOld,
             ...statusCheck,
             ...venueCheck,
         }
@@ -143,7 +154,7 @@ export async function getReservationsServer(
 
                     // There are atleast 4 (wlog) mondays every month but possibly 5,
                     // so if the reservation is on the 5:th monday, move it to the 4:th
-                    // monday those month that only have 4 mondays
+                    // monday for the months with only 4 mondays
                     if (currentDate.getUTCMonth() !== compareMonth) {
                         currentDate.setUTCDate(currentDate.getUTCDate() - 7);
                     }
@@ -160,9 +171,23 @@ export async function getReservationsServer(
                 fakeReservation.startTime = new Date(currentDate);
                 fakeReservation.endTime = new Date(fakeReservation.startTime.valueOf() + duration);
 
-                if (!shouldSkip(fakeReservation)) {
-                    reservations.push(fakeReservation);
+                // Don't return recurring reservations outside
+                // the requested time interval
+                if (!(fakeReservation.startTime <= queryEndTime && fakeReservation.endTime >= queryStartTime)) {
+                    continue;
                 }
+
+                // Skip if this date is specifically deleted
+                if (shouldSkip(fakeReservation)) {
+                    continue;
+                }
+
+                // Don't show old reservations for guests
+                if (!isManager && fakeReservation.endTime < oneWeekAgo) {
+                    continue;
+                }
+
+                reservations.push(fakeReservation);
             }
         }
     }
@@ -170,6 +195,11 @@ export async function getReservationsServer(
     return reservations;
 }
 
+/**
+ * Check if a recurring reservation should be skipped.
+ * Happens when a single day of a recurring reservation
+ * has been deleted.
+ */
 function shouldSkip(r: Reservation) {
     const startTimeValue = r.startTime.valueOf();
     const anyMatch = r.recurringSkip.some(s => s.valueOf() == startTimeValue);
