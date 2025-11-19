@@ -17,11 +17,6 @@ export async function getReservationsServer(
         }
     };
 
-    // Only show accepted unless the user is a manager
-    const statusCheck = isManager ? {} : {
-        status: Status.ACCEPTED,
-    };
-
     // Guests should not see reservations older than a week
     const oneWeekAgo = new Date();
     oneWeekAgo.setUTCDate(oneWeekAgo.getUTCDate() - 7);
@@ -52,7 +47,6 @@ export async function getReservationsServer(
                 },
             }],
             ...hideOld,
-            ...statusCheck,
             ...venueCheck,
         }
     });
@@ -85,7 +79,6 @@ export async function getReservationsServer(
                 recurring: {
                     not: Recurring.NEVER
                 },
-                ...statusCheck,
                 ...venueCheck,
             }
         });
@@ -188,6 +181,19 @@ export async function getReservationsServer(
                 }
 
                 reservations.push(fakeReservation);
+            }
+        }
+    }
+
+    // Remove unmoderated info (name, email, description, etc)
+    // from pending bookings
+    if (!isManager) {
+        for (const reservation of reservations) {
+            if (reservation.status !== Status.ACCEPTED) {
+                reservation.clientName = "";
+                reservation.clientCommittee = "";
+                reservation.clientEmail = "";
+                reservation.clientDescription = "";
             }
         }
     }

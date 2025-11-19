@@ -541,6 +541,9 @@ function CalendarDetailsModal({
 
     const menuRef = useRef<HTMLDivElement>(null);
 
+    const showClient = activeReservation && (activeReservation.status !== Status.PENDING || _isManager);
+    const showDesc = showClient;
+
     return (
         <DialogRoot lazyMount open={isOpen} onOpenChange={(e: any) => setOpen(e.open)}>
             <DialogContent ref={menuRef}>
@@ -558,15 +561,19 @@ function CalendarDetailsModal({
                                 gridTemplateColumns: "min-content auto",
                                 gap: "1rem",
                             }}>
-                                <Icon fontSize="1.25rem">
-                                    <MdOutlinePeople />
-                                </Icon>
-                                {activeReservation.clientCommittee == null ? (
-                                    <Text>{activeReservation.clientName} ({activeReservation.clientEmail})</Text>
-                                ) : (
-                                    <Text>
-                                        <Text as="span">{activeReservation.clientName} ({activeReservation.clientEmail})</Text> åt <Text as="span" fontStyle="italic">{activeReservation.clientCommittee}</Text>
-                                    </Text>
+                                {showClient && (
+                                    <>
+                                        <Icon fontSize="1.25rem">
+                                            <MdOutlinePeople />
+                                        </Icon>
+                                        {activeReservation.clientCommittee == null ? (
+                                            <Text>{activeReservation.clientName} ({activeReservation.clientEmail})</Text>
+                                        ) : (
+                                            <Text>
+                                                <Text as="span">{activeReservation.clientName} ({activeReservation.clientEmail})</Text> åt <Text as="span" fontStyle="italic">{activeReservation.clientCommittee}</Text>
+                                            </Text>
+                                        )}
+                                    </>
                                 )}
                                 
                                 <Icon fontSize="1.25rem">
@@ -591,10 +598,14 @@ function CalendarDetailsModal({
                                     </Text>
                                 </div>
 
-                                <Icon fontSize="1.25rem">
-                                    <MdNotes />
-                                </Icon>
-                                <Text>{activeReservation.clientDescription}</Text>
+                                {showDesc && (
+                                    <>
+                                        <Icon fontSize="1.25rem">
+                                            <MdNotes />
+                                        </Icon>
+                                        <Text>{activeReservation.clientDescription}</Text>
+                                    </>
+                                )}
                             </div>
 
                             {activeReservation.status === Status.PENDING && (
