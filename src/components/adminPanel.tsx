@@ -174,33 +174,31 @@ function ReservationList(props: ReservationListProps) {
                 return true;
             }
 
-            if (show === ShowFilter.AFTER_TODAY && reservation.startTime.valueOf() < new Date().valueOf()) {
+            if (show === ShowFilter.AFTER_TODAY) {
+                return reservation.startTime.valueOf() >= new Date().valueOf();
+            }
+
+            if (show === ShowFilter.ONLY_OVERLAPPING) {
+                for (const otherReservation of props.reservations) {
+                    if (otherReservation === reservation) {
+                        continue;
+                    }
+
+                    if (otherReservation.status === Status.DENIED) {
+                        continue;
+                    }
+
+                    if (reservation.venueId !== otherReservation.venueId) {
+                        continue;
+                    }
+
+                    if (otherReservation.startTime.valueOf() < reservation.endTime.valueOf() && otherReservation.endTime.valueOf() > reservation.startTime.valueOf()) {
+                        return true;
+                    }
+                }
+
                 return false;
             }
-
-            if (reservation.status === Status.DENIED) {
-                return false;
-            }
-
-            for (const otherReservation of props.reservations) {
-                if (otherReservation === reservation) {
-                    continue;
-                }
-
-                if (otherReservation.status === Status.DENIED) {
-                    continue;
-                }
-
-                if (reservation.venueId !== otherReservation.venueId) {
-                    continue;
-                }
-
-                if (otherReservation.startTime.valueOf() < reservation.endTime.valueOf() && otherReservation.endTime.valueOf() > reservation.startTime.valueOf()) {
-                    return true;
-                }
-            }
-
-            return false;
         })
         .filter(searchFilter(venues, inputSearch))
         .sort((a, b) => {
