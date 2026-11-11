@@ -544,6 +544,10 @@ function CalendarDetailsModal({
     const showClient = activeReservation && (activeReservation.status !== Status.PENDING || _isManager);
     const showDesc = showClient;
 
+    const clientEmailFormatted = !activeReservation || activeReservation.clientEmail === "" ?
+        "" :
+        `(${activeReservation.clientEmail})`;
+
     return (
         <DialogRoot lazyMount open={isOpen} onOpenChange={(e: any) => setOpen(e.open)}>
             <DialogContent ref={menuRef}>
@@ -567,10 +571,10 @@ function CalendarDetailsModal({
                                             <MdOutlinePeople />
                                         </Icon>
                                         {activeReservation.clientCommittee == null ? (
-                                            <Text>{activeReservation.clientName} ({activeReservation.clientEmail})</Text>
+                                            <Text>{activeReservation.clientName} {clientEmailFormatted}</Text>
                                         ) : (
                                             <Text>
-                                                <Text as="span">{activeReservation.clientName} ({activeReservation.clientEmail})</Text> åt <Text as="span" fontStyle="italic">{activeReservation.clientCommittee}</Text>
+                                                <Text as="span">{activeReservation.clientName} {clientEmailFormatted}</Text> åt <Text as="span" fontStyle="italic">{activeReservation.clientCommittee}</Text>
                                             </Text>
                                         )}
                                     </>
