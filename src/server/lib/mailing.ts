@@ -2,7 +2,7 @@ import nodemailer from 'nodemailer'
 import config from './config'
 import Mail from 'nodemailer/lib/mailer';
 import { NextResponse } from 'next/server';
-import { formatDate, getReservationTypeLabel } from '@/lib/helper';
+import { formatTimeInterval, getReservationTypeLabel } from '@/lib/helper';
 import { Reservation } from '@prisma/client';
 
 export async function confirmationMail(reservation: Reservation, venue: string) {
@@ -68,16 +68,7 @@ export async function sendEmail(recipient:string|undefined, subject:string, mess
 }
 
 function makeEmail(reservation: Reservation, venue: string, header: string, message: string) {
-    let date = formatDate(reservation.startTime) + ' - ' + formatDate(reservation.endTime);
-  
-    const regex = /^(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}) - (\d{4}-\d{2}-\d{2}) (\d{2}:\d{2})$/;
-    const match = date.match(regex);
-    if (match) {
-        const [ , firstDate, firstTime, secondDate, secondTime ] = match;
-        if (firstDate === secondDate) {
-            date = `${firstDate} ${firstTime} - ${secondTime}`;
-        }
-    }
+    const date = formatTimeInterval(reservation.startTime, reservation.endTime, true);
   
     let mail = '<!DOCTYPE html><html><head><base target="_top"></head><body><div style="text-align: center;' +
         'font-family: Arial;"><div id="center" style="width:500px; margin:25px;margin-left:auto; margin-right:auto;' +
