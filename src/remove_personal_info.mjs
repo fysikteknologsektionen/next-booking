@@ -120,12 +120,38 @@ async function redactReservations() {
     let count = 0;
     const cutoffTime = DateTime.now().minus({ weeks: REDACT_WEEKS });
 
+    const notAlreadyAnon = {
+        OR: [
+            {
+                clientName: {
+                    not: "Anonym",
+                },
+            },
+            {
+                clientEmail: {
+                    not: "",
+                },
+            },
+            {
+                clientCommittee: {
+                    not: null,
+                },
+            },
+            {
+                clientDescription: {
+                    not: "",
+                },
+            }
+        ],
+    }
+
     let status = await prisma.reservation.updateMany({
         where: {
             recurring: Recurring.NEVER,
             endTime: {
                 lt: cutoffTime.toJSDate(),
             },
+            ...notAlreadyAnon
         },
         data: {
             ...anonymizedInfo
@@ -144,6 +170,7 @@ async function redactReservations() {
             recurringUntil: {
                 lt: cutoffTime.toJSDate(),
             },
+            ...notAlreadyAnon,
         },
         data: {
             ...anonymizedInfo
